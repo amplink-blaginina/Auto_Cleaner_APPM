@@ -1,0 +1,654 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ServiceOtherEngineLeftForm</class>
+ <widget class="QWidget" name="ServiceOtherEngineLeftForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>870</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QFrame" name="frame_background">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>870</width>
+     <height>600</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_background
+{
+	background-image: url(:/Images/Images/service/other/engine/backgrounds/service_engine_sub-background_engine.png);
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Plain</enum>
+   </property>
+   <widget class="QPushButton" name="pushButton_starter">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>242</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>СТАРТЕР</string>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_bunkerDKP">
+    <property name="geometry">
+     <rect>
+      <x>552</x>
+      <y>242</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>      БУНКЕР ДКП</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_bunkerDKP1">
+    <property name="geometry">
+     <rect>
+      <x>746</x>
+      <y>252</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_rearGear1">
+    <property name="geometry">
+     <rect>
+      <x>746</x>
+      <y>166</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_off.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_rearGear">
+    <property name="geometry">
+     <rect>
+      <x>552</x>
+      <y>156</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>     ЗАДНИЙ ХОД</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_voltageInternal">
+    <property name="geometry">
+     <rect>
+      <x>550</x>
+      <y>408</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>26V U БОРТ</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_ignition">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>326</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::checked
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>ЗАЖИГАНИЕ</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_canExternal1">
+    <property name="geometry">
+     <rect>
+      <x>228</x>
+      <y>420</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_canExternal">
+    <property name="geometry">
+     <rect>
+      <x>34</x>
+      <y>408</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>                CAN</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_temperatureInternal">
+    <property name="geometry">
+     <rect>
+      <x>550</x>
+      <y>492</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>255C t ДВС</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_canInternal1">
+    <property name="geometry">
+     <rect>
+      <x>744</x>
+      <y>336</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_canInternal">
+    <property name="geometry">
+     <rect>
+      <x>550</x>
+      <y>326</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>              CAN</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_temperatureExternal">
+    <property name="geometry">
+     <rect>
+      <x>34</x>
+      <y>492</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>255C t ДВС</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_realRPM">
+    <property name="geometry">
+     <rect>
+      <x>44</x>
+      <y>154</y>
+      <width>119</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>5000</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_needRPM">
+    <property name="geometry">
+     <rect>
+      <x>278</x>
+      <y>152</y>
+      <width>99</width>
+      <height>35</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>5000</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_lessRPM">
+    <property name="geometry">
+     <rect>
+      <x>202</x>
+      <y>146</y>
+      <width>49</width>
+      <height>49</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/other/engine/buttons/service_engine_sub-background_engine_button_left_off.png);
+	color: white;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/other/engine/buttons/service_engine_sub-background_engine_button_left_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_moreRPM">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>146</y>
+      <width>49</width>
+      <height>49</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/other/engine/buttons/service_engine_sub-background_engine_button_right_off.png);
+	color: white;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/other/engine/buttons/service_engine_sub-background_engine_button_right_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_waterAlarm_6">
+    <property name="geometry">
+     <rect>
+      <x>736</x>
+      <y>102</y>
+      <width>93</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>100 км/ч</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_preroll">
+    <property name="geometry">
+     <rect>
+      <x>276</x>
+      <y>242</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::pressed, QPushButton::checked
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>ПРОКРУТКА</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_starterPreroll">
+    <property name="geometry">
+     <rect>
+      <x>276</x>
+      <y>326</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}
+
+QPushButton:disabled
+{
+	border-style:none;
+	outline: none;
+	background-color: rgba(40, 40, 40, 200);
+	color: rgba(100, 100, 100, 255);
+}</string>
+    </property>
+    <property name="text">
+     <string>СТАРТЕР ПРОКРУТКА</string>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_prerollStatus">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>548</y>
+      <width>806</width>
+      <height>44</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: yellow;</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <zorder>pushButton_starter</zorder>
+   <zorder>label_bunkerDKP</zorder>
+   <zorder>label_bunkerDKP1</zorder>
+   <zorder>label_rearGear</zorder>
+   <zorder>label_rearGear1</zorder>
+   <zorder>label_voltageInternal</zorder>
+   <zorder>pushButton_ignition</zorder>
+   <zorder>label_canExternal</zorder>
+   <zorder>label_canExternal1</zorder>
+   <zorder>label_temperatureInternal</zorder>
+   <zorder>label_canInternal</zorder>
+   <zorder>label_canInternal1</zorder>
+   <zorder>label_temperatureExternal</zorder>
+   <zorder>label_realRPM</zorder>
+   <zorder>label_needRPM</zorder>
+   <zorder>pushButton_lessRPM</zorder>
+   <zorder>pushButton_moreRPM</zorder>
+   <zorder>label_waterAlarm_6</zorder>
+   <zorder>pushButton_preroll</zorder>
+   <zorder>pushButton_starterPreroll</zorder>
+   <zorder>label_prerollStatus</zorder>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

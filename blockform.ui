@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BlockForm</class>
+ <widget class="QWidget" name="BlockForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QLabel" name="label_blockScreenText">
+   <property name="geometry">
+    <rect>
+     <x>297</x>
+     <y>158</y>
+     <width>409</width>
+     <height>262</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>26</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel{
+color: rgba(255, 255, 255, 200);
+}</string>
+   </property>
+   <property name="text">
+    <string>Текст блокировки</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_blockScreen">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>768</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel{
+background-color: rgba(0, 0, 0, 190);
+}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_developerMode">
+   <property name="geometry">
+    <rect>
+     <x>906</x>
+     <y>94</y>
+     <width>79</width>
+     <height>79</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/main/buttons/button_blocking_off.png);
+}
+QPushButton::pressed
+{
+border-style:none;
+outline: none;
+background-image: url(:/Images/Images/main/buttons/button_blocking_on.png);
+}
+</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <zorder>label_blockScreen</zorder>
+  <zorder>label_blockScreenText</zorder>
+  <zorder>pushButton_developerMode</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

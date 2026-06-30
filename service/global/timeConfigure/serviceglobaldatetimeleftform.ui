@@ -1,0 +1,757 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ServiceGlobalDateTimeLeftForm</class>
+ <widget class="QWidget" name="ServiceGlobalDateTimeLeftForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>870</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QFrame" name="frame_background">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>870</width>
+     <height>600</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_background
+{
+	background-image: url(:/Images/Images/service/global/time/backgrounds/service_generalSettings_sub-background_time.png);
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Plain</enum>
+   </property>
+   <widget class="QLabel" name="label_hourMore">
+    <property name="geometry">
+     <rect>
+      <x>138</x>
+      <y>122</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_up.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_hourLess">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>252</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_down.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_hour">
+    <property name="geometry">
+     <rect>
+      <x>136</x>
+      <y>176</y>
+      <width>89</width>
+      <height>65</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>50</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string>20</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_minute">
+    <property name="geometry">
+     <rect>
+      <x>412</x>
+      <y>178</y>
+      <width>89</width>
+      <height>65</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>50</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string>58</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_minuteLess">
+    <property name="geometry">
+     <rect>
+      <x>416</x>
+      <y>254</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_down.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_minuteMore">
+    <property name="geometry">
+     <rect>
+      <x>414</x>
+      <y>124</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_up.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_day">
+    <property name="geometry">
+     <rect>
+      <x>136</x>
+      <y>428</y>
+      <width>89</width>
+      <height>65</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>50</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string>02</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_month">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>428</y>
+      <width>89</width>
+      <height>65</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>50</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string>12</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_year">
+    <property name="geometry">
+     <rect>
+      <x>628</x>
+      <y>430</y>
+      <width>191</width>
+      <height>65</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>50</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string>2023</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_hour_more">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>112</y>
+      <width>193</width>
+      <height>97</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_minute_more">
+    <property name="geometry">
+     <rect>
+      <x>358</x>
+      <y>114</y>
+      <width>199</width>
+      <height>97</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_day_more">
+    <property name="geometry">
+     <rect>
+      <x>88</x>
+      <y>366</y>
+      <width>183</width>
+      <height>93</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_month_more">
+    <property name="geometry">
+     <rect>
+      <x>358</x>
+      <y>364</y>
+      <width>193</width>
+      <height>97</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_year_more">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>362</y>
+      <width>185</width>
+      <height>101</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_minute_less">
+    <property name="geometry">
+     <rect>
+      <x>362</x>
+      <y>218</y>
+      <width>187</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_hour_less">
+    <property name="geometry">
+     <rect>
+      <x>78</x>
+      <y>220</y>
+      <width>199</width>
+      <height>95</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_day_less">
+    <property name="geometry">
+     <rect>
+      <x>84</x>
+      <y>466</y>
+      <width>187</width>
+      <height>99</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_month_less">
+    <property name="geometry">
+     <rect>
+      <x>362</x>
+      <y>464</y>
+      <width>183</width>
+      <height>101</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_year_less">
+    <property name="geometry">
+     <rect>
+      <x>628</x>
+      <y>468</y>
+      <width>189</width>
+      <height>93</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_second">
+    <property name="geometry">
+     <rect>
+      <x>684</x>
+      <y>178</y>
+      <width>89</width>
+      <height>65</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>50</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string>58</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_secondMore">
+    <property name="geometry">
+     <rect>
+      <x>686</x>
+      <y>124</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_up.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_secondLess">
+    <property name="geometry">
+     <rect>
+      <x>688</x>
+      <y>254</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_down.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_second_more">
+    <property name="geometry">
+     <rect>
+      <x>624</x>
+      <y>112</y>
+      <width>195</width>
+      <height>103</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_second_less">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>214</y>
+      <width>185</width>
+      <height>93</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_dayMore">
+    <property name="geometry">
+     <rect>
+      <x>142</x>
+      <y>376</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_up.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_dayLess">
+    <property name="geometry">
+     <rect>
+      <x>144</x>
+      <y>506</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_down.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_monthMore">
+    <property name="geometry">
+     <rect>
+      <x>418</x>
+      <y>378</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_up.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_monthLess">
+    <property name="geometry">
+     <rect>
+      <x>418</x>
+      <y>504</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_down.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_yearMore">
+    <property name="geometry">
+     <rect>
+      <x>686</x>
+      <y>376</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_up.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_yearLess">
+    <property name="geometry">
+     <rect>
+      <x>686</x>
+      <y>508</y>
+      <width>77</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>30</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:white</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="../../../images.qrc">:/Images/Images/service/global/time/buttons/service_generalSettings_sub-background_time_arrow_down.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <zorder>label_minuteLess</zorder>
+   <zorder>label_day</zorder>
+   <zorder>label_year</zorder>
+   <zorder>label_minuteMore</zorder>
+   <zorder>label_month</zorder>
+   <zorder>label_hourLess</zorder>
+   <zorder>label_hour</zorder>
+   <zorder>label_minute</zorder>
+   <zorder>label_hourMore</zorder>
+   <zorder>label_second</zorder>
+   <zorder>label_secondMore</zorder>
+   <zorder>label_secondLess</zorder>
+   <zorder>label_dayMore</zorder>
+   <zorder>label_dayLess</zorder>
+   <zorder>label_monthMore</zorder>
+   <zorder>label_monthLess</zorder>
+   <zorder>label_yearMore</zorder>
+   <zorder>label_yearLess</zorder>
+   <zorder>pushButton_day_more</zorder>
+   <zorder>pushButton_second_less</zorder>
+   <zorder>pushButton_month_more</zorder>
+   <zorder>pushButton_month_less</zorder>
+   <zorder>pushButton_year_less</zorder>
+   <zorder>pushButton_hour_more</zorder>
+   <zorder>pushButton_minute_more</zorder>
+   <zorder>pushButton_second_more</zorder>
+   <zorder>pushButton_minute_less</zorder>
+   <zorder>pushButton_day_less</zorder>
+   <zorder>pushButton_hour_less</zorder>
+   <zorder>pushButton_year_more</zorder>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../../../images.qrc"/>
+ </resources>
+ <connections/>
+</ui>

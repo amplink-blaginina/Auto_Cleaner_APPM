@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SettingsSettingsConfigurationLeftForm</class>
+ <widget class="QWidget" name="SettingsSettingsConfigurationLeftForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>870</width>
+    <height>768</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QFrame" name="frame_background">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>870</width>
+     <height>768</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_background
+{
+	background-image: url(:/Images/Images/settings/settings/configuration/backgrounds/settings_settings_sub-background_configuration.png);
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Plain</enum>
+   </property>
+   <widget class="QPushButton" name="pushButton_frontBroom">
+    <property name="geometry">
+     <rect>
+      <x>84</x>
+      <y>164</y>
+      <width>127</width>
+      <height>74</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_rotatingBroomsBelow_off.png);
+}
+
+QPushButton::checked
+{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_rotatingBroomsBelow_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_centralBroom">
+    <property name="geometry">
+     <rect>
+      <x>362</x>
+      <y>164</y>
+      <width>127</width>
+      <height>74</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_rotatingBroomsBelow_off.png);
+}
+
+QPushButton::checked
+{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_rotatingBroomsBelow_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_backWater">
+    <property name="geometry">
+     <rect>
+      <x>632</x>
+      <y>166</y>
+      <width>127</width>
+      <height>74</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_water_off.png);
+}
+
+QPushButton::checked
+{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_water_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_frontDozer">
+    <property name="geometry">
+     <rect>
+      <x>84</x>
+      <y>276</y>
+      <width>127</width>
+      <height>74</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_dozerBlade_off.png);
+}
+
+QPushButton::checked
+{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_dozerBlade_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_centralDozer">
+    <property name="geometry">
+     <rect>
+      <x>362</x>
+      <y>276</y>
+      <width>127</width>
+      <height>74</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_dozerBlade_off.png);
+}
+
+QPushButton::checked
+{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_dozerBlade_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_frontWater">
+    <property name="geometry">
+     <rect>
+      <x>84</x>
+      <y>390</y>
+      <width>127</width>
+      <height>74</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_water_off.png);
+}
+
+QPushButton::checked
+{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_water_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_backSand">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>276</y>
+      <width>127</width>
+      <height>74</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_sand_off.png);
+}
+
+QPushButton::checked
+{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/service/devices/configuration/buttons/service_attachedEquipment_sub-background_configuration_button_sand_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

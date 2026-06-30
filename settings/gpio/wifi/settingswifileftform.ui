@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SettingsWifiLeftForm</class>
+ <widget class="QWidget" name="SettingsWifiLeftForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>870</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QFrame" name="frame_background">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>870</width>
+     <height>600</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_background
+{
+	background-image: url(:/Images/Images/service/global/password/backgrounds/service_generalSettings_sub-background_password.png);
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Plain</enum>
+   </property>
+   <widget class="QPushButton" name="pushButton_1">
+    <property name="geometry">
+     <rect>
+      <x>76</x>
+      <y>102</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_1_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_2">
+    <property name="geometry">
+     <rect>
+      <x>198</x>
+      <y>102</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_2_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_3">
+    <property name="geometry">
+     <rect>
+      <x>318</x>
+      <y>102</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_3_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_4">
+    <property name="geometry">
+     <rect>
+      <x>76</x>
+      <y>216</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_4_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_5">
+    <property name="geometry">
+     <rect>
+      <x>198</x>
+      <y>218</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_5_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_6">
+    <property name="geometry">
+     <rect>
+      <x>318</x>
+      <y>218</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_6_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_7">
+    <property name="geometry">
+     <rect>
+      <x>76</x>
+      <y>334</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_7_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_8">
+    <property name="geometry">
+     <rect>
+      <x>196</x>
+      <y>332</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_8_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_9">
+    <property name="geometry">
+     <rect>
+      <x>316</x>
+      <y>334</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_9_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_0">
+    <property name="geometry">
+     <rect>
+      <x>76</x>
+      <y>450</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_0_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_backspace">
+    <property name="geometry">
+     <rect>
+      <x>198</x>
+      <y>450</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_backspace_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_save">
+    <property name="geometry">
+     <rect>
+      <x>316</x>
+      <y>450</y>
+      <width>92</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/global/password/buttons/service_generalSettings_password_button_save_on.png);
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QListView" name="listView_wifis">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>102</y>
+      <width>256</width>
+      <height>192</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="viewMode">
+     <enum>QListView::ListMode</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>308</y>
+      <width>99</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white;</string>
+    </property>
+    <property name="text">
+     <string>Пароль</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_password">
+    <property name="geometry">
+     <rect>
+      <x>596</x>
+      <y>308</y>
+      <width>247</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white;</string>
+    </property>
+    <property name="text">
+     <string>111111111111</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_refresh">
+    <property name="geometry">
+     <rect>
+      <x>744</x>
+      <y>108</y>
+      <width>111</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>refresh</string>
+    </property>
+   </widget>
+   <widget class="QListView" name="listView_versions">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>360</y>
+      <width>256</width>
+      <height>192</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="viewMode">
+     <enum>QListView::ListMode</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_install">
+    <property name="geometry">
+     <rect>
+      <x>746</x>
+      <y>348</y>
+      <width>111</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>install</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_restore">
+    <property name="geometry">
+     <rect>
+      <x>746</x>
+      <y>424</y>
+      <width>111</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>restore</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_versionsRefresh">
+    <property name="geometry">
+     <rect>
+      <x>746</x>
+      <y>500</y>
+      <width>111</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>refresh</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_status">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>556</y>
+      <width>251</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white;</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_serial">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>558</y>
+      <width>259</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white;</string>
+    </property>
+    <property name="text">
+     <string>Серийный номер: N/A</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

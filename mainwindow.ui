@@ -1,0 +1,1504 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <property name="styleSheet">
+    <string notr="true">QWidget#centralWidget {
+	background-image: url(:/Images/Images/main/backgrounds/background.png);
+}</string>
+   </property>
+   <widget class="QPushButton" name="label_date">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>6</y>
+      <width>213</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string>*Date*</string>
+    </property>
+    <property name="flat">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="label_time">
+    <property name="geometry">
+     <rect>
+      <x>318</x>
+      <y>6</y>
+      <width>169</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string>*Time*</string>
+    </property>
+    <property name="flat">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>396</x>
+      <y>92</y>
+      <width>513</width>
+      <height>115</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="logLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetFixedSize</enum>
+     </property>
+    </layout>
+   </widget>
+   <widget class="QLabel" name="J1939Status">
+    <property name="geometry">
+     <rect>
+      <x>916</x>
+      <y>2</y>
+      <width>58</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_DV1_on.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="J1939MainStatus">
+    <property name="geometry">
+     <rect>
+      <x>862</x>
+      <y>2</y>
+      <width>58</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_DV2_on.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_wait_on_start">
+    <property name="geometry">
+     <rect>
+      <x>656</x>
+      <y>-2</y>
+      <width>51</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_engineManagementLamp_yellow.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_TO">
+    <property name="geometry">
+     <rect>
+      <x>836</x>
+      <y>6</y>
+      <width>31</width>
+      <height>35</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_serviceInterval_red.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_drain_filter">
+    <property name="geometry">
+     <rect>
+      <x>804</x>
+      <y>4</y>
+      <width>39</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_filtrSlivnoy_red.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="POStatus">
+    <property name="geometry">
+     <rect>
+      <x>972</x>
+      <y>2</y>
+      <width>55</width>
+      <height>43</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: green;
+font: 75 16pt bold &quot;Vemana2000&quot;;</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_сan1_red.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_pressure_filter">
+    <property name="geometry">
+     <rect>
+      <x>772</x>
+      <y>2</y>
+      <width>37</width>
+      <height>37</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_filtrZabornyi_red.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_a1">
+    <property name="geometry">
+     <rect>
+      <x>742</x>
+      <y>6</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_А1_green.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_engineRPM">
+    <property name="geometry">
+     <rect>
+      <x>894</x>
+      <y>52</y>
+      <width>67</width>
+      <height>37</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>25</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white;</string>
+    </property>
+    <property name="text">
+     <string>00</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_engineTemp">
+    <property name="geometry">
+     <rect>
+      <x>474</x>
+      <y>48</y>
+      <width>67</width>
+      <height>37</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>25</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white;</string>
+    </property>
+    <property name="text">
+     <string>00</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_hydraulicTemperature">
+    <property name="geometry">
+     <rect>
+      <x>704</x>
+      <y>50</y>
+      <width>67</width>
+      <height>37</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>25</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white;</string>
+    </property>
+    <property name="text">
+     <string>00</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>398</x>
+      <y>60</y>
+      <width>85</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
+    </property>
+    <property name="text">
+     <string>Темп</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>544</x>
+      <y>60</y>
+      <width>53</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
+    </property>
+    <property name="text">
+     <string>(С)</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>810</x>
+      <y>58</y>
+      <width>109</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
+    </property>
+    <property name="text">
+     <string>Обороты</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>966</x>
+      <y>60</y>
+      <width>55</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
+    </property>
+    <property name="text">
+     <string>(об/мин)</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>608</x>
+      <y>58</y>
+      <width>127</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
+    </property>
+    <property name="text">
+     <string>гидравлика</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_8">
+    <property name="geometry">
+     <rect>
+      <x>776</x>
+      <y>60</y>
+      <width>27</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
+    </property>
+    <property name="text">
+     <string>С</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_service">
+    <property name="geometry">
+     <rect>
+      <x>912</x>
+      <y>502</y>
+      <width>85</width>
+      <height>77</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/main/buttons/button_servis_off.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_settings">
+    <property name="geometry">
+     <rect>
+      <x>814</x>
+      <y>502</y>
+      <width>83</width>
+      <height>77</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/main/buttons/button_setting_off.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_version">
+    <property name="geometry">
+     <rect>
+      <x>24</x>
+      <y>578</y>
+      <width>327</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Версия</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="widget_cleanModes" native="true">
+    <property name="geometry">
+     <rect>
+      <x>12</x>
+      <y>10</y>
+      <width>335</width>
+      <height>183</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QWidget#widget_cleanModes
+{
+	background-image: url(:/Images/Images/main/backgrounds/sub-background_cleaningMode.png);
+}</string>
+    </property>
+    <widget class="QLabel" name="label_startstop">
+     <property name="geometry">
+      <rect>
+       <x>226</x>
+       <y>12</y>
+       <width>89</width>
+       <height>161</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-image: url(:/Images/Images/main/buttons/button_start_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_startstop">
+     <property name="geometry">
+      <rect>
+       <x>226</x>
+       <y>12</y>
+       <width>91</width>
+       <height>161</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/main/buttons/button_start_off.png);
+}
+</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_mediumSweep">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>100</y>
+       <width>93</width>
+       <height>75</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/main/buttons/cleaningMode_button_hard_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_heavySweep">
+     <property name="geometry">
+      <rect>
+       <x>118</x>
+       <y>100</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/main/buttons/cleaningMode_button_leafHarvesting_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_lightSweep">
+     <property name="geometry">
+      <rect>
+       <x>118</x>
+       <y>10</y>
+       <width>93</width>
+       <height>77</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/main/buttons/cleaningMode_button_average_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_leafSweep">
+     <property name="geometry">
+      <rect>
+       <x>16</x>
+       <y>10</y>
+       <width>93</width>
+       <height>75</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/main/buttons/cleaningMode_button_easy_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="widget_other" native="true">
+    <property name="geometry">
+     <rect>
+      <x>16</x>
+      <y>482</y>
+      <width>333</width>
+      <height>98</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QWidget#widget_other
+{
+	
+	background-image: url(:/Images/Images/main/backgrounds/sub-background_light.png);
+}</string>
+    </property>
+    <widget class="QPushButton" name="pushButton_frmMagnet">
+     <property name="geometry">
+      <rect>
+       <x>222</x>
+       <y>8</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/main/buttons/light_button_frm_m_off.png);
+
+</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_frmBroom">
+     <property name="geometry">
+      <rect>
+       <x>116</x>
+       <y>8</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/main/buttons/light_button_frm_h_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_frmKung">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>8</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <zorder>pushButton_frmBroom</zorder>
+    <zorder>pushButton_frmKung</zorder>
+    <zorder>pushButton_frmMagnet</zorder>
+   </widget>
+   <widget class="QWidget" name="widget_odometer" native="true">
+    <property name="geometry">
+     <rect>
+      <x>382</x>
+      <y>514</y>
+      <width>309</width>
+      <height>53</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QWidget#widget_odometer
+{
+	background-image: url(:/Images/Images/main/backgrounds/sub-background_operatingHours.png);
+}</string>
+    </property>
+    <widget class="QLabel" name="label_frontEngineTOTotalValue">
+     <property name="geometry">
+      <rect>
+       <x>98</x>
+       <y>10</y>
+       <width>127</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>20</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: white;
+</string>
+     </property>
+     <property name="text">
+      <string>00001</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_frontEngineTOTotal">
+     <property name="geometry">
+      <rect>
+       <x>32</x>
+       <y>12</y>
+       <width>93</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: white;
+</string>
+     </property>
+     <property name="text">
+      <string>Шасси</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="label_engineTODaily">
+    <property name="geometry">
+     <rect>
+      <x>622</x>
+      <y>504</y>
+      <width>77</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/buttons/button_operatingHours.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>false</bool>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_engineTODailyValue">
+    <property name="geometry">
+     <rect>
+      <x>634</x>
+      <y>518</y>
+      <width>53</width>
+      <height>43</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string>22:22</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_engine_damage">
+    <property name="geometry">
+     <rect>
+      <x>708</x>
+      <y>2</y>
+      <width>47</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_сheckEngineSupportive_red.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QWidget" name="widget_workOrgans" native="true">
+    <property name="geometry">
+     <rect>
+      <x>12</x>
+      <y>198</y>
+      <width>335</width>
+      <height>277</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QWidget#widget_workOrgans
+{
+	
+	background-image: url(:/Images/Images/main/backgrounds/sub-background_configuration.png);
+}</string>
+    </property>
+    <widget class="QPushButton" name="pushButton_centralBroomRight">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>94</y>
+       <width>45</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_centralBroomLeft">
+     <property name="geometry">
+      <rect>
+       <x>122</x>
+       <y>96</y>
+       <width>45</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_centralBroom">
+     <property name="geometry">
+      <rect>
+       <x>122</x>
+       <y>98</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_centralBroomDown">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>140</y>
+       <width>91</width>
+       <height>35</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_centralBroomUp">
+     <property name="geometry">
+      <rect>
+       <x>18</x>
+       <y>98</y>
+       <width>95</width>
+       <height>39</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_centralBroomUpDown">
+     <property name="geometry">
+      <rect>
+       <x>18</x>
+       <y>99</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_centralBroomFloatPress">
+     <property name="geometry">
+      <rect>
+       <x>226</x>
+       <y>98</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-image: url(:/Images/Images/main/buttons/configuration_button_variable_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_centralBroomPress">
+     <property name="geometry">
+      <rect>
+       <x>228</x>
+       <y>141</y>
+       <width>91</width>
+       <height>35</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_centralBroomFlow">
+     <property name="geometry">
+      <rect>
+       <x>226</x>
+       <y>99</y>
+       <width>95</width>
+       <height>39</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_dumpUp">
+     <property name="geometry">
+      <rect>
+       <x>18</x>
+       <y>14</y>
+       <width>95</width>
+       <height>39</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_dump">
+     <property name="geometry">
+      <rect>
+       <x>122</x>
+       <y>14</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_dumpRight">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>10</y>
+       <width>45</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_dumpDown">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>56</y>
+       <width>91</width>
+       <height>35</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_dumpPress">
+     <property name="geometry">
+      <rect>
+       <x>228</x>
+       <y>57</y>
+       <width>91</width>
+       <height>35</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_dumpLeft">
+     <property name="geometry">
+      <rect>
+       <x>122</x>
+       <y>12</y>
+       <width>45</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_dumpUpDown">
+     <property name="geometry">
+      <rect>
+       <x>18</x>
+       <y>15</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_dumpFloatPress">
+     <property name="geometry">
+      <rect>
+       <x>226</x>
+       <y>14</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_off_down_blocked.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_dumpFlow">
+     <property name="geometry">
+      <rect>
+       <x>226</x>
+       <y>15</y>
+       <width>95</width>
+       <height>39</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_blowerUpDown">
+     <property name="geometry">
+      <rect>
+       <x>16</x>
+       <y>184</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_blower">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>183</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_blowerRight">
+     <property name="geometry">
+      <rect>
+       <x>168</x>
+       <y>179</y>
+       <width>45</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_blowerDown">
+     <property name="geometry">
+      <rect>
+       <x>18</x>
+       <y>225</y>
+       <width>91</width>
+       <height>35</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_blowerLeft">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>181</y>
+       <width>45</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_backMagnet">
+     <property name="geometry">
+      <rect>
+       <x>224</x>
+       <y>183</y>
+       <width>93</width>
+       <height>79</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-image: url(:/Images/Images/main/buttons/configuration_button_magnet_off.png);</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_backMagnet">
+     <property name="geometry">
+      <rect>
+       <x>224</x>
+       <y>184</y>
+       <width>97</width>
+       <height>73</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_blowerUp">
+     <property name="geometry">
+      <rect>
+       <x>16</x>
+       <y>183</y>
+       <width>95</width>
+       <height>39</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <zorder>label_centralBroom</zorder>
+    <zorder>label_centralBroomUpDown</zorder>
+    <zorder>label_centralBroomFloatPress</zorder>
+    <zorder>label_dump</zorder>
+    <zorder>label_dumpUpDown</zorder>
+    <zorder>label_dumpFloatPress</zorder>
+    <zorder>label_blowerUpDown</zorder>
+    <zorder>label_blower</zorder>
+    <zorder>label_backMagnet</zorder>
+    <zorder>pushButton_backMagnet</zorder>
+    <zorder>pushButton_blowerLeft</zorder>
+    <zorder>pushButton_blowerDown</zorder>
+    <zorder>pushButton_dumpDown</zorder>
+    <zorder>pushButton_centralBroomRight</zorder>
+    <zorder>pushButton_centralBroomDown</zorder>
+    <zorder>pushButton_centralBroomPress</zorder>
+    <zorder>pushButton_blowerUp</zorder>
+    <zorder>pushButton_centralBroomLeft</zorder>
+    <zorder>pushButton_dumpLeft</zorder>
+    <zorder>pushButton_blowerRight</zorder>
+    <zorder>pushButton_centralBroomFlow</zorder>
+    <zorder>pushButton_dumpUp</zorder>
+    <zorder>pushButton_dumpPress</zorder>
+    <zorder>pushButton_centralBroomUp</zorder>
+    <zorder>pushButton_dumpRight</zorder>
+    <zorder>pushButton_dumpFlow</zorder>
+   </widget>
+   <widget class="QPushButton" name="pushButton_homeState">
+    <property name="geometry">
+     <rect>
+      <x>720</x>
+      <y>502</y>
+      <width>83</width>
+      <height>77</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/main/buttons/button_home_off.png);
+}
+
+QPushButton::pressed{
+border-style:none;
+outline: none;
+	background-image: url(:/Images/Images/main/buttons/button_home_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_key">
+    <property name="geometry">
+     <rect>
+      <x>598</x>
+      <y>576</y>
+      <width>327</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Кнопка:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_waterInFuel">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>8</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_А1_green.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_airFilter">
+    <property name="geometry">
+     <rect>
+      <x>602</x>
+      <y>8</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_А1_green.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_oilFilter">
+    <property name="geometry">
+     <rect>
+      <x>576</x>
+      <y>8</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_А1_green.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_engineLowTemperature">
+    <property name="geometry">
+     <rect>
+      <x>546</x>
+      <y>8</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="images.qrc">:/Images/Images/main/signs/sign_А1_green.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <zorder>label_date</zorder>
+   <zorder>label_time</zorder>
+   <zorder>verticalLayoutWidget</zorder>
+   <zorder>J1939Status</zorder>
+   <zorder>J1939MainStatus</zorder>
+   <zorder>label_wait_on_start</zorder>
+   <zorder>label_TO</zorder>
+   <zorder>label_drain_filter</zorder>
+   <zorder>POStatus</zorder>
+   <zorder>label_pressure_filter</zorder>
+   <zorder>label_a1</zorder>
+   <zorder>label_engineRPM</zorder>
+   <zorder>label_engineTemp</zorder>
+   <zorder>label_hydraulicTemperature</zorder>
+   <zorder>label_3</zorder>
+   <zorder>label_4</zorder>
+   <zorder>label_5</zorder>
+   <zorder>label_6</zorder>
+   <zorder>label_7</zorder>
+   <zorder>label_8</zorder>
+   <zorder>pushButton_service</zorder>
+   <zorder>pushButton_settings</zorder>
+   <zorder>widget_cleanModes</zorder>
+   <zorder>widget_other</zorder>
+   <zorder>widget_odometer</zorder>
+   <zorder>label_engineTODaily</zorder>
+   <zorder>label_engineTODailyValue</zorder>
+   <zorder>label_version</zorder>
+   <zorder>label_engine_damage</zorder>
+   <zorder>widget_workOrgans</zorder>
+   <zorder>pushButton_homeState</zorder>
+   <zorder>label_key</zorder>
+   <zorder>label_waterInFuel</zorder>
+   <zorder>label_airFilter</zorder>
+   <zorder>label_oilFilter</zorder>
+   <zorder>label_engineLowTemperature</zorder>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -1,0 +1,1101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ServiceDevicesHydraulicsLeftForm</class>
+ <widget class="QWidget" name="ServiceDevicesHydraulicsLeftForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>870</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QFrame" name="frame_background">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>870</width>
+     <height>600</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_background
+{
+	background-image: url(:/Images/Images/service/devices/hydraulics/backgrounds/service_valve_sub-background_hydraulics.png);
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Plain</enum>
+   </property>
+   <widget class="QLabel" name="label_drainFilter1">
+    <property name="geometry">
+     <rect>
+      <x>774</x>
+      <y>294</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_off.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_drainFilter">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>284</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>           СЛИВНОЙ Ф.</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_powerFilter3">
+    <property name="geometry">
+     <rect>
+      <x>780</x>
+      <y>222</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_off.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_powerFilter">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>212</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string> НАПОРНЫЙ Ф.</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_hydraulicTemperature">
+    <property name="geometry">
+     <rect>
+      <x>714</x>
+      <y>12</y>
+      <width>151</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>255С ТЕМП ГО</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_dumpDown">
+    <property name="geometry">
+     <rect>
+      <x>36</x>
+      <y>70</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_down_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_dumpUp">
+    <property name="geometry">
+     <rect>
+      <x>456</x>
+      <y>72</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_up_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_dumpRight">
+    <property name="geometry">
+     <rect>
+      <x>362</x>
+      <y>70</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_right_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_dumpLeft">
+    <property name="geometry">
+     <rect>
+      <x>132</x>
+      <y>70</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_left_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QSlider" name="horizontalSlider_broomRotateLeft">
+    <property name="geometry">
+     <rect>
+      <x>22</x>
+      <y>390</y>
+      <width>491</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QSlider
+{
+  min-height: 45px;
+  max-height: 45px;
+  height:45px;
+}
+QSlider::groove:horizontal 
+{
+  color: #0000FF;
+  background-color: #FF0000;
+  border: 0px solid;
+  height: 5px;
+  margin: 0 35px;
+}
+QSlider::handle:horizontal 
+{
+border-radius: 1px;
+  margin: -50px -35px;
+  width 70px;
+  height 70px;
+	image: url(:/Images/Images/service/buttons/service_slider.png);
+border: 5px solid transparent;
+}
+QSlider::add-page {
+    background: white;
+}
+
+QSlider::sub-page {
+    background: rgb(247,218,75);
+}
+
+QSlider::sub-page:horizontal,
+QSlider::add-page:horizontal {
+    margin: 0 15px; /* визуальные края, не реальные */
+    border-radius: 2px;
+}</string>
+    </property>
+    <property name="value">
+     <number>49</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QSlider" name="horizontalSlider_broomRotateRight">
+    <property name="geometry">
+     <rect>
+      <x>22</x>
+      <y>466</y>
+      <width>491</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QSlider
+{
+  min-height: 45px;
+  max-height: 45px;
+  height:45px;
+}
+QSlider::groove:horizontal 
+{
+  color: #0000FF;
+  background-color: #FF0000;
+  border: 0px solid;
+  height: 5px;
+  margin: 0 35px;
+}
+QSlider::handle:horizontal 
+{
+border-radius: 1px;
+  margin: -50px -35px;
+  width 70px;
+  height 70px;
+	image: url(:/Images/Images/service/buttons/service_slider.png);
+border: 5px solid transparent;
+}
+QSlider::add-page {
+    background: white;
+}
+
+QSlider::sub-page {
+    background: rgb(247,218,75);
+}
+
+QSlider::sub-page:horizontal,
+QSlider::add-page:horizontal {
+    margin: 0 15px; /* визуальные края, не реальные */
+    border-radius: 2px;
+}</string>
+    </property>
+    <property name="value">
+     <number>49</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QSlider" name="horizontalSlider_fanRotateRight">
+    <property name="geometry">
+     <rect>
+      <x>22</x>
+      <y>538</y>
+      <width>491</width>
+      <height>45</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QSlider
+{
+  min-height: 45px;
+  max-height: 45px;
+  height:45px;
+}
+QSlider::groove:horizontal 
+{
+  color: #0000FF;
+  background-color: #FF0000;
+  border: 0px solid;
+  height: 5px;
+  margin: 0 35px;
+}
+QSlider::handle:horizontal 
+{
+border-radius: 1px;
+  margin: -50px -35px;
+  width 70px;
+  height 70px;
+	image: url(:/Images/Images/service/buttons/service_slider.png);
+border: 5px solid transparent;
+}
+QSlider::add-page {
+    background: white;
+}
+
+QSlider::sub-page {
+    background: rgb(247,218,75);
+}
+
+QSlider::sub-page:horizontal,
+QSlider::add-page:horizontal {
+    margin: 0 15px; /* визуальные края, не реальные */
+    border-radius: 2px;
+}</string>
+    </property>
+    <property name="value">
+     <number>49</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_hydraulicLevel1">
+    <property name="geometry">
+     <rect>
+      <x>774</x>
+      <y>364</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_off.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_hydraulicLevel">
+    <property name="geometry">
+     <rect>
+      <x>578</x>
+      <y>354</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>  УРОВЕНЬ ГИДРОБАКА</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_hydraulicPressure">
+    <property name="geometry">
+     <rect>
+      <x>388</x>
+      <y>12</y>
+      <width>151</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>120 P ТИ1</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_broomUp">
+    <property name="geometry">
+     <rect>
+      <x>456</x>
+      <y>146</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_up_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_broomLeft">
+    <property name="geometry">
+     <rect>
+      <x>132</x>
+      <y>144</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_left_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_broomRight">
+    <property name="geometry">
+     <rect>
+      <x>362</x>
+      <y>144</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_right_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_broomDown">
+    <property name="geometry">
+     <rect>
+      <x>36</x>
+      <y>144</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_down_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_blowUp">
+    <property name="geometry">
+     <rect>
+      <x>456</x>
+      <y>216</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_up_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_blowRight">
+    <property name="geometry">
+     <rect>
+      <x>362</x>
+      <y>214</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_right_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_blowDown">
+    <property name="geometry">
+     <rect>
+      <x>36</x>
+      <y>214</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_down_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_blowLeft">
+    <property name="geometry">
+     <rect>
+      <x>132</x>
+      <y>214</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_left_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_magnetUp">
+    <property name="geometry">
+     <rect>
+      <x>454</x>
+      <y>290</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_up_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_magnetDown">
+    <property name="geometry">
+     <rect>
+      <x>34</x>
+      <y>288</y>
+      <width>55</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+}
+
+QPushButton::pressed
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_arrow_down_on.png);
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_hydraulicPressure2">
+    <property name="geometry">
+     <rect>
+      <x>544</x>
+      <y>12</y>
+      <width>149</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>120 P ТИ2</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_dumpFlow">
+    <property name="geometry">
+     <rect>
+      <x>578</x>
+      <y>72</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::checked
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>ОТВАЛ ПЛАВАЮЩИЙ</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_broomFlow">
+    <property name="geometry">
+     <rect>
+      <x>578</x>
+      <y>142</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::checked
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>ЩЕТКА ПЛАВАЮЩАЯ</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_powerFilter2">
+    <property name="geometry">
+     <rect>
+      <x>748</x>
+      <y>222</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_off.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_powerFilter1">
+    <property name="geometry">
+     <rect>
+      <x>716</x>
+      <y>222</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_off.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_broomPressUp">
+    <property name="geometry">
+     <rect>
+      <x>578</x>
+      <y>422</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::checked
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>ЩЕТКА ОТЖИМ</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_broomPressDown">
+    <property name="geometry">
+     <rect>
+      <x>578</x>
+      <y>492</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::checked
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>ЩЕТКА ПРИЖИМ</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <zorder>label_drainFilter</zorder>
+   <zorder>label_drainFilter1</zorder>
+   <zorder>label_powerFilter</zorder>
+   <zorder>label_powerFilter3</zorder>
+   <zorder>label_hydraulicTemperature</zorder>
+   <zorder>pushButton_dumpDown</zorder>
+   <zorder>pushButton_dumpUp</zorder>
+   <zorder>pushButton_dumpRight</zorder>
+   <zorder>pushButton_dumpLeft</zorder>
+   <zorder>horizontalSlider_broomRotateLeft</zorder>
+   <zorder>horizontalSlider_broomRotateRight</zorder>
+   <zorder>horizontalSlider_fanRotateRight</zorder>
+   <zorder>label_hydraulicLevel</zorder>
+   <zorder>label_hydraulicLevel1</zorder>
+   <zorder>label_hydraulicPressure</zorder>
+   <zorder>pushButton_broomUp</zorder>
+   <zorder>pushButton_broomLeft</zorder>
+   <zorder>pushButton_broomRight</zorder>
+   <zorder>pushButton_broomDown</zorder>
+   <zorder>pushButton_blowUp</zorder>
+   <zorder>pushButton_blowRight</zorder>
+   <zorder>pushButton_blowDown</zorder>
+   <zorder>pushButton_blowLeft</zorder>
+   <zorder>pushButton_magnetUp</zorder>
+   <zorder>pushButton_magnetDown</zorder>
+   <zorder>label_hydraulicPressure2</zorder>
+   <zorder>pushButton_dumpFlow</zorder>
+   <zorder>pushButton_broomFlow</zorder>
+   <zorder>label_powerFilter2</zorder>
+   <zorder>label_powerFilter1</zorder>
+   <zorder>pushButton_broomPressUp</zorder>
+   <zorder>pushButton_broomPressDown</zorder>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

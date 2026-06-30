@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ServiceOtherLightLeftForm</class>
+ <widget class="QWidget" name="ServiceOtherLightLeftForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>870</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QFrame" name="frame_background">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>870</width>
+     <height>600</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_background
+{
+	background-image: url(:/Images/Images/service/other/light/backgrounds/service_engine_sub-background_light.png);
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Plain</enum>
+   </property>
+   <widget class="QPushButton" name="pushButton_lightFRM1">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>116</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::checked
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>ФРМ 1</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_lightFRM2">
+    <property name="geometry">
+     <rect>
+      <x>316</x>
+      <y>114</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::checked
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>ФРМ 2</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_lightFRM3">
+    <property name="geometry">
+     <rect>
+      <x>596</x>
+      <y>114</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::checked
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>ФРМ 3</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,159 @@
+#include "gpio_worker.hpp"
+#include <QThread>
+#include <QObject>
+#include <chrono>
+#include <thread>
+#include <QMutexLocker>
+#include <QDebug>
+
+GPIOWorker::GPIOWorker(QObject *parent)
+    : QObject(parent), chip("/dev/gpiochip0")
+{
+    // Настройка физики
+    group0 = {
+        // кнопка на пульте выкл зажигания
+        {GPIOInput::IN_IGNITION_OFF,     12},
+        // кнопка на пульте открыть бункер
+        {GPIOInput::IN_OPEN_BUNKER,     26},
+        // кнопка на пульте закрыть бункер
+        {GPIOInput::IN_CLOSE_BUNKER,     20},
+        // кнопка на пульте поднять бункер
+        {GPIOInput::IN_LIFT_BUNKER,     19},
+        // кнопка на пульте опутсть бункер
+        {GPIOInput::IN_LOWER_BUNKER,     16},
+        // кнопка на пульте ФРМ
+        {GPIOInput::IN_FRM_PULT,     13},
+//        // признак пульта на своем месте
+//        {GPIOInput::IN_PULT_DOWN,     20},
+//        // правые качельки вверх и вниз. поджатие щеток (без)
+////        {GPIOInput::IN_PRESS_UP,     20},
+//        {GPIOInput::IN_PRESS_DOWN,     20},
+//        // кнопка включения габаритов на панели (фикс)
+//        {GPIOInput::IN_GABARIT,     20},
+//        // кнопка алиас переключения режима
+//        {GPIOInput::IN_MODE,     20},
+    };
+
+    outputPins = {
+        {GPIOOutput::OUT_STARTER,           6},
+//        {GPIOOutput::OUT_STARTER_LIGHT,           26},
+//        {GPIOOutput::OUT_VENTILATION,           26},
+//        {GPIOOutput::OUT_MAYAK_LIGHT,           26},
+//        {GPIOOutput::OUT_PVI_TEMP,           26},
+    };
+
+    initCycle();
+}
+
+GPIOWorker::~GPIOWorker()
+{
+}
+
+void GPIOWorker::configureHardware()
+{
+    // ------- Запрос всех выходных линий -------
+    for (auto it = outputPins.begin(); it != outputPins.end(); ++it) {
+        if (!lines.contains(it.value()))
+        {
+            gpiod::line line = chip.get_line(it.value());
+            line.request({"gpio-worker", gpiod::line_request::DIRECTION_OUTPUT, 0});
+            lines[it.value()] = line;
+            //line.set_value(0);
+        }
+        valuesOutput[it.key()] = false;
+    }
+    // ------- Запрос входов группы 0 -------
+    for (auto it = group0.begin(); it != group0.end(); ++it) {
+        if (!lines.contains(it.value()))
+        {
+            gpiod::line line = chip.get_line(it.value());
+            line.request({"gpio-worker", gpiod::line_request::DIRECTION_INPUT, gpiod::line_request::FLAG_BIAS_PULL_UP});
+            lines[it.value()] = line;
+        }
+        valuesInput[it.key()] = false;
+    }
+}
+
+bool GPIOWorker::readPhysicalInput(int pin)
+{
+    if (!lines.contains(pin))
+        return false;
+    auto &line = lines[pin];
+    return line.get_value();
+}
+
+void GPIOWorker::writePhysicalOutput(int pin, bool value)
+{
+    if (!lines.contains(pin))
+        return;
+    auto &line = lines[pin];
+    line.set_value(value);
+}
+
+void GPIOWorker::readGroup()
+{
+    auto &src = group0;
+
+    for (auto it = src.begin(); it != src.end(); ++it) {
+        GPIOInput key = it.key();
+        int pin = it.value();
+        bool newVal = readPhysicalInput(pin);
+
+        bool emitSignal = false;
+        {
+            bool oldVal = valuesInput.value(key, false);
+            if (oldVal != newVal) {
+                valuesInput[key] = newVal;
+                emitSignal = true;
+            } else {
+                valuesInput[key] = newVal;
+            }
+        }
+
+        if (emitSignal) emit inputChanged(key, newVal);
+    }
+}
+
+void GPIOWorker::initCycle()
+{
+    configureHardware();
+    timerCycle = new QTimer();
+    connect(timerCycle,SIGNAL(timeout()),this,SLOT(readCycle()));
+    timerCycle->setInterval(pollIntervalMs);
+    timerCycle->start();
+}
+
+void GPIOWorker::readCycle()
+{
+    timerCycle->stop();
+    //readGroup(0);//постоянная группа
+    readGroup();
+    timerCycle->start();
+}
+
+bool GPIOWorker::getInput(GPIOInput input)
+{
+    if (input == GPIOInput::IN_FRM_PULT
+            || input == GPIOInput::IN_CLOSE_BUNKER
+            || input == GPIOInput::IN_LIFT_BUNKER
+            || input == GPIOInput::IN_LOWER_BUNKER
+            || input == GPIOInput::IN_OPEN_BUNKER
+            || input == GPIOInput::IN_IGNITION_OFF)
+        return !valuesInput.value(input, false);
+    else
+        return valuesInput.value(input, false);
+}
+
+bool GPIOWorker::getOutput(GPIOOutput output)
+{
+    return valuesOutput.value(output, false);
+}
+
+void GPIOWorker::setOutput(GPIOOutput output, bool value)
+{
+    // инвертироавнные выходы
+    if (output == GPIOOutput::OUT_STARTER)
+        value = !value;
+    writePhysicalOutput(outputPins[output], value);
+    valuesOutput[output] = value;
+}

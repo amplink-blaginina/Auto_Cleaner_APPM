@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ServiceDevicesDKPLeftForm</class>
+ <widget class="QWidget" name="ServiceDevicesDKPLeftForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>870</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QFrame" name="frame_background">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>870</width>
+     <height>600</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_background
+{
+	background-image: url(:/Images/Images/service/devices/dkp/backgrounds/service_valve_sub-background_DKP.png);
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Plain</enum>
+   </property>
+   <widget class="QLabel" name="label_dumpLeftDKP">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>96</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>       ОТВАЛ ЛЕВО DP1</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_dumpLeftDKP1">
+    <property name="geometry">
+     <rect>
+      <x>234</x>
+      <y>106</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_sensorsPower">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>348</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::checked
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>ПИТАНИЕ ДАТЧИКОВ</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_dumpRightDKP">
+    <property name="geometry">
+     <rect>
+      <x>42</x>
+      <y>168</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>     ОТВАЛ ПРАВО DP2</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_dumpRightDKP1">
+    <property name="geometry">
+     <rect>
+      <x>236</x>
+      <y>178</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_dumpUpDKP1">
+    <property name="geometry">
+     <rect>
+      <x>236</x>
+      <y>250</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_dumpUpDKP">
+    <property name="geometry">
+     <rect>
+      <x>42</x>
+      <y>240</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>      ОТВАЛ ВВЕРХ DP3</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_hydraulicCoolingFan">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>422</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;
+}
+
+QPushButton::checked
+{
+	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_on.png);
+	color: black;
+}</string>
+    </property>
+    <property name="text">
+     <string>ВЕНТ. ОХЛАЖД. ГИДРО</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_blowUp11">
+    <property name="geometry">
+     <rect>
+      <x>546</x>
+      <y>104</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_magnetUp">
+    <property name="geometry">
+     <rect>
+      <x>354</x>
+      <y>238</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>    МАГНИТ ВВЕРХ DP9</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_blowUp1">
+    <property name="geometry">
+     <rect>
+      <x>352</x>
+      <y>94</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>    ПРОДУВКА ВВЕРХ 1</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_magnetUp1">
+    <property name="geometry">
+     <rect>
+      <x>548</x>
+      <y>248</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_blowUp21">
+    <property name="geometry">
+     <rect>
+      <x>548</x>
+      <y>176</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_blowUp2">
+    <property name="geometry">
+     <rect>
+      <x>354</x>
+      <y>166</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>    ПРОДУВКА ВВЕРХ 2</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_broomUpDKP1">
+    <property name="geometry">
+     <rect>
+      <x>236</x>
+      <y>504</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_broomLeftDKP1">
+    <property name="geometry">
+     <rect>
+      <x>234</x>
+      <y>360</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_broomUpDKP">
+    <property name="geometry">
+     <rect>
+      <x>42</x>
+      <y>494</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>      ЩЕТКА ВВЕРХ DP6</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_broomLeftDKP">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>350</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>       ЩЕТКА ЛЕВО DP4</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_broomRightDKP1">
+    <property name="geometry">
+     <rect>
+      <x>236</x>
+      <y>432</y>
+      <width>33</width>
+      <height>33</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;
+outline: none;
+background-image: url(:/Images/Images/service/buttons/service_indication_on.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_broomRightDKP">
+    <property name="geometry">
+     <rect>
+      <x>42</x>
+      <y>422</y>
+      <width>241</width>
+      <height>55</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">	border-style:none;
+	outline: none;
+	background-image: url(:/Images/Images/service/buttons/service_button_off.png);
+	color: white;</string>
+    </property>
+    <property name="text">
+     <string>     ЩЕТКА ПРАВО DP5</string>
+    </property>
+   </widget>
+   <zorder>label_dumpLeftDKP</zorder>
+   <zorder>label_dumpLeftDKP1</zorder>
+   <zorder>pushButton_sensorsPower</zorder>
+   <zorder>label_dumpRightDKP</zorder>
+   <zorder>label_dumpUpDKP</zorder>
+   <zorder>pushButton_hydraulicCoolingFan</zorder>
+   <zorder>label_magnetUp</zorder>
+   <zorder>label_blowUp1</zorder>
+   <zorder>label_blowUp2</zorder>
+   <zorder>label_broomUpDKP</zorder>
+   <zorder>label_broomLeftDKP</zorder>
+   <zorder>label_broomRightDKP</zorder>
+   <zorder>label_magnetUp1</zorder>
+   <zorder>label_blowUp11</zorder>
+   <zorder>label_dumpUpDKP1</zorder>
+   <zorder>label_dumpRightDKP1</zorder>
+   <zorder>label_broomUpDKP1</zorder>
+   <zorder>label_broomLeftDKP1</zorder>
+   <zorder>label_blowUp21</zorder>
+   <zorder>label_broomRightDKP1</zorder>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
