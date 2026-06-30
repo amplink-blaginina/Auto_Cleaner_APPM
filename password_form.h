@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QTimer>
 #include <QDateTime>
+#include <qpushbutton.h>
 
 namespace Ui {
 class Password_Form;
@@ -91,6 +92,7 @@ private slots:
 
 private:
     Ui::Password_Form *ui;
+    void on_pushButton_clicked(QPushButton *button, QString label);
 };
 
 #endif // PASSWORD_FORM_H
