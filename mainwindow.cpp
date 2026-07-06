@@ -662,6 +662,11 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     serviceOtherEngineLeftForm = new ServiceOtherEngineLeftForm(this);
     serviceOtherEngineLeftForm->hide();
+    // === СБРОС КЕША КНОПОК ПРОКРУТКИ ===
+    prerollButtonsCached = false;
+    cachedPrerollButton = nullptr;
+    cachedStarterPrerollButton = nullptr;
+    // =====================================
 
     serviceOtherLightLeftForm = new ServiceOtherLightLeftForm(this);
     serviceOtherLightLeftForm->hide();
@@ -1827,9 +1832,30 @@ void MainWindow::updateEngineAndRollLocks()
 
     // Блокировка по температуре: если двигатель холодный И теплореле ещё не сработало
     // Если при включении температура уже удовлетворительна — блокировки нет
-    const bool lockByTemp = !disableTemperatureBlock && engineCold && !heatRelayActive;
-    starterLockedByTemperature = lockByTemp;
-    rollLockedByTemperature = lockByTemp;
+    // === ИСПРАВЛЕННАЯ ЛОГИКА ТЕМПЕРАТУРНОЙ БЛОКИРОВКИ ===
+    if (!disableTemperatureBlock)
+    {
+        // ВХОД: двигатель холоден по CAN и теплореле ещё не замкнуто
+        if (engineCold && !heatRelayActive)
+        {
+            starterLockedByTemperature = true;
+            rollLockedByTemperature = true;
+        }
+        // ВЫХОД: ТОЛЬКО когда сработало физическое теплореле
+        else if (heatRelayActive)
+        {
+            starterLockedByTemperature = false;
+            rollLockedByTemperature = false;
+        }
+        // Если по CAN уже "тепло", но теплореле ещё не замкнулось —
+        // блокировка остаётся висеть (не сбрасываем здесь!)
+    }
+    else
+    {
+        starterLockedByTemperature = false;
+        rollLockedByTemperature = false;
+    }
+    // === КОНЕЦ ИСПРАВЛЕНИЯ ===
 
     const bool waterAlarm = can0->getState(StateWaterSensor).toBool() && waterSensorEmergencyMode;
     const bool airAlarm = can0->getState(StateAirFilterBad).toBool() && airFilterEmergencyMode;
@@ -2021,6 +2047,10 @@ void MainWindow::processPrerollInService()
             lastEngineStartDate = QDate::currentDate();
             settings->setValue("Engine/lastStartDate", lastEngineStartDate);
             settings->sync();
+            // ВОССТАНАВЛИВАЕМ ЗАЖИГАНИЕ после успешной прокрутки
+            can0->setState(StateIgnitionOut, true);
+            ignitionOffTimer = 0;
+
             addLog("Прокрутка завершена по реле масла", InfoStatus);
         }
         else if (elapsedRoll >= rollMaxWorkSec)
@@ -2044,6 +2074,13 @@ void MainWindow::processPrerollInService()
         can0->setState(StateStarterAllow, false);
     }
 
+    // === ПРИНУДИТЕЛЬНАЯ ПЕРЕРИСОВКА КНОПОК ===
+    updatePrerollButtonsVisual();
+    // ============================================
+
+    prerollButtonPrev = prerollPressed;
+    prerollStarterButtonPrev = prerollStarterPressed;
+    rollInputPrev = rollInputPressed;
     prerollButtonPrev = prerollPressed;
     prerollStarterButtonPrev = prerollStarterPressed;
     rollInputPrev = rollInputPressed;
@@ -2256,6 +2293,14 @@ void MainWindow::showStarter()
 
     const bool starterPressed = gpioMatirx->keyPressed == GPIOInput::IN_STARTER;
     const bool starterPressedEdge = starterPressed && !starterButtonPrev;
+
+    // БЛОКИРОВКА: пока идёт прокрутка — кнопка стартера не управляет зажиганием
+    if (rollRunActive || prerollSequenceActive)
+    {
+        starterButtonPrev = starterPressed;
+        return;
+    }
+
     const bool engineRunning = engine->getRpm() > 700;
 
     if (engineRunning)
@@ -3418,4 +3463,55 @@ void MainWindow::on_pushButton_homeState_clicked()
     blower->state = Blower::BlowerRotated;
     frontRail->state = FrontRail::FrontRailFlowed;
     broomCentral->state = CentralBroom::BroomRotated;
+}
+
+void MainWindow::cachePrerollButtons()
+{
+    if (prerollButtonsCached)
+        return;
+
+    if (serviceOtherEngineLeftForm)
+    {
+        cachedPrerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_preroll");
+        cachedStarterPrerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_starterPreroll");
+    }
+
+    prerollButtonsCached = true;
+}
+void MainWindow::updatePrerollButtonsVisual()
+{
+    // Ленивая инициализация кеша
+    if (!prerollButtonsCached)
+        cachePrerollButtons();
+
+    QPushButton* prerollButton = cachedPrerollButton;
+    QPushButton* starterPrerollButton = cachedStarterPrerollButton;
+
+    if (prerollButton)
+    {
+        QString ss;
+        if (prerollSequenceActive || prerollStarterUnlocked)
+            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_preroll_on.png);";
+        else if (rollBlocked() || rollNeedReboot)
+            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_preroll_blocked.png);";
+        else
+            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_preroll_off.png);";
+
+        if (prerollButton->styleSheet() != ss)
+            prerollButton->setStyleSheet(ss);
+    }
+
+    if (starterPrerollButton)
+    {
+        QString ss;
+        if (rollRunActive)
+            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_starter_preroll_active.png);";
+        else if (!starterPrerollButton->isEnabled())
+            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_starter_preroll_blocked.png);";
+        else
+            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_starter_preroll_ready.png);";
+
+        if (starterPrerollButton->styleSheet() != ss)
+            starterPrerollButton->setStyleSheet(ss);
+    }
 }
