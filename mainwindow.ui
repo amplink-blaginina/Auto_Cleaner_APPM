@@ -74,7 +74,7 @@
     </property>
     <layout class="QVBoxLayout" name="logLayout">
      <property name="sizeConstraint">
-      <enum>QLayout::SetFixedSize</enum>
+      <enum>QLayout::SizeConstraint::SetFixedSize</enum>
      </property>
     </layout>
    </widget>
@@ -258,7 +258,7 @@ font: 75 16pt bold &quot;Vemana2000&quot;;</string>
      <string>00</string>
     </property>
     <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="label_engineTemp">
@@ -282,7 +282,7 @@ font: 75 16pt bold &quot;Vemana2000&quot;;</string>
      <string>00</string>
     </property>
     <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="label_hydraulicTemperature">
@@ -306,7 +306,7 @@ font: 75 16pt bold &quot;Vemana2000&quot;;</string>
      <string>00</string>
     </property>
     <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="label_3">
@@ -713,7 +713,6 @@ background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);<
      <property name="font">
       <font>
        <pointsize>20</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -725,7 +724,7 @@ background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);<
       <string>00001</string>
      </property>
      <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
      </property>
     </widget>
     <widget class="QLabel" name="label_frontEngineTOTotal">
@@ -740,7 +739,6 @@ background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);<
      <property name="font">
       <font>
        <pointsize>12</pointsize>
-       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
@@ -752,7 +750,7 @@ background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);<
       <string>Шасси</string>
      </property>
      <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
      </property>
     </widget>
    </widget>
@@ -768,7 +766,6 @@ background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);<
     <property name="font">
      <font>
       <pointsize>20</pointsize>
-      <weight>75</weight>
       <bold>true</bold>
      </font>
     </property>
@@ -785,7 +782,7 @@ background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);<
      <bool>false</bool>
     </property>
     <property name="alignment">
-     <set>Qt::AlignCenter</set>
+     <set>Qt::AlignmentFlag::AlignCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="label_engineTODailyValue">
@@ -800,7 +797,6 @@ background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);<
     <property name="font">
      <font>
       <pointsize>15</pointsize>
-      <weight>75</weight>
       <bold>true</bold>
      </font>
     </property>
@@ -811,7 +807,7 @@ background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);<
      <string>22:22</string>
     </property>
     <property name="alignment">
-     <set>Qt::AlignCenter</set>
+     <set>Qt::AlignmentFlag::AlignCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="label_engine_damage">
@@ -1458,6 +1454,48 @@ outline: none;
      <bool>true</bool>
     </property>
    </widget>
+   <widget class="QLabel" name="label_fan_pressure">
+    <property name="geometry">
+     <rect>
+      <x>930</x>
+      <y>165</y>
+      <width>130</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
+    </property>
+    <property name="text">
+     <string>гидравлика</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_roll_pressure">
+    <property name="geometry">
+     <rect>
+      <x>930</x>
+      <y>130</y>
+      <width>130</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
+    </property>
+    <property name="text">
+     <string>гидравлика</string>
+    </property>
+   </widget>
    <zorder>label_date</zorder>
    <zorder>label_time</zorder>
    <zorder>verticalLayoutWidget</zorder>
@@ -1494,6 +1532,8 @@ outline: none;
    <zorder>label_airFilter</zorder>
    <zorder>label_oilFilter</zorder>
    <zorder>label_engineLowTemperature</zorder>
+   <zorder>label_fan_pressure</zorder>
+   <zorder>label_roll_pressure</zorder>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

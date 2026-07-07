@@ -73,8 +73,8 @@ void SettingsForm::fillElements()
         elementsBackTimings.at(i)->deleteLater();
     elementsBackTimings.clear();
 
-    elementsGlobal.append(new SettingsElement("Задержка включения зажигания(С)", "Global", "restartIgnitionDelay", settings->value("Global/restartIgnitionDelay").toInt(), 0, 10));
     elementsGlobal.append(new SettingsElement("Порог включения уборки(км/ч)", "Global", "enableCleanSpeed", settings->value("Global/enableCleanSpeed").toInt(), 0, 100));
+    elementsGlobal.append(new SettingsElement("Задержка включения зажигания(С)", "Global", "restartIgnitionDelay", settings->value("Global/restartIgnitionDelay").toInt(), 0, 10));
     elementsGlobal.append(new SettingsElement("Порог отключения уборки(км/ч)", "Global", "disableCleanSpeed", settings->value("Global/disableCleanSpeed").toInt(), 0, 100));
     elementsGlobal.append(new SettingsElement("Рабочая температура двигателя(C)", "Global", "engineTempGood", settings->value("Global/engineTempGood").toInt(), 0, 120));
     elementsGlobal.append(new SettingsElement("Опасная температура двигателя(C)", "Global", "engineTempWarn", settings->value("Global/engineTempWarn").toInt(), 0, 120));
@@ -85,8 +85,8 @@ void SettingsForm::fillElements()
     elementsGlobal.append(new SettingsElement("Критическая температура гидросистемы(C)", "Global", "hydroTempCrit", settings->value("Global/hydroTempCrit").toInt(), -40, 100));
     elementsGlobal.append(new SettingsElement("Пересчет температуры гидросистемы коэф k (kx+b)", "Global", "hydroTempK", settings->value("Global/hydroTempK").toFloat(), -200, 200, 0.1));
     elementsGlobal.append(new SettingsElement("Пересчет температуры гидросистемы коэф b (kx+b)", "Global", "hydroTempB", settings->value("Global/hydroTempB").toInt(), -500, 500));
-    elementsGlobal.append(new SettingsElement("Давление ТИ1 коэф k (kx+b)", "Global", "hydraulicPressure1K", settings->value("Global/hydraulicPressure1K").toFloat(), -200, 200, 0.1));
     elementsGlobal.append(new SettingsElement("Давление ТИ1 коэф b (kx+b)", "Global", "hydraulicPressure1B", settings->value("Global/hydraulicPressure1B").toFloat(), -500, 500, 0.1));
+    elementsGlobal.append(new SettingsElement("Давление ТИ1 коэф k (kx+b)", "Global", "hydraulicPressure1K", settings->value("Global/hydraulicPressure1K").toFloat(), -200, 200, 0.1));
     elementsGlobal.append(new SettingsElement("Давление ТИ2 коэф k (kx+b)", "Global", "hydraulicPressure2K", settings->value("Global/hydraulicPressure2K").toFloat(), -200, 200, 0.1));
     elementsGlobal.append(new SettingsElement("Давление ТИ2 коэф b (kx+b)", "Global", "hydraulicPressure2B", settings->value("Global/hydraulicPressure2B").toFloat(), -500, 500, 0.1));
     elementsGlobal.append(new SettingsElement("Давление ТИ3 коэф k (kx+b)", "Global", "hydraulicPressure3K", settings->value("Global/hydraulicPressure3K").toFloat(), -200, 200, 0.1));
@@ -101,8 +101,8 @@ void SettingsForm::fillElements()
     elementsGlobal.append(new SettingsElement("Требуемые дни для предпускового прогрева", "Engine", "startRollRequiredDays", settings->value("Engine/startRollRequiredDays").toInt(), 0, 30));
     elementsGlobal.append(new SettingsElement("Порог низкой температуры запуска(C)", "Engine", "startLowTemperatureEdge", settings->value("Engine/startLowTemperatureEdge").toInt(), -40, 10));
     elementsGlobal.append(new SettingsElement("Макс. время работы стартера(с)", "Engine", "starterMaxWorkSec", settings->value("Engine/starterMaxWorkSec").toInt(), 0, 60));
-    elementsGlobal.append(new SettingsElement("Пауза стартера(с)", "Engine", "starterPauseSec", settings->value("Engine/starterPauseSec").toInt(), 0, 300));
     elementsGlobal.append(new SettingsElement("Макс. попыток стартера", "Engine", "starterMaxAttempts", settings->value("Engine/starterMaxAttempts").toInt(), 0, 10));
+    elementsGlobal.append(new SettingsElement("Пауза стартера(с)", "Engine", "starterPauseSec", settings->value("Engine/starterPauseSec").toInt(), 0, 300));
     elementsGlobal.append(new SettingsElement("Макс. время предпускового прогрева(с)", "Engine", "rollMaxWorkSec", settings->value("Engine/rollMaxWorkSec").toInt(), 0, 60));
     elementsGlobal.append(new SettingsElement("Пауза предпускового прогрева(с)", "Engine", "rollPauseSec", settings->value("Engine/rollPauseSec").toInt(), 0, 300));
     elementsGlobal.append(new SettingsElement("Макс. попыток предпускового прогрева", "Engine", "rollMaxAttempts", settings->value("Engine/rollMaxAttempts").toInt(), 0, 10));

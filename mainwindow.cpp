@@ -1439,6 +1439,17 @@ void MainWindow::oneSecond()
 
 void MainWindow::repaintProgress()
 {
+
+    QString text = QString::number(hydroTempK * can0->getState(StateHydraulicOilTemperature).toUInt() + hydroTempB, 'f', 1);
+    if (ui->label_hydraulicTemperature->text() != text + " C ТЕМП ГО")
+        ui->label_hydraulicTemperature->setText(text + " C ТЕМП ГО");
+    text = QString::number(hydraulicPressureValue(2), 'f', 1);
+    if (ui->label_fan_pressure->text() != text + " P ТИ3")
+        ui->label_fan_pressure->setText(text + " P ТИ3");
+    text = QString::number(hydraulicPressureValue(3), 'f', 1);
+    if (ui->label_roll_pressure->text() != text + " P ТИ4")
+        ui->label_roll_pressure->setText(text + " P ТИ4");
+
     // защита от залипания графики
     ui->label_time->repaint();
 }
@@ -1760,10 +1771,12 @@ void MainWindow::stopRollOutput()
 
 bool MainWindow::inStarterPause() const
 {
+    qDebug()<<"isPauseActive: "<<starterPauseActive;
+
     if (!starterPauseActive)
         return false;
-
     const int passed = qAbs(starterPauseStartedAt.secsTo(QDateTime::currentDateTime()));
+    qDebug()<<"timer: "<<passed<<"   targetTime: "<<starterPauseSec;
     return passed < starterPauseSec;
 }
 
@@ -2306,6 +2319,7 @@ void MainWindow::showStarter()
         can0->setState(StateIgnitionOut, false);
         ignitionOffTimer = 0;
         engineStartedOk = false;
+        starterPauseActive = true;
         addLog("Повторное нажатие старт/стоп: выключаем зажигание", WarningStatus);
     }
     else if (starterPressed)
@@ -2717,12 +2731,15 @@ void MainWindow::showWorkMode()
             ui->pushButton_blowerDown->setEnabled(true);
             ui->pushButton_blowerUp->setEnabled(true);
         }
+
         // щетка
         if (!ui->pushButton_centralBroomDown->isEnabled())
         {
+            qDebug()<<"show work mode: true";
             ui->pushButton_centralBroomDown->setEnabled(true);
             ui->pushButton_centralBroomUp->setEnabled(true);
         }
+
         // отвал
         if (!ui->pushButton_dumpDown->isEnabled())
         {
@@ -2754,6 +2771,8 @@ void MainWindow::showWorkMode()
         // щетка
         if (ui->pushButton_centralBroomDown->isEnabled())
         {
+
+            qDebug()<<"show work mode: false";
             ui->pushButton_centralBroomDown->setEnabled(false);
             ui->pushButton_centralBroomUp->setEnabled(false);
         }
@@ -2789,11 +2808,15 @@ void MainWindow::showWorkMode()
     // щетка
     if (ui->pushButton_centralBroomDown->isEnabled())
     {
+
+        qDebug()<<"show work mode: true";
         if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);")
             ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);");
     }
     else
     {
+
+        qDebug()<<"show work mode: false";
         if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_blocked.png);")
             ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_blocked.png);");
     }
