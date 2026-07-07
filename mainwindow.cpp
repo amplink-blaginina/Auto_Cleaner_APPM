@@ -1197,7 +1197,9 @@ void MainWindow::canJ1939Error()
     // сбрасываем значения
     engine->rpm = 0;
     engine->engineCoolantTemp = -40;
+    engine->coolantTempEverReceived = false;
 }
+
 void MainWindow::canJ1939MainError()
 {
     if (!ui->J1939MainStatus->isVisible())
@@ -1831,8 +1833,11 @@ void MainWindow::updateEngineAndRollLocks()
 {
     // Теплореле: активно (true) = двигатель достаточно прогрет
     const bool heatRelayActive = can0->getState(StateHeatRele).toBool();
+    // Температура учитывается только при живом CAN
+    const bool engineTempValid = engine->coolantTempEverReceived
+                                 && (engine->online <= ENGINE_ONLINE_EDGE * 10);
     // Температура двигателя: учитываем только если движок уже хоть раз прислал данные
-    const bool engineCold = engine->coolantTempEverReceived && (engine->engineCoolantTemp < lowTempRequireWarm);
+    const bool engineCold = engineTempValid && (engine->engineCoolantTemp < lowTempRequireWarm);
 
     const int daysFromLastStart = lastEngineStartDate.daysTo(QDate::currentDate());
     needRollProcedure = !rollCompleted && !disableRollRequirement && daysFromLastStart > requireRollAfterDays;
@@ -1843,14 +1848,20 @@ void MainWindow::updateEngineAndRollLocks()
     // === ИСПРАВЛЕННАЯ ЛОГИКА ТЕМПЕРАТУРНОЙ БЛОКИРОВКИ ===
     if (!disableTemperatureBlock)
     {
-        // ВХОД: двигатель холоден по CAN и теплореле ещё не замкнуто
+        // БЛОКИРОВКА: двигатель холоден по CAN и теплореле ещё не замкнуто
         if (engineCold && !heatRelayActive)
         {
             starterLockedByTemperature = true;
             rollLockedByTemperature = true;
         }
-        // ВЫХОД: ТОЛЬКО когда сработало физическое теплореле
+        // РАЗБЛОКИРОВКА: ТОЛЬКО когда сработало физическое теплореле
         else if (heatRelayActive)
+        {
+            starterLockedByTemperature = false;
+            rollLockedByTemperature = false;
+        }
+        // РАЗБЛОКИРОВКА: данные с CAN недостоверны (пропал) или двигатель уже прогрет
+        else
         {
             starterLockedByTemperature = false;
             rollLockedByTemperature = false;
