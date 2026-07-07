@@ -662,11 +662,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     serviceOtherEngineLeftForm = new ServiceOtherEngineLeftForm(this);
     serviceOtherEngineLeftForm->hide();
-    // === СБРОС КЕША КНОПОК ПРОКРУТКИ ===
-    prerollButtonsCached = false;
-    cachedPrerollButton = nullptr;
-    cachedStarterPrerollButton = nullptr;
-    // =====================================
 
     serviceOtherLightLeftForm = new ServiceOtherLightLeftForm(this);
     serviceOtherLightLeftForm->hide();
@@ -2074,10 +2069,6 @@ void MainWindow::processPrerollInService()
         can0->setState(StateStarterAllow, false);
     }
 
-    // === ПРИНУДИТЕЛЬНАЯ ПЕРЕРИСОВКА КНОПОК ===
-    updatePrerollButtonsVisual();
-    // ============================================
-
     prerollButtonPrev = prerollPressed;
     prerollStarterButtonPrev = prerollStarterPressed;
     rollInputPrev = rollInputPressed;
@@ -3332,7 +3323,7 @@ void MainWindow::on_pushButton_dumpDown_clicked()
 
 void MainWindow::on_pushButton_dumpLeft_clicked()
 {
-    if (!startClean)
+    //if (!startClean)
     {
         workMode.frontDumpLeft = !workMode.frontDumpLeft;
         workMode.frontDumpRight = false;
@@ -3342,7 +3333,7 @@ void MainWindow::on_pushButton_dumpLeft_clicked()
 
 void MainWindow::on_pushButton_dumpRight_clicked()
 {
-    if (!startClean)
+    //if (!startClean)
     {
         workMode.frontDumpRight = !workMode.frontDumpRight;
         workMode.frontDumpLeft = false;
@@ -3358,7 +3349,7 @@ void MainWindow::on_pushButton_dumpFlow_clicked()
 
 void MainWindow::on_pushButton_centralBroomLeft_clicked()
 {
-    if (!startClean)
+    //if (!startClean)
     {
         workMode.centralBroomLeft = !workMode.centralBroomLeft;
         workMode.centralBroomRight = false;
@@ -3368,7 +3359,7 @@ void MainWindow::on_pushButton_centralBroomLeft_clicked()
 
 void MainWindow::on_pushButton_centralBroomRight_clicked()
 {
-    if (!startClean)
+    //if (!startClean)
     {
         workMode.centralBroomRight = !workMode.centralBroomRight;
         workMode.centralBroomLeft = false;
@@ -3410,7 +3401,7 @@ void MainWindow::on_pushButton_blowerDown_clicked()
 
 void MainWindow::on_pushButton_blowerLeft_clicked()
 {
-    if (!startClean)
+    //if (!startClean)
     {
         workMode.blowLeft = !workMode.blowLeft;
         workMode.blowRight = false;
@@ -3420,7 +3411,7 @@ void MainWindow::on_pushButton_blowerLeft_clicked()
 
 void MainWindow::on_pushButton_blowerRight_clicked()
 {
-    if (!startClean)
+    //if (!startClean)
     {
         workMode.blowRight = !workMode.blowRight;
         workMode.blowLeft = false;
@@ -3463,55 +3454,4 @@ void MainWindow::on_pushButton_homeState_clicked()
     blower->state = Blower::BlowerRotated;
     frontRail->state = FrontRail::FrontRailFlowed;
     broomCentral->state = CentralBroom::BroomRotated;
-}
-
-void MainWindow::cachePrerollButtons()
-{
-    if (prerollButtonsCached)
-        return;
-
-    if (serviceOtherEngineLeftForm)
-    {
-        cachedPrerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_preroll");
-        cachedStarterPrerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_starterPreroll");
-    }
-
-    prerollButtonsCached = true;
-}
-void MainWindow::updatePrerollButtonsVisual()
-{
-    // Ленивая инициализация кеша
-    if (!prerollButtonsCached)
-        cachePrerollButtons();
-
-    QPushButton* prerollButton = cachedPrerollButton;
-    QPushButton* starterPrerollButton = cachedStarterPrerollButton;
-
-    if (prerollButton)
-    {
-        QString ss;
-        if (prerollSequenceActive || prerollStarterUnlocked)
-            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_preroll_on.png);";
-        else if (rollBlocked() || rollNeedReboot)
-            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_preroll_blocked.png);";
-        else
-            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_preroll_off.png);";
-
-        if (prerollButton->styleSheet() != ss)
-            prerollButton->setStyleSheet(ss);
-    }
-
-    if (starterPrerollButton)
-    {
-        QString ss;
-        if (rollRunActive)
-            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_starter_preroll_active.png);";
-        else if (!starterPrerollButton->isEnabled())
-            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_starter_preroll_blocked.png);";
-        else
-            ss = "border-style:none;outline:none;background-image:url(:/Images/Images/main/buttons/button_starter_preroll_ready.png);";
-
-        if (starterPrerollButton->styleSheet() != ss)
-            starterPrerollButton->setStyleSheet(ss);
-    }
 }

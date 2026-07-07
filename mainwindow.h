@@ -416,6 +416,8 @@ private:
     void updateSensorAndWarningIndicators();
     void updateIndicatorPixmap(QLabel* label, const QString& colorName, const QString& baseName);
 
+    // void updatePrerollButtonsVisual();
+    // void cachePrerollButtons();
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
