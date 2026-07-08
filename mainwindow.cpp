@@ -2057,57 +2057,70 @@ void MainWindow::processPrerollInService()
 
     if (rollRunActive)
     {
-        // Прокрутка работает только пока оператор удерживает кнопку/вход
         const bool rollButtonStillPressed = prerollStarterPressed || rollInputPressed;
-        if (!rollButtonStillPressed)
+        if (rollRunActive)
         {
-            stopRollOutput();
-            rollRunActive = false;
-            addLog("Прокрутка остановлена оператором", InfoStatus);
-            // Добровольная остановка — не считаем за неудачу, паузу не запускаем
-        }
-        else
-        {
-            const bool oilRele = !can0->getState(StateOilRele).toBool();
-            const int elapsedRoll = qAbs(rollRunStartedAt.secsTo(QDateTime::currentDateTime()));
-            if (oilRele)
+            // АВАРИЙНАЯ ОСТАНОВКА: зажигание включилось во время прокрутки
+            if (can0->getState(StateIgnitionOut).toBool())
             {
                 stopRollOutput();
                 rollRunActive = false;
-                rollPauseActive = false;
-                rollNeedReboot = false;
-                rollAttemptsUsed = 0;
                 prerollStarterUnlocked = false;
                 can0->setState(StateStarterAllow, false);
-                rollCompleted = true;
-                needRollProcedure = false;
-                starterLockedByRoll = false;
-                lastEngineStartDate = QDate::currentDate();
-                settings->setValue("Engine/lastStartDate", lastEngineStartDate);
-                settings->sync();
-                // ВОССТАНАВЛИВАЕМ ЗАЖИГАНИЕ после успешной прокрутки
-                restoreIgnitionAfterRoll();
-
-
-                addLog("Прокрутка завершена по реле масла", InfoStatus);
+                restoreIgnitionAfterRoll();   // уже есть из проблемы 3
+                addLog("Прокрутка прервана: обнаружено включение зажигания", WarningStatus);
             }
-            else if (elapsedRoll >= rollMaxWorkSec)
+            // Прокрутка работает только пока оператор удерживает кнопку/вход
+            else if (!rollButtonStillPressed)
             {
                 stopRollOutput();
                 rollRunActive = false;
-                rollPauseActive = true;
-                rollPauseStartedAt = QDateTime::currentDateTime();
+                addLog("Прокрутка остановлена оператором", InfoStatus);
                 restoreIgnitionAfterRoll();
-                addLog("Долгая работа стартера", FatalStatus);
-                if (rollAttemptsUsed >= rollMaxAttempts)
+                // Добровольная остановка — не считаем за неудачу, паузу не запускаем
+            }
+            else
+            {
+                const bool oilRele = !can0->getState(StateOilRele).toBool();
+                const int elapsedRoll = qAbs(rollRunStartedAt.secsTo(QDateTime::currentDateTime()));
+                if (oilRele)
                 {
-                    rollNeedReboot = true;
-                    addLog("Достигнут лимит попыток прокрутки, требуется перезагрузка пульта", FatalStatus);
+                    stopRollOutput();
+                    rollRunActive = false;
+                    rollPauseActive = false;
+                    rollNeedReboot = false;
+                    rollAttemptsUsed = 0;
+                    prerollStarterUnlocked = false;
+                    can0->setState(StateStarterAllow, false);
+                    rollCompleted = true;
+                    needRollProcedure = false;
+                    starterLockedByRoll = false;
+                    lastEngineStartDate = QDate::currentDate();
+                    settings->setValue("Engine/lastStartDate", lastEngineStartDate);
+                    settings->sync();
+                    // ВОССТАНАВЛИВАЕМ ЗАЖИГАНИЕ после успешной прокрутки
+                    restoreIgnitionAfterRoll();
+
+
+                    addLog("Прокрутка завершена по реле масла", InfoStatus);
+                }
+                else if (elapsedRoll >= rollMaxWorkSec)
+                {
+                    stopRollOutput();
+                    rollRunActive = false;
+                    rollPauseActive = true;
+                    rollPauseStartedAt = QDateTime::currentDateTime();
+                    restoreIgnitionAfterRoll();
+                    addLog("Долгая работа стартера", FatalStatus);
+                    if (rollAttemptsUsed >= rollMaxAttempts)
+                    {
+                        rollNeedReboot = true;
+                        addLog("Достигнут лимит попыток прокрутки, требуется перезагрузка пульта", FatalStatus);
+                    }
                 }
             }
         }
     }
-
     if (rollNeedReboot)
     {
         prerollStarterUnlocked = false;
@@ -2329,6 +2342,13 @@ void MainWindow::showFRM()
 
 void MainWindow::showStarter()
 {
+    // Если идёт прокрутка — стартер не управляется отсюда
+    if (rollRunActive || prerollSequenceActive)
+    {
+        starterButtonPrev = (gpioMatirx->keyPressed == GPIOInput::IN_STARTER);
+        return;
+    }
+
     if (engine->getRpm() < 500 && engineStartedOk)
         addLog("Двигатель заглох!!!", FatalStatus);
 
