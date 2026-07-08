@@ -1773,12 +1773,10 @@ void MainWindow::stopRollOutput()
 
 bool MainWindow::inStarterPause() const
 {
-    qDebug()<<"isPauseActive: "<<starterPauseActive;
-
     if (!starterPauseActive)
         return false;
     const int passed = qAbs(starterPauseStartedAt.secsTo(QDateTime::currentDateTime()));
-    qDebug()<<"timer: "<<passed<<"   targetTime: "<<starterPauseSec;
+    //qDebug()<<"timer: "<<passed<<"   targetTime: "<<starterPauseSec;
     return passed < starterPauseSec;
 }
 
@@ -1979,7 +1977,17 @@ void MainWindow::processPrerollInService()
 
     if (prerollPressedEdge)
     {
-        if (rollBlocked())
+        if (prerollSequenceActive || prerollStarterUnlocked)
+        {
+            // ОТМЕНА: выходим из режима прокрутки, восстанавливаем зажигание
+            prerollSequenceActive = false;
+            prerollStarterUnlocked = false;
+            stopRollOutput();
+            can0->setState(StateStarterAllow, false);
+            restoreIgnitionAfterRoll();
+            addLog("Режим прокрутки отменён", InfoStatus);
+        }
+        else if (rollBlocked())
         {
             addLog("Прокрутка заблокирована", WarningStatus);
         }
@@ -2078,8 +2086,8 @@ void MainWindow::processPrerollInService()
                 settings->setValue("Engine/lastStartDate", lastEngineStartDate);
                 settings->sync();
                 // ВОССТАНАВЛИВАЕМ ЗАЖИГАНИЕ после успешной прокрутки
-                can0->setState(StateIgnitionOut, true);
-                ignitionOffTimer = 0;
+                restoreIgnitionAfterRoll();
+
 
                 addLog("Прокрутка завершена по реле масла", InfoStatus);
             }
@@ -2089,6 +2097,7 @@ void MainWindow::processPrerollInService()
                 rollRunActive = false;
                 rollPauseActive = true;
                 rollPauseStartedAt = QDateTime::currentDateTime();
+                restoreIgnitionAfterRoll();
                 addLog("Долгая работа стартера", FatalStatus);
                 if (rollAttemptsUsed >= rollMaxAttempts)
                 {
@@ -2111,6 +2120,17 @@ void MainWindow::processPrerollInService()
     prerollButtonPrev = prerollPressed;
     prerollStarterButtonPrev = prerollStarterPressed;
     rollInputPrev = rollInputPressed;
+}
+
+void MainWindow::restoreIgnitionAfterRoll()
+{
+    // Восстанавливаем зажигание немедленно
+    can0->setState(StateIgnitionOut, true);
+    ignitionOffTimer = 0;
+
+    // Если сервисный экран закрыт — разрешаем авто-восстановление работать штатно
+    // Если открыт — оно всё равно заблокировано, но зажигание уже включено
+    addLog("Зажигание восстановлено после прокрутки", InfoStatus);
 }
 
 void MainWindow::updateSensorAndWarningIndicators()

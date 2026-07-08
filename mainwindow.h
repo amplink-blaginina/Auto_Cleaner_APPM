@@ -418,6 +418,7 @@ private:
 
     // void updatePrerollButtonsVisual();
     // void cachePrerollButtons();
+    void restoreIgnitionAfterRoll();
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
