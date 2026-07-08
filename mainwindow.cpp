@@ -1985,7 +1985,7 @@ void MainWindow::processPrerollInService()
             stopRollOutput();
             can0->setState(StateStarterAllow, false);
             restoreIgnitionAfterRoll();
-            addLog("Режим прокрутки отменён", InfoStatus);
+            addLog("Режим прокрутки отменён оператором", InfoStatus);
         }
         else if (rollBlocked())
         {
@@ -2133,6 +2133,13 @@ void MainWindow::processPrerollInService()
     prerollButtonPrev = prerollPressed;
     prerollStarterButtonPrev = prerollStarterPressed;
     rollInputPrev = rollInputPressed;
+
+    // Обновляем состояние кнопки ПРОКРУТКА
+    if (prerollButton != NULL)
+    {
+        bool rollModeActive = prerollSequenceActive || prerollStarterUnlocked || rollRunActive;
+        prerollButton->setChecked(rollModeActive);
+    }
 }
 
 void MainWindow::restoreIgnitionAfterRoll()
