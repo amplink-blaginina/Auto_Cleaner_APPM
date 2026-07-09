@@ -27,7 +27,7 @@
 QLocale EngLocale (QLocale::Russian);
 
 static int ptsInc = 0;
-QString programmVersionString = "AutoCleaner APPM v3.010";
+QString programmVersionString = "AutoCleaner APPM v3.011";
 
 //Changes
 // 3.001 - форкнулся от APPM2 imx6, удалил лишнее и накатил на нее все от разбери с 200 и 318D4
@@ -1441,10 +1441,7 @@ void MainWindow::oneSecond()
 
 void MainWindow::repaintProgress()
 {
-
     QString text = QString::number(hydroTempK * can0->getState(StateHydraulicOilTemperature).toUInt() + hydroTempB, 'f', 1);
-    if (ui->label_hydraulicTemperature->text() != text + " C ТЕМП ГО")
-        ui->label_hydraulicTemperature->setText(text + " C ТЕМП ГО");
     text = QString::number(hydraulicPressureValue(2), 'f', 1);
     if (ui->label_fan_pressure->text() != text + " P ТИ3")
         ui->label_fan_pressure->setText(text + " P ТИ3");
@@ -1550,6 +1547,7 @@ void MainWindow::mainProgress()
         if (ui->label_engineRPM->text() != QString::number(engine->getRpm()))
             ui->label_engineRPM->setText(QString::number(engine->getRpm()));
     }
+
 //    if (speedCounter > 50)
 //    {
 //        if (ui->label_speed->text() != "n/a")
@@ -2726,14 +2724,8 @@ void MainWindow::showWorkMode()
             broomCentral->setNeedState(CentralBroom::BroomOff);
             broomCentral->choosed = false;
         }
-        if (workMode.centralBroomLeft)
-        {
-            broomCentral->needSlided = true;
-        }
-        else
-        {
-            broomCentral->needSlided = false;
-        }
+
+        broomCentral->needSlided = workMode.centralBroomLeft;
 
         // отвал
         if (workMode.frontDumpLeft||workMode.frontDumpRight)
@@ -2746,14 +2738,8 @@ void MainWindow::showWorkMode()
             frontRail->setNeedState(FrontRail::FrontRailOff);
             frontRail->choosed = false;
         }
-        if (workMode.frontDumpLeft)
-        {
-            frontRail->needSlided = true;
-        }
-        else
-        {
-            frontRail->needSlided = false;
-        }
+
+        frontRail->needSlided = workMode.frontDumpLeft;
 
         // дулка
         if (workMode.blowLeft||workMode.blowRight)
@@ -2838,6 +2824,7 @@ void MainWindow::showWorkMode()
             ui->pushButton_blowerLeft->setEnabled(true);
             ui->pushButton_blowerRight->setEnabled(true);
         }
+
         // щетка
         if (ui->pushButton_centralBroomDown->isEnabled())
         {
@@ -2863,6 +2850,7 @@ void MainWindow::showWorkMode()
             ui->pushButton_dumpRight->setEnabled(true);
         }
     }
+
     // меняем картиночки доступности кнопок после анализа
     // дулка
     if (ui->pushButton_blowerDown->isEnabled())
@@ -2875,6 +2863,7 @@ void MainWindow::showWorkMode()
         if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_blocked.png);")
             ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_blocked.png);");
     }
+
     // щетка
     if (ui->pushButton_centralBroomDown->isEnabled())
     {
@@ -2971,49 +2960,6 @@ void MainWindow::showWorkMode()
         ui->pushButton_startstop->setStyleSheet("outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_on.png);");
     else if (!startClean && ui->pushButton_startstop->styleSheet() != "outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_off.png);")
         ui->pushButton_startstop->setStyleSheet("outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_off.png);");
-}
-
-void MainWindow::on_pushButton_service_clicked()
-{
-    logger->addUserLogInfo(Logger::UF_SERVICE_PRESSED, 1);
-    diagAskPassword();
-}
-
-void MainWindow::on_pushButton_lightSweep_clicked()
-{
-    if (workMode.sweepType != LightSweep)
-    {
-        workMode.sweepType = LightSweep;
-        showWorkMode();
-    }
-}
-
-
-void MainWindow::on_pushButton_mediumSweep_clicked()
-{
-    if (workMode.sweepType != MediumSweep)
-    {
-        workMode.sweepType = MediumSweep;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_heavySweep_clicked()
-{
-    if (workMode.sweepType != HeavySweep)
-    {// защита от поднятой щетки
-        workMode.sweepType = HeavySweep;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_leafSweep_clicked()
-{
-    if (workMode.sweepType != LeafSweep)
-    {
-        workMode.sweepType = LeafSweep;
-        showWorkMode();
-    }
 }
 
 bool MainWindow::canStart()
@@ -3114,10 +3060,6 @@ void MainWindow::applyWorkModeToDeployedOrgans()
     }
 }
 
-void MainWindow::on_pushButton_settings_clicked()
-{
-    settingsAskPassword();
-}
 
 void  MainWindow::showCentralBroomLeft()
 {
@@ -3404,6 +3346,58 @@ void MainWindow::showPauseButton()
     }
 }
 
+
+//=============================================================
+//====================Buttons click handlers===================
+//=============================================================
+
+void MainWindow::on_pushButton_service_clicked()
+{
+    logger->addUserLogInfo(Logger::UF_SERVICE_PRESSED, 1);
+    diagAskPassword();
+}
+
+void MainWindow::on_pushButton_lightSweep_clicked()
+{
+    if (workMode.sweepType != LightSweep)
+    {
+        workMode.sweepType = LightSweep;
+        showWorkMode();
+    }
+}
+
+void MainWindow::on_pushButton_mediumSweep_clicked()
+{
+    if (workMode.sweepType != MediumSweep)
+    {
+        workMode.sweepType = MediumSweep;
+        showWorkMode();
+    }
+}
+
+void MainWindow::on_pushButton_heavySweep_clicked()
+{
+    if (workMode.sweepType != HeavySweep)
+    {// защита от поднятой щетки
+        workMode.sweepType = HeavySweep;
+        showWorkMode();
+    }
+}
+
+void MainWindow::on_pushButton_leafSweep_clicked()
+{
+    if (workMode.sweepType != LeafSweep)
+    {
+        workMode.sweepType = LeafSweep;
+        showWorkMode();
+    }
+}
+
+void MainWindow::on_pushButton_settings_clicked()
+{
+    settingsAskPassword();
+}
+
 void MainWindow::on_pushButton_dumpUp_clicked()
 {
 
@@ -3494,7 +3488,7 @@ void MainWindow::on_pushButton_blowerDown_clicked()
 
 void MainWindow::on_pushButton_blowerLeft_clicked()
 {
-    //if (!startClean)
+    if (!startClean)
     {
         workMode.blowLeft = !workMode.blowLeft;
         workMode.blowRight = false;
@@ -3504,7 +3498,7 @@ void MainWindow::on_pushButton_blowerLeft_clicked()
 
 void MainWindow::on_pushButton_blowerRight_clicked()
 {
-    //if (!startClean)
+    if (!startClean)
     {
         workMode.blowRight = !workMode.blowRight;
         workMode.blowLeft = false;
@@ -3514,7 +3508,7 @@ void MainWindow::on_pushButton_blowerRight_clicked()
 
 void MainWindow::on_pushButton_backMagnet_clicked()
 {
-    if (!startClean)
+    //if (!startClean)
     {
         workMode.backMagnet = !workMode.backMagnet;
         showWorkMode();
