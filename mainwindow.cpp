@@ -27,7 +27,7 @@
 QLocale EngLocale (QLocale::Russian);
 
 static int ptsInc = 0;
-QString programmVersionString = "AutoCleaner APPM v3.011";
+QString programmVersionString = "AutoCleaner APPM v3.012";
 
 //Changes
 // 3.001 - форкнулся от APPM2 imx6, удалил лишнее и накатил на нее все от разбери с 200 и 318D4
@@ -2277,16 +2277,18 @@ void MainWindow::showStatus()
     {
         ui->label_a1->hide();
     }
+
     // напорный фильтр
-    if ((can0->getState(StatePressureFilter1).toBool() || can0->getState(StatePressureFilter1).toBool() || can0->getState(StatePressureFilter3).toBool()) && !ui->label_pressure_filter->isVisible())
+    if ((can0->getState(StatePressureFilter1).toBool() || can0->getState(StatePressureFilter2).toBool() || can0->getState(StatePressureFilter3).toBool()) && !ui->label_pressure_filter->isVisible())
     {
         addLog("Засорен напорный фильтр", MainWindow::WarningStatus);
         ui->label_pressure_filter->show();
     }
-    else if (!(can0->getState(StatePressureFilter1).toBool() || can0->getState(StatePressureFilter1).toBool() || can0->getState(StatePressureFilter3).toBool()) && ui->label_pressure_filter->isVisible())
+    else if (!(can0->getState(StatePressureFilter1).toBool() || can0->getState(StatePressureFilter2).toBool() || can0->getState(StatePressureFilter3).toBool()) && ui->label_pressure_filter->isVisible())
     {
         ui->label_pressure_filter->hide();
     }
+
     // сливной фильтр
     if (can0->getState(StateDrainFilterD28).toBool() && !ui->label_drain_filter->isVisible())
     {
