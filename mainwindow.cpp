@@ -854,62 +854,64 @@ void MainWindow::getElements(QMap<int, SystemElement*>* dst)
 
 void MainWindow::readSystemConfigure()
 {
-    // проверяем есть ли настройки в конфиге
-    bool need_to_save = false;
-    if (settings->contains("Configuration/configurationVersion"))
-    {// настройки есть
-        qDebug() << "have config";
-        if (settings->value("Configuration/configurationVersion").toUInt() >= systemConfigure.configurationVersion)
-        {// версия их актуальна - перечитываем
-            qDebug() << "version actual";
-            systemConfigure.clear();
-            while (systemElements.size() > 0)
-                delete systemElements.take(systemElements.firstKey());
-            systemConfigure.configurationVersion = settings->value("Configuration/configurationVersion").toUInt();
-            for (int i = 1; i < 9; i++)
-            {
-                systemConfigure.boardsType[i] = settings->value("Configuration/Board" + QString::number(i) + "_boardType").toUInt();
-                for (int k = 0; k < 12; k++)
-                {
-                    systemConfigure.channelsType[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "Type").toUInt();
-                    systemConfigure.id[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "ElementId").toUInt();
-                    systemConfigure.channelsMedianSize[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "MedianSize").toUInt();
-                    systemConfigure.channelsLowPFM[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "LowPFM").toUInt();
-                    systemConfigure.channelsHighPFM[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "HighPFM").toUInt();
-                    systemConfigure.channelsPWMSize[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "PWMSize").toUInt();
-                    systemConfigure.channelsValueChangeSpeed[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "ValueChangeSpeed").toUInt();
+    saveSystemConfigure();
 
-                    if (systemConfigure.id[i][k] != 0)
-                    {
-                        addElement(settings->value("Configuration/Element" + QString::number(systemConfigure.id[i][k]) + "_id").toUInt(),
-                                   settings->value("Configuration/Element" + QString::number(systemConfigure.id[i][k]) + "_name").toString(),
-                                   settings->value("Configuration/Element" + QString::number(systemConfigure.id[i][k]) + "_board").toUInt(),
-                                   settings->value("Configuration/Element" + QString::number(systemConfigure.id[i][k]) + "_channel").toUInt(),
-                                   systemConfigure.channelsType[i][k],
-                                   systemConfigure.channelsMedianSize[i][k],
-                                   systemConfigure.channelsPWMSize[i][k],
-                                   systemConfigure.channelsLowPFM[i][k],
-                                   systemConfigure.channelsHighPFM[i][k],
-                                   systemConfigure.channelsValueChangeSpeed[i][k]);
-                    }
-                }
-            }
-        }
-        else
-        {
-            qDebug() << "version old";
-            need_to_save = true;
-        }
-    }
-    else
-    {
-        qDebug() << "have NO config";
-        need_to_save = true;
-    }
-    if (need_to_save)
-    {// конфига или нет или он старый - пересохраняем
-        saveSystemConfigure();
-    }
+    // проверяем есть ли настройки в конфиге
+    // bool need_to_save = false;
+    // if (settings->contains("Configuration/configurationVersion"))
+    // {// настройки есть
+    //     qDebug() << "have config";
+    //     if (settings->value("Configuration/configurationVersion").toUInt() >= systemConfigure.configurationVersion)
+    //     {// версия их актуальна - перечитываем
+    //         qDebug() << "version actual";
+    //         systemConfigure.clear();
+    //         while (systemElements.size() > 0)
+    //             delete systemElements.take(systemElements.firstKey());
+    //         systemConfigure.configurationVersion = settings->value("Configuration/configurationVersion").toUInt();
+    //         for (int i = 1; i < 9; i++)
+    //         {
+    //             systemConfigure.boardsType[i] = settings->value("Configuration/Board" + QString::number(i) + "_boardType").toUInt();
+    //             for (int k = 0; k < 12; k++)
+    //             {
+    //                 systemConfigure.channelsType[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "Type").toUInt();
+    //                 systemConfigure.id[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "ElementId").toUInt();
+    //                 systemConfigure.channelsMedianSize[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "MedianSize").toUInt();
+    //                 systemConfigure.channelsLowPFM[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "LowPFM").toUInt();
+    //                 systemConfigure.channelsHighPFM[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "HighPFM").toUInt();
+    //                 systemConfigure.channelsPWMSize[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "PWMSize").toUInt();
+    //                 systemConfigure.channelsValueChangeSpeed[i][k] = settings->value("Configuration/Board" + QString::number(i) + "_channel" + QString::number(k) + "ValueChangeSpeed").toUInt();
+
+    //                 if (systemConfigure.id[i][k] != 0)
+    //                 {
+    //                     addElement(settings->value("Configuration/Element" + QString::number(systemConfigure.id[i][k]) + "_id").toUInt(),
+    //                                settings->value("Configuration/Element" + QString::number(systemConfigure.id[i][k]) + "_name").toString(),
+    //                                settings->value("Configuration/Element" + QString::number(systemConfigure.id[i][k]) + "_board").toUInt(),
+    //                                settings->value("Configuration/Element" + QString::number(systemConfigure.id[i][k]) + "_channel").toUInt(),
+    //                                systemConfigure.channelsType[i][k],
+    //                                systemConfigure.channelsMedianSize[i][k],
+    //                                systemConfigure.channelsPWMSize[i][k],
+    //                                systemConfigure.channelsLowPFM[i][k],
+    //                                systemConfigure.channelsHighPFM[i][k],
+    //                                systemConfigure.channelsValueChangeSpeed[i][k]);
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     else
+    //     {
+    //         qDebug() << "version old";
+    //         need_to_save = true;
+    //     }
+    // }
+    // else
+    // {
+    //     qDebug() << "have NO config";
+    //     need_to_save = true;
+    // }
+    // if (need_to_save)
+    // {// конфига или нет или он старый - пересохраняем
+    //     saveSystemConfigure();
+    // }
 }
 
 void MainWindow::removeBadSettings()

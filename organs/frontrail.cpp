@@ -28,14 +28,14 @@ FrontRail::FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings
 void FrontRail::readSettings()
 {
     timeouts.clear();
-
+    auto mainWin = (MainWindow*)parent;
     // назначаем таймауты на длительные операции
-    timeouts.insert(FrontRailSlideOut, ((MainWindow*)parent)->readSettingsValue("Dump/timeouts.DumpSlideOut").toFloat());
-    timeouts.insert(FrontRailSlideIn, ((MainWindow*)parent)->readSettingsValue("Dump/timeouts.DumpSlideIn").toFloat());
-    timeouts.insert(FrontRailBounceOut, ((MainWindow*)parent)->readSettingsValue("Dump/timeouts.DumpBounceOut").toFloat());
-    timeouts.insert(FrontRailDownOut, ((MainWindow*)parent)->readSettingsValue("Dump/timeouts.DumpDownOut").toFloat());
-    timeouts.insert(FrontRailDownIn, ((MainWindow*)parent)->readSettingsValue("Dump/timeouts.DumpDownIn").toFloat());
-    timeouts.insert(FrontRailFlowOut, ((MainWindow*)parent)->readSettingsValue("Dump/timeouts.DumpFlowOut").toFloat());
+    timeouts.insert(FrontRailSlideOut, mainWin ->readSettingsValue("Dump/timeouts.DumpSlideOut").toFloat());
+    timeouts.insert(FrontRailSlideIn, mainWin ->readSettingsValue("Dump/timeouts.DumpSlideIn").toFloat());
+    timeouts.insert(FrontRailBounceOut, mainWin->readSettingsValue("Dump/timeouts.DumpBounceOut").toFloat());
+    timeouts.insert(FrontRailDownOut, mainWin->readSettingsValue("Dump/timeouts.DumpDownOut").toFloat());
+    timeouts.insert(FrontRailDownIn, mainWin->readSettingsValue("Dump/timeouts.DumpDownIn").toFloat());
+    timeouts.insert(FrontRailFlowOut, mainWin->readSettingsValue("Dump/timeouts.DumpFlowOut").toFloat());
 }
 
 QString FrontRail::toString(FrontRailStates s)
@@ -84,6 +84,7 @@ QString FrontRail::toString(FrontRailStates s)
 
 void FrontRail::setState(FrontRailStates state_)
 {
+    qDebug()<<" статус отвала: "<<state_;
     state = state_;
     if (state == FrontRail::FrontRailOff)
     {// перешла в домашнее щетка
