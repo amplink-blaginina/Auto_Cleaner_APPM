@@ -581,6 +581,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     QString can_device = readSettingsValue("Global/canDeivce").toString();
     QString j1939_device = readSettingsValue("Global/j1939Deivce").toString();
     restartIgnitionDelay = readSettingsValue("Global/restartIgnitionDelay").toInt();
+    qDebug()<<"ignitionDelay: "<<restartIgnitionDelay;
     readSettingsValue("Global/password").toInt();
     readSettingsValue("Global/secretPassword").toInt();
     readSettingsValue("Global/passwordDiag").toInt();
@@ -775,7 +776,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     starterPauseActive = false;
     starterAttemptsUsed = 0;
     starterNeedReboot = false;
-    starterButtonPrev = false;
+    starterPressedPrev = false;
     starterPauseWarned = false;
 
     prerollButtonPrev = false;
@@ -2306,7 +2307,7 @@ void MainWindow::showPultOffIgnition()
         return;
 
     ignitionOffTimer++;
-    if (ignitionOffTimer == restartIgnitionDelay * 10)
+    if (ignitionOffTimer >= restartIgnitionDelay * 10)
     {
         startIgnition();
     }
@@ -2347,33 +2348,34 @@ void MainWindow::showFRM()
 
 void MainWindow::showStarter()
 {
+    const bool starterPressed = gpioMatirx->keyPressed == GPIOInput::IN_STARTER;
+    const auto rpm = engine->getRpm();
     // Если идёт прокрутка — стартер не управляется отсюда
     if (rollRunActive || prerollSequenceActive)
     {
-        starterButtonPrev = (gpioMatirx->keyPressed == GPIOInput::IN_STARTER);
+        starterPressedPrev = starterPressed;
         return;
     }
 
-    if (engine->getRpm() < 500 && engineStartedOk)
+    if (rpm < 500 && engineStartedOk)
         addLog("Двигатель заглох!!!", FatalStatus);
 
-    if (inStarterPause() == false)
+    if (!inStarterPause())
     {
         starterPauseActive = false;
         starterPauseWarned = false;
     }
 
-    const bool starterPressed = gpioMatirx->keyPressed == GPIOInput::IN_STARTER;
-    const bool starterPressedEdge = starterPressed && !starterButtonPrev;
+    const bool starterPressedEdge = starterPressed && !starterPressedPrev;
 
-    // БЛОКИРОВКА: пока идёт прокрутка — кнопка стартера не управляет зажиганием
-    if (rollRunActive || prerollSequenceActive)
-    {
-        starterButtonPrev = starterPressed;
-        return;
-    }
+    // // БЛОКИРОВКА: пока идёт прокрутка — кнопка стартера не управляет зажиганием
+    // if (rollRunActive || prerollSequenceActive)
+    // {
+    //     starterPressedPrev = starterPressed;
+    //     return;
+    // }
 
-    const bool engineRunning = engine->getRpm() > 700;
+    const bool engineRunning = rpm > 700;
 
     if (engineRunning)
     {
@@ -2381,7 +2383,7 @@ void MainWindow::showStarter()
         starterStarted = false;
     }
 
-    if (starterPressedEdge && engineRunning)
+    if (starterPressedEdge && engineRunning)//двигатель запущен и нажали кнопку стартера
     {
         // Повторное нажатие при работающем двигателе — глушим ДВС
         can0->setState(StateIgnitionOut, false);
@@ -2390,11 +2392,14 @@ void MainWindow::showStarter()
         starterPauseActive = true;
         addLog("Повторное нажатие старт/стоп: выключаем зажигание", WarningStatus);
     }
-    else if (starterPressed)
+    else if (starterPressed)// либо двигатель не запущен, либо нажали на кнопку стартера не только что, но всё ещё держим
     {
-        can0->setState(StateIgnitionOut, true);
+        if(!starterPauseActive){//если не находимся в паузе после глушения ДВС
 
-        if (!engineRunning)
+            can0->setState(StateIgnitionOut, true);//осуществляем запуск
+        }
+
+        if (!engineRunning)//если двигатель не запущен
         {
             if (starterNeedReboot)
             {
@@ -2464,6 +2469,7 @@ void MainWindow::showStarter()
                 }
             }
         }
+
     }
     else
     {
@@ -2495,7 +2501,7 @@ void MainWindow::showStarter()
         engineStartedOk = false;
     }
 
-    starterButtonPrev = starterPressed;
+    starterPressedPrev = starterPressed;
 }
 
 void MainWindow::showStartClean()

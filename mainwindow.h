@@ -310,7 +310,7 @@ public:
     QDateTime starterPauseStartedAt;
     int starterAttemptsUsed;
     bool starterNeedReboot;
-    bool starterButtonPrev;
+    bool starterPressedPrev;
     bool starterPauseWarned;
 
     bool prerollButtonPrev;

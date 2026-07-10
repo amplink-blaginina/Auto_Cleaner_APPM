@@ -35,6 +35,7 @@ public:
 
     };
 
+    Q_ENUM(BroomStates);
     explicit CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, QObject *parent_);
     QObject * parent;
     MyCan *myCan;

@@ -39,22 +39,30 @@ void CentralBroom::readSettings()
     timeouts.insert(BroomSlideOut, ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toInt());
     timeouts.insert(BroomSlideIn, ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toInt());
     timeouts.insert(BroomBounceOut, ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomBounceOut").toFloat());
-    timeouts.insert(BroomDownOut, ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomDownOut").toInt());
-    timeouts.insert(BroomDownIn, ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomDownIn").toInt());
-    timeouts.insert(BroomFlowOut, ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomFlowOut").toInt());
-    timeouts.insert(BroomRotateOut, ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomRotateOut").toInt());
-    timeouts.insert(BroomRotateIn, ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomRotateIn").toInt());
+    auto mainWin = (MainWindow*)parent;
 
-    speedForSweepType.insert(MainWindow::LeafSweep, ((MainWindow*)parent)->readSettingsValue("CentralBroom/speeds.LeafSweep").toInt());
-    speedForSweepType.insert(MainWindow::LightSweep, ((MainWindow*)parent)->readSettingsValue("CentralBroom/speeds.LightSweep").toInt());
-    speedForSweepType.insert(MainWindow::MediumSweep, ((MainWindow*)parent)->readSettingsValue("CentralBroom/speeds.MediumSweep").toInt());
-    speedForSweepType.insert(MainWindow::HeavySweep, ((MainWindow*)parent)->readSettingsValue("CentralBroom/speeds.HeavySweep").toInt());
+    rpmForSweepType.insert(MainWindow::LeafSweep, mainWin->readSettingsValue("Engine/rpm.LeafSweep").toInt());
+    rpmForSweepType.insert(MainWindow::LightSweep, mainWin->readSettingsValue("Engine/rpm.LightSweep").toInt());
+    rpmForSweepType.insert(MainWindow::MediumSweep, mainWin->readSettingsValue("Engine/rpm.MediumSweep").toInt());
+    rpmForSweepType.insert(MainWindow::HeavySweep, mainWin->readSettingsValue("Engine/rpm.HeavySweep").toInt());
+
+    timeouts.insert(BroomSlideOut, mainWin->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toInt());
+    timeouts.insert(BroomSlideIn, mainWin->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toInt());
+    timeouts.insert(BroomBounceOut, mainWin->readSettingsValue("CentralBroom/timeouts.BroomBounceOut").toFloat());
+    timeouts.insert(BroomDownOut, mainWin->readSettingsValue("CentralBroom/timeouts.BroomDownOut").toInt());
+    timeouts.insert(BroomDownIn, mainWin->readSettingsValue("CentralBroom/timeouts.BroomDownIn").toInt());
+    timeouts.insert(BroomFlowOut, mainWin->readSettingsValue("CentralBroom/timeouts.BroomFlowOut").toInt());
+    timeouts.insert(BroomRotateOut, mainWin->readSettingsValue("CentralBroom/timeouts.BroomRotateOut").toInt());
+    timeouts.insert(BroomRotateIn, mainWin->readSettingsValue("CentralBroom/timeouts.BroomRotateIn").toInt());
+
+    speedForSweepType.insert(MainWindow::LeafSweep, mainWin->readSettingsValue("CentralBroom/speeds.LeafSweep").toInt());
+    speedForSweepType.insert(MainWindow::LightSweep, mainWin->readSettingsValue("CentralBroom/speeds.LightSweep").toInt());
+    speedForSweepType.insert(MainWindow::MediumSweep, mainWin->readSettingsValue("CentralBroom/speeds.MediumSweep").toInt());
+    speedForSweepType.insert(MainWindow::HeavySweep, mainWin->readSettingsValue("CentralBroom/speeds.HeavySweep").toInt());
 }
 
 QString CentralBroom::toString(BroomStates s)
 {
-    switch (s) {
-    case BroomOff:
         return "BroomOff";
         break;
     case BroomDownOut:
