@@ -110,6 +110,7 @@ QString CentralBroom::toString(BroomStates s)
 
 void CentralBroom::setState(BroomStates state_)
 {
+    auto mainWindow = (MainWindow *)parent;
     curState = state_;
 
     if (curState == CentralBroom::BroomOff)
@@ -124,7 +125,7 @@ void CentralBroom::setState(BroomStates state_)
         goNone();
         goDown();
         //myCan->setState(StateFRMBroomL1, true);
-        ((MainWindow*)parent)->addLog("Щетка опускается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка опускается", MainWindow::InfoStatus);
     }
     if (curState == CentralBroom::BroomDowned)
     {
@@ -136,27 +137,27 @@ void CentralBroom::setState(BroomStates state_)
         startActionTime = QDateTime::currentDateTime();
         goNone();
         goUp();
-        ((MainWindow*)parent)->addLog("Щетка поднимается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка поднимается", MainWindow::InfoStatus);
     }
     if (curState == CentralBroom::BroomFlowOut)
     {// началось плавание
         startActionTime = QDateTime::currentDateTime();
         goNone();
         goFlow();
-        ((MainWindow*)parent)->addLog("Щетка плавающая", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка плавающая", MainWindow::InfoStatus);
     }
     if (curState == CentralBroom::BroomFlowed)
     {// закончилось плавание
-        if (!((MainWindow*)parent)->workMode.centralBroomFlow)
+        if (!mainWindow->workMode.centralBroomFlow)
         {
             goNoFlow();
-            ((MainWindow*)parent)->addLog("Щетка не плавающая", MainWindow::InfoStatus);
+            mainWindow->addLog("Щетка не плавающая", MainWindow::InfoStatus);
         }
     }
     if (curState == CentralBroom::BroomFlowIn)
     {// заканчиваем плавание
         goNoFlow();
-        ((MainWindow*)parent)->addLog("Щетка не плавающая", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка не плавающая", MainWindow::InfoStatus);
     }
     if (curState == CentralBroom::BroomSlideOut)
     {
@@ -166,14 +167,14 @@ void CentralBroom::setState(BroomStates state_)
             goRight();
         else
             goLeft();
-        ((MainWindow*)parent)->addLog("Щетка поворачивается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка поворачивается", MainWindow::InfoStatus);
     }
     if (curState == CentralBroom::BroomSlideIn)
     {
         startActionTime = QDateTime::currentDateTime();
         goNone();
         goRight();
-        ((MainWindow*)parent)->addLog("Щетка поворачивается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка поворачивается", MainWindow::InfoStatus);
     }
     if (curState == CentralBroom::BroomSlided)
     {
@@ -182,14 +183,14 @@ void CentralBroom::setState(BroomStates state_)
     if (curState == CentralBroom::BroomRotateOut)
     {
         startActionTime = QDateTime::currentDateTime();
-        ((MainWindow*)parent)->addLog("Щетка раскручивается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка раскручивается", MainWindow::InfoStatus);
     }
     if (curState == CentralBroom::BroomRotateIn)
     {
         startActionTime = QDateTime::currentDateTime();
         // тормозим щетки
         goNoRotate();
-        ((MainWindow*)parent)->addLog("Щетка останавливается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка останавливается", MainWindow::InfoStatus);
     }
     if (curState == CentralBroom::BroomBounceOut)
     {// отскок — поворот в противоположную сторону
@@ -200,7 +201,7 @@ void CentralBroom::setState(BroomStates state_)
                 goLeft();
             else
                 goRight();
-            ((MainWindow*)parent)->addLog("Щетка отскок", MainWindow::InfoStatus);
+            mainWindow->addLog("Щетка отскок", MainWindow::InfoStatus);
         }
     }
     if (curState == CentralBroom::BroomBounced)
@@ -345,62 +346,66 @@ void CentralBroom::checkNeedState()
         ableState = BroomOff;
 }
 
-int CentralBroom::getTimeout()
-{//получает таймаут в секундах (сколько надо простаивать в той или иной операции)
+int CentralBroom::getTimeout(){//получает таймаут в секундах (сколько надо простаивать в той или иной операции)
     return timeouts.value(curState, 0);
 }
 
 bool CentralBroom::testStateTimer()
 {// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)
-    qint64 msecs_to = startActionTime.msecsTo(QDateTime::currentDateTime());
-    qint64 tmp_msecs = msecs_to;
-    if (msecs_to > getTimeout() * 1000)
-        tmp_msecs = getTimeout() * 1000;
-    bool timeTest = false;
-    if (msecs_to > getTimeout() * 1000)
-    {// тест по времени прошел а мы ничего не достигли. Нужны тревоги
-        timeTest = true;
-        //return true;
-    }
 
+    auto mainWindow = (MainWindow *)parent;
+    qint64 msecs_to = startActionTime.msecsTo(QDateTime::currentDateTime());
+    //qint64 tmp_msecs = msecs_to;
+    auto timeout = getTimeout() * 1000;
+
+    // if (msecs_to > timeout)
+    //     tmp_msecs = timeout;
+
+    // bool timeTest = false;
+    // if (msecs_to > timeout)
+    // {// тест по времени прошел а мы ничего не достигли. Нужны тревоги
+    //     timeTest = true;
+    //     //return true;
+    // }
+
+    bool timeTest = msecs_to > timeout;
     bool dkpAndPositionTest = false;
+
     // проверяем концевики
-    if (curState == CentralBroom::BroomDownOut)
-    {
-        if (timeTest)
-        {
-            ((MainWindow*)parent)->addLog("Щетка: достигнут тайм-аут", MainWindow::InfoStatus);
+    if (curState == CentralBroom::BroomDownOut)    {
+        if (timeTest){
+            mainWindow ->addLog("Щетка: достигнут тайм-аут", MainWindow::InfoStatus);
             dkpAndPositionTest = true;
         }
     }
+
+    if(timeTest &&
+        (curState == CentralBroom::BroomRotateOut||
+         curState == CentralBroom::BroomRotateIn||
+         curState == CentralBroom::BroomFlowOut||
+         curState == CentralBroom::BroomFlowIn ||
+         curState == CentralBroom::BroomBounceOut)){
+            dkpAndPositionTest = true;
+    }
 //    if (state == CentralBroom::BroomDownOut && timeTest)
 //        dkpAndPositionTest = true;
-    if (curState == CentralBroom::BroomRotateOut && timeTest)
-        dkpAndPositionTest = true;
-    if (curState == CentralBroom::BroomRotateIn && timeTest)
-        dkpAndPositionTest = true;
-    if (curState == CentralBroom::BroomFlowOut && timeTest)
-        dkpAndPositionTest = true;
-    if (curState == CentralBroom::BroomFlowIn && timeTest)
-        dkpAndPositionTest = true;
-    if (curState == CentralBroom::BroomBounceOut && timeTest)
-        dkpAndPositionTest = true;
+
     // рейка идет вверх, ждем концевик
-    if (curState == CentralBroom::BroomDownIn)
-    {
+    if (curState == CentralBroom::BroomDownIn){
+
         const bool sensorReached = myCan->getState(StateDKPBroomUp).toBool();
         if (timeTest && !sensorReached)
         {
             if (!broomAlarmed)
             {
-                ((MainWindow*)parent)->addLog("Щетка: достигнут тайм-аут", MainWindow::InfoStatus);
+                mainWindow->addLog("Щетка: достигнут тайм-аут", MainWindow::InfoStatus);
                 goNone();
             }
             broomAlarmed = true;
         }
         else if (sensorReached)
         {
-            ((MainWindow*)parent)->addLog("Щетка: достигнут датчик", MainWindow::InfoStatus);
+            mainWindow->addLog("Щетка: достигнут датчик", MainWindow::InfoStatus);
         }
         if (timeTest || sensorReached)
             dkpAndPositionTest = true;
@@ -413,14 +418,14 @@ bool CentralBroom::testStateTimer()
         {
             if (!broomAlarmed)
             {
-                ((MainWindow*)parent)->addLog("Щетка: достигнут тайм-аут", MainWindow::InfoStatus);
+                mainWindow->addLog("Щетка: достигнут тайм-аут", MainWindow::InfoStatus);
                 goNone();
             }
             broomAlarmed = true;
         }
         else if (sensorReached)
         {
-            ((MainWindow*)parent)->addLog("Щетка: достигнут датчик", MainWindow::InfoStatus);
+            mainWindow->addLog("Щетка: достигнут датчик", MainWindow::InfoStatus);
         }
         if (timeTest || sensorReached)
             dkpAndPositionTest = true;
@@ -433,14 +438,14 @@ bool CentralBroom::testStateTimer()
         {
             if (!broomAlarmed)
             {
-                ((MainWindow*)parent)->addLog("Щетка: достигнут тайм-аут", MainWindow::InfoStatus);
+                mainWindow->addLog("Щетка: достигнут тайм-аут", MainWindow::InfoStatus);
                 goNone();
             }
             broomAlarmed = true;
         }
         else if (sensorReached)
         {
-            ((MainWindow*)parent)->addLog("Щетка: достигнут датчик", MainWindow::InfoStatus);
+            mainWindow->addLog("Щетка: достигнут датчик", MainWindow::InfoStatus);
         }
         if (timeTest || sensorReached)
             dkpAndPositionTest = true;
@@ -456,22 +461,22 @@ bool CentralBroom::testStateTimer()
     return false;
 }
 
-void CentralBroom::checkFriendVars()
-{
+void CentralBroom::checkFriendVars(){
     startClean = ((MainWindow*)parent)->startClean;
 }
 
-void CentralBroom::progressLoop()
-{
+void CentralBroom::progressLoop(){
+
+    auto mainWindow = (MainWindow *)parent;
     // рисуем положение щетки (в зависимости от прижима)
     //broomWidget->setGeometry(broomWidget->geometry().x(), 418 + myCan->getState(StateBroomPressLevelD7).toUInt(), broomWidget->geometry().width(), broomWidget->geometry().height());
 
     if (curState >= CentralBroom::BroomRotateOut)
     {
         //обороты движка
-        ((MainWindow*)parent)->canForEngine->setEngineCommand(rpmForSweepType.value(((MainWindow*)parent)->workMode.sweepType) * 8);
+        mainWindow->canForEngine->setEngineCommand(rpmForSweepType.value(mainWindow->workMode.sweepType) * 8);
         // скорость щеток
-        goRotate(speedForSweepType.value(((MainWindow*)parent)->workMode.sweepType));
+        goRotate(speedForSweepType.value(mainWindow->workMode.sweepType));
     }
 
     // проверяет до какого состояния может добираться щетка

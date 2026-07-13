@@ -377,6 +377,7 @@ public:
     bool heatRelayActivePrev;
     bool waterSensorTimeStarted;
     bool airFilterTimeStarted;
+    bool alarmStopActive;
     quint32 waterSensorStartedAt;
     quint32 airFilterStartedAt;
 
@@ -458,7 +459,12 @@ private:
     // void cachePrerollButtons();
     void restoreIgnitionAfterRoll();
     void configureChannels();
-
+    
+    void updateIcons();
+    
+    void setSweepType(quint8 type);
+    void updateUIIcons();
+    void setImage(QLabel *label, QString path);
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);

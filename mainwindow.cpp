@@ -638,6 +638,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     prerollButtonPrev = false;
     prerollStarterButtonPrev = false;
     rollInputPrev = false;
+    alarmStopActive = false;
     //================================================
 
     chooseFrm = false;
@@ -1340,7 +1341,7 @@ void MainWindow::oneSecond()
     if (startClean)
         TOCurValues["System"]++;
 
-    const bool engineRunningNow = engine->getRpm() > 700;
+    const bool engineRunningNow = engine->getRpm() > 500;
     if (engineRunningNow && !engineRunStatePrev)
     {
         lastEngineStartDate = QDate::currentDate();
@@ -1351,6 +1352,13 @@ void MainWindow::oneSecond()
         starterAttemptsUsed = 0;
         starterPauseActive = false;
         logNeedRollShown = false;
+
+        // Если двигатель завёлся (или работает), а автомат в ошибке/паузе — синхронизируем
+        if (starterState == StarterState::ErrorNeedReboot ||
+            starterState == StarterState::PostStopPause ||
+            starterState == StarterState::Idle) {
+            transitionStarter(StarterState::Running, "Двигатель работает (CAN)");
+        }
     }
     engineRunStatePrev = engineRunningNow;
 
@@ -1730,15 +1738,32 @@ void MainWindow::mainProgress()
 
     showPauseButton();
 
-    // если нажата аварийка или грибок питания то завершаем все
-    if ((can0->getState(StateAlarmIn).toBool()) && startClean)
+    // Обработка аварийной кнопки (грибка) — всегда, не только во время уборки
+    if (can0->getState(StateAlarmIn).toBool())
     {
-        if (can0->getState(StateAlarmIn).toBool())
-            addLog("Нажата аварийная кнока", WarningStatus);
+        if (!alarmStopActive) {
+            addLog("Нажата аварийная кнопка (аварийный стоп)", FatalStatus);
+            alarmStopActive = true;
+        }
         if (startClean)
             on_pushButton_startstop_clicked();
+
+        // Принудительно глушим двигатель и сбрасываем автоматы
         can0->setState(StateIgnitionOut, false);
         ignitionOffTimer = 0;
+        engineStartedOk = false;
+
+        if (starterState != StarterState::Idle)
+            transitionStarter(StarterState::Idle, "Аварийный стоп");
+        if (rollState != RollState::Idle)
+            transitionRoll(RollState::Idle, "Аварийный стоп");
+    }
+    else
+    {
+        if (alarmStopActive) {
+            addLog("Аварийная кнопка отжата", InfoStatus);
+            alarmStopActive = false;
+        }
     }
 
     //защита по скорости - если едем слишком быстро надо выключать режим работы (скорость 50 условная - обозначает что нет данных от двигателя)
@@ -2476,44 +2501,41 @@ void MainWindow::showWorkMode()
         }
     }
 
+    updateUIIcons();
+}
+void MainWindow:: setImage(QLabel *label, QString path){
+    if (label->styleSheet() != path)
+        label->setStyleSheet(path);
+}
+void MainWindow::updateUIIcons(){
     // меняем картиночки доступности кнопок после анализа
     // дулка
     if (ui->pushButton_blowerDown->isEnabled())
     {
-        if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);")
-            ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);");
+        setImage(ui->label_blowerUpDown, "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);");
     }
     else
     {
-        if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_blocked.png);")
-            ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_blocked.png);");
+        setImage(ui->label_blowerUpDown, "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_blocked.png);");
     }
 
     // щетка
-    if (ui->pushButton_centralBroomDown->isEnabled())
-    {
+    if (ui->pushButton_centralBroomDown->isEnabled()){
 
         qDebug()<<"show work mode: true";
-        if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);")
-            ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);");
+        setImage(ui->label_centralBroomUpDown, "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);");
     }
-    else
-    {
-
+    else{
         qDebug()<<"show work mode: false";
-        if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_blocked.png);")
-            ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_blocked.png);");
+        setImage(ui->label_centralBroomUpDown, "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_blocked.png);");
     }
+
     // отвал
-    if (ui->pushButton_dumpDown->isEnabled())
-    {
-        if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);")
-            ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);");
+    if (ui->pushButton_dumpDown->isEnabled())    {
+        setImage(ui->label_dumpUpDown,"background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);");
     }
-    else
-    {
-        if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_blocked.png);")
-            ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_blocked.png);");
+    else{
+        setImage(ui->label_dumpUpDown, "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_blocked.png);");
     }
 
     // смет листья
@@ -2981,51 +3003,41 @@ void MainWindow::on_pushButton_service_clicked()
     logger->addUserLogInfo(Logger::UF_SERVICE_PRESSED, 1);
     diagAskPassword();
 }
-
-void MainWindow::on_pushButton_lightSweep_clicked()
+void MainWindow::setSweepType(quint8 type)
 {
-    if (workMode.sweepType != LightSweep)
+    if (workMode.sweepType != type)
     {
-        workMode.sweepType = LightSweep;
+        workMode.sweepType = type;
         showWorkMode();
     }
 }
 
-void MainWindow::on_pushButton_mediumSweep_clicked()
-{
-    if (workMode.sweepType != MediumSweep)
-    {
-        workMode.sweepType = MediumSweep;
-        showWorkMode();
-    }
+void MainWindow::on_pushButton_lightSweep_clicked(){
+    setSweepType(LightSweep);
 }
 
-void MainWindow::on_pushButton_heavySweep_clicked()
-{
-    if (workMode.sweepType != HeavySweep)
-    {// защита от поднятой щетки
-        workMode.sweepType = HeavySweep;
-        showWorkMode();
-    }
+void MainWindow::on_pushButton_mediumSweep_clicked(){
+    setSweepType(MediumSweep);
 }
 
-void MainWindow::on_pushButton_leafSweep_clicked()
-{
-    if (workMode.sweepType != LeafSweep)
-    {
-        workMode.sweepType = LeafSweep;
-        showWorkMode();
-    }
+void MainWindow::on_pushButton_heavySweep_clicked(){
+    setSweepType(HeavySweep);
 }
 
-void MainWindow::on_pushButton_settings_clicked()
-{
+void MainWindow::on_pushButton_leafSweep_clicked(){
+    setSweepType(LeafSweep);
+}
+
+void MainWindow::on_pushButton_settings_clicked(){
     settingsAskPassword();
 }
 
 void MainWindow::on_pushButton_dumpUp_clicked()
 {
-
+    if (!startClean)
+    {
+        showWorkMode();
+    }
 }
 
 void MainWindow::on_pushButton_dumpDown_clicked()
@@ -3328,6 +3340,10 @@ void MainWindow::transitionRoll(RollState newState, const QString& reason)
 
 bool MainWindow::canStartEngine()
 {
+    if (can0->getState(StateAlarmIn).toBool()) {
+        addLog("Стартер заблокирован: нажата аварийная кнопка", WarningStatus);
+        return false;
+    }
     if (starterNeedReboot || starterState == StarterState::ErrorNeedReboot) {
         addLog("Стартер заблокирован: требуется перезагрузка пульта", WarningStatus);
         return false;
@@ -3353,12 +3369,15 @@ bool MainWindow::canStartEngine()
     }
     return true;
 }
-
 void MainWindow::updateStarterStateMachine()
 {
     const bool starterPressed = gpioMatirx->keyPressed == GPIOInput::IN_STARTER;
     const bool starterEdge = starterPressed && !starterPressedPrev;
-    const bool engineRunning = engine->getRpm() > 700;
+    const auto rpm = engine->getRpm();
+
+    // Гистерезис: запущен > 500, заглох < 400 (чтобы не болтаться на границе)
+    const bool engineRunning = rpm > 500;
+    const bool engineStalled = (rpm < 400) && (elapsedInStarterState() > 2.0);
 
     // Если активна прокрутка — стартер не управляется отсюда
     if (isRollActive()) {
@@ -3366,10 +3385,34 @@ void MainWindow::updateStarterStateMachine()
         return;
     }
 
-    // Двигатель заглох во время работы
-    if (!engineRunning && starterState == StarterState::Running) {
-        addLog("Двигатель заглох!!!", FatalStatus);
-        transitionStarter(StarterState::Idle, "Двигатель остановился");
+    // --- Аварийная кнопка: немедленный сброс и блокировка ---
+    if (can0->getState(StateAlarmIn).toBool()) {
+        if (starterState != StarterState::Idle) {
+            transitionStarter(StarterState::Idle, "Аварийный стоп");
+        }
+        if (starterEdge) {
+            addLog("Старт заблокирован: нажата аварийная кнопка", WarningStatus);
+        }
+        starterPressedPrev = starterPressed;
+        return;
+    }
+
+    // --- Синхронизация с реальными оборотами ---
+    // Если ДВС работает, а автомат думает иначе (Idle, Error, Pause) — приводим в соответствие
+    if (engineRunning && (starterState == StarterState::Idle ||
+                          starterState == StarterState::ErrorNeedReboot ||
+                          starterState == StarterState::PostStopPause)) {
+        transitionStarter(StarterState::Running, "Двигатель работает (обороты по CAN)");
+    }
+
+    // Двигатель заглох (только если зажигание выключено, иначе это может быть просто провал)
+    if (engineStalled && starterState == StarterState::Running) {
+        if (!can0->getState(StateIgnitionOut).toBool()) {
+            addLog("Двигатель остановлен", WarningStatus);
+            transitionStarter(StarterState::Idle, "Двигатель остановился");
+        } else {
+            addLog("Двигатель потерял обороты", WarningStatus);
+        }
     }
 
     switch (starterState) {
@@ -3430,12 +3473,15 @@ void MainWindow::updateStarterStateMachine()
         if (starterEdge) {
             addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
         }
+        // Если двигатель сам завёлся (например, после прокрутки или ручного старта) — сбрасываем ошибку
+        if (engineRunning) {
+            transitionStarter(StarterState::Running, "Двигатель работает, сброс ошибки лимита");
+        }
         break;
     }
 
     starterPressedPrev = starterPressed;
 }
-
 void MainWindow::updateRollStateMachine()
 {
     const bool serviceEngineVisible = superDiagMode && serviceOtherEngineLeftForm->isVisible();
