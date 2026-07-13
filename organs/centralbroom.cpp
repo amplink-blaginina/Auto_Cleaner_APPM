@@ -31,14 +31,6 @@ void CentralBroom::readSettings()
     rpmForSweepType.clear();
     speedForSweepType.clear();
 
-    rpmForSweepType.insert(MainWindow::LeafSweep, ((MainWindow*)parent)->readSettingsValue("Engine/rpm.LeafSweep").toInt());
-    rpmForSweepType.insert(MainWindow::LightSweep, ((MainWindow*)parent)->readSettingsValue("Engine/rpm.LightSweep").toInt());
-    rpmForSweepType.insert(MainWindow::MediumSweep, ((MainWindow*)parent)->readSettingsValue("Engine/rpm.MediumSweep").toInt());
-    rpmForSweepType.insert(MainWindow::HeavySweep, ((MainWindow*)parent)->readSettingsValue("Engine/rpm.HeavySweep").toInt());
-
-    timeouts.insert(BroomSlideOut, ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toInt());
-    timeouts.insert(BroomSlideIn, ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toInt());
-    timeouts.insert(BroomBounceOut, ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomBounceOut").toFloat());
     auto mainWin = (MainWindow*)parent;
 
     rpmForSweepType.insert(MainWindow::LeafSweep, mainWin->readSettingsValue("Engine/rpm.LeafSweep").toInt());
@@ -63,66 +55,70 @@ void CentralBroom::readSettings()
 
 QString CentralBroom::toString(BroomStates s)
 {
-        return "BroomOff";
-        break;
-    case BroomDownOut:
-        return "BroomDownOut";
-        break;
-    case BroomDownIn:
-        return "BroomDownIn";
-        break;
-    case BroomDowned:
-        return "BroomDowned";
-        break;
-    case BroomFlowOut:
-        return "BroomFlowOut";
-        break;
-    case BroomFlowIn:
-        return "BroomFlowIn";
-        break;
-    case BroomFlowed:
-        return "BroomFlowed";
-        break;
-    case BroomSlideOut:
-        return "BroomSlideOut";
-        break;
-    case BroomSlideIn:
-        return "BroomSlideIn";
-        break;
-    case BroomSlided:
-        return "BroomSlided";
-        break;
-    case BroomRotateOut:
-        return "BroomRotateOut";
-        break;
-    case BroomRotateIn:
-        return "BroomRotateIn";
-        break;
-    case BroomRotated:
-        return "BroomRotated";
-        break;
-    case BroomBounceOut:
-        return "BroomBounceOut";
-        break;
-    case BroomBounced:
-        return "BroomBounced";
-        break;
-    default:
-        return "UnknownState";
-    }
+    return QVariant::fromValue(s).toString();//std::string(QMetaEnum::fromType<BroomStates>().valueToKey(s));
+    //return QtEnumToString(s);
+    // switch (s) {
+    // case BroomOff:
+    //     return "BroomOff";
+    //     break;
+    // case BroomDownOut:
+    //     return "BroomDownOut";
+    //     break;
+    // case BroomDownIn:
+    //     return "BroomDownIn";
+    //     break;
+    // case BroomDowned:
+    //     return "BroomDowned";
+    //     break;
+    // case BroomFlowOut:
+    //     return "BroomFlowOut";
+    //     break;
+    // case BroomFlowIn:
+    //     return "BroomFlowIn";
+    //     break;
+    // case BroomFlowed:
+    //     return "BroomFlowed";
+    //     break;
+    // case BroomSlideOut:
+    //     return "BroomSlideOut";
+    //     break;
+    // case BroomSlideIn:
+    //     return "BroomSlideIn";
+    //     break;
+    // case BroomSlided:
+    //     return "BroomSlided";
+    //     break;
+    // case BroomRotateOut:
+    //     return "BroomRotateOut";
+    //     break;
+    // case BroomRotateIn:
+    //     return "BroomRotateIn";
+    //     break;
+    // case BroomRotated:
+    //     return "BroomRotated";
+    //     break;
+    // case BroomBounceOut:
+    //     return "BroomBounceOut";
+    //     break;
+    // case BroomBounced:
+    //     return "BroomBounced";
+    //     break;
+    // default:
+    //     return "UnknownState";
+    // }
 }
 
 void CentralBroom::setState(BroomStates state_)
 {
-    state = state_;
+    curState = state_;
 
-    if (state == CentralBroom::BroomOff)
+    if (curState == CentralBroom::BroomOff)
     {// поднялась щетка
         // остановим поднимаение
         goNone();
         //myCan->setState(StateFRMBroomL1, false);
     }
-    if (state == CentralBroom::BroomDownOut)
+    if (curState == CentralBroom::BroomDownOut)
     {// началось опускание
         startActionTime = QDateTime::currentDateTime();
         goNone();
@@ -130,11 +126,11 @@ void CentralBroom::setState(BroomStates state_)
         //myCan->setState(StateFRMBroomL1, true);
         ((MainWindow*)parent)->addLog("Щетка опускается", MainWindow::InfoStatus);
     }
-    if (state == CentralBroom::BroomDowned)
+    if (curState == CentralBroom::BroomDowned)
     {
         goNone();
     }
-    if (state == CentralBroom::BroomDownIn)
+    if (curState == CentralBroom::BroomDownIn)
     {
         // Запоминаем что поднимание начилось
         startActionTime = QDateTime::currentDateTime();
@@ -142,14 +138,14 @@ void CentralBroom::setState(BroomStates state_)
         goUp();
         ((MainWindow*)parent)->addLog("Щетка поднимается", MainWindow::InfoStatus);
     }
-    if (state == CentralBroom::BroomFlowOut)
+    if (curState == CentralBroom::BroomFlowOut)
     {// началось плавание
         startActionTime = QDateTime::currentDateTime();
         goNone();
         goFlow();
         ((MainWindow*)parent)->addLog("Щетка плавающая", MainWindow::InfoStatus);
     }
-    if (state == CentralBroom::BroomFlowed)
+    if (curState == CentralBroom::BroomFlowed)
     {// закончилось плавание
         if (!((MainWindow*)parent)->workMode.centralBroomFlow)
         {
@@ -157,12 +153,12 @@ void CentralBroom::setState(BroomStates state_)
             ((MainWindow*)parent)->addLog("Щетка не плавающая", MainWindow::InfoStatus);
         }
     }
-    if (state == CentralBroom::BroomFlowIn)
+    if (curState == CentralBroom::BroomFlowIn)
     {// заканчиваем плавание
         goNoFlow();
         ((MainWindow*)parent)->addLog("Щетка не плавающая", MainWindow::InfoStatus);
     }
-    if (state == CentralBroom::BroomSlideOut)
+    if (curState == CentralBroom::BroomSlideOut)
     {
         startActionTime = QDateTime::currentDateTime();
         goNone();
@@ -172,30 +168,30 @@ void CentralBroom::setState(BroomStates state_)
             goLeft();
         ((MainWindow*)parent)->addLog("Щетка поворачивается", MainWindow::InfoStatus);
     }
-    if (state == CentralBroom::BroomSlideIn)
+    if (curState == CentralBroom::BroomSlideIn)
     {
         startActionTime = QDateTime::currentDateTime();
         goNone();
         goRight();
         ((MainWindow*)parent)->addLog("Щетка поворачивается", MainWindow::InfoStatus);
     }
-    if (state == CentralBroom::BroomSlided)
+    if (curState == CentralBroom::BroomSlided)
     {
         goNone();
     }
-    if (state == CentralBroom::BroomRotateOut)
+    if (curState == CentralBroom::BroomRotateOut)
     {
         startActionTime = QDateTime::currentDateTime();
         ((MainWindow*)parent)->addLog("Щетка раскручивается", MainWindow::InfoStatus);
     }
-    if (state == CentralBroom::BroomRotateIn)
+    if (curState == CentralBroom::BroomRotateIn)
     {
         startActionTime = QDateTime::currentDateTime();
         // тормозим щетки
         goNoRotate();
         ((MainWindow*)parent)->addLog("Щетка останавливается", MainWindow::InfoStatus);
     }
-    if (state == CentralBroom::BroomBounceOut)
+    if (curState == CentralBroom::BroomBounceOut)
     {// отскок — поворот в противоположную сторону
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(BroomBounceOut, 0) > 0) {
@@ -207,7 +203,7 @@ void CentralBroom::setState(BroomStates state_)
             ((MainWindow*)parent)->addLog("Щетка отскок", MainWindow::InfoStatus);
         }
     }
-    if (state == CentralBroom::BroomBounced)
+    if (curState == CentralBroom::BroomBounced)
     {// отскок завершён
         goNone();
     }
@@ -311,7 +307,7 @@ void CentralBroom::decreaseSpeed()
 
 CentralBroom::BroomStates CentralBroom::getState()
 {
-    return state;
+    return curState;
 }
 
 void CentralBroom::setNeedState(BroomStates state_)
@@ -351,7 +347,7 @@ void CentralBroom::checkNeedState()
 
 int CentralBroom::getTimeout()
 {//получает таймаут в секундах (сколько надо простаивать в той или иной операции)
-    return timeouts.value(state, 0);
+    return timeouts.value(curState, 0);
 }
 
 bool CentralBroom::testStateTimer()
@@ -369,7 +365,7 @@ bool CentralBroom::testStateTimer()
 
     bool dkpAndPositionTest = false;
     // проверяем концевики
-    if (state == CentralBroom::BroomDownOut)
+    if (curState == CentralBroom::BroomDownOut)
     {
         if (timeTest)
         {
@@ -379,18 +375,18 @@ bool CentralBroom::testStateTimer()
     }
 //    if (state == CentralBroom::BroomDownOut && timeTest)
 //        dkpAndPositionTest = true;
-    if (state == CentralBroom::BroomRotateOut && timeTest)
+    if (curState == CentralBroom::BroomRotateOut && timeTest)
         dkpAndPositionTest = true;
-    if (state == CentralBroom::BroomRotateIn && timeTest)
+    if (curState == CentralBroom::BroomRotateIn && timeTest)
         dkpAndPositionTest = true;
-    if (state == CentralBroom::BroomFlowOut && timeTest)
+    if (curState == CentralBroom::BroomFlowOut && timeTest)
         dkpAndPositionTest = true;
-    if (state == CentralBroom::BroomFlowIn && timeTest)
+    if (curState == CentralBroom::BroomFlowIn && timeTest)
         dkpAndPositionTest = true;
-    if (state == CentralBroom::BroomBounceOut && timeTest)
+    if (curState == CentralBroom::BroomBounceOut && timeTest)
         dkpAndPositionTest = true;
     // рейка идет вверх, ждем концевик
-    if (state == CentralBroom::BroomDownIn)
+    if (curState == CentralBroom::BroomDownIn)
     {
         const bool sensorReached = myCan->getState(StateDKPBroomUp).toBool();
         if (timeTest && !sensorReached)
@@ -410,7 +406,7 @@ bool CentralBroom::testStateTimer()
             dkpAndPositionTest = true;
 
     }
-    if (state == CentralBroom::BroomSlideOut)
+    if (curState == CentralBroom::BroomSlideOut)
     {
         const bool sensorReached = needSlided ? myCan->getState(StateDKPBroomLeft).toBool() : myCan->getState(StateDKPBroomRight).toBool();
         if (timeTest && !sensorReached)
@@ -430,7 +426,7 @@ bool CentralBroom::testStateTimer()
             dkpAndPositionTest = true;
 
     }
-    if (state == CentralBroom::BroomSlideIn)
+    if (curState == CentralBroom::BroomSlideIn)
     {
         const bool sensorReached = myCan->getState(StateDKPBroomRight).toBool();
         if (timeTest && !sensorReached)
@@ -470,7 +466,7 @@ void CentralBroom::progressLoop()
     // рисуем положение щетки (в зависимости от прижима)
     //broomWidget->setGeometry(broomWidget->geometry().x(), 418 + myCan->getState(StateBroomPressLevelD7).toUInt(), broomWidget->geometry().width(), broomWidget->geometry().height());
 
-    if (state >= CentralBroom::BroomRotateOut)
+    if (curState >= CentralBroom::BroomRotateOut)
     {
         //обороты движка
         ((MainWindow*)parent)->canForEngine->setEngineCommand(rpmForSweepType.value(((MainWindow*)parent)->workMode.sweepType) * 8);
@@ -480,27 +476,27 @@ void CentralBroom::progressLoop()
 
     // проверяет до какого состояния может добираться щетка
     checkNeedState();
-    if (state < needState && state < ableState)
+    if (curState < needState && curState < ableState)
     {// нужно прогрессировать вверх (выдвигать, мыть и гусей не забыть)
-        BroomStates s = state;
-        stateUp();
-        if (s != state)// && (state == needState || state == ableState))
+        BroomStates s = curState;
+        stateUp(curState);
+        if (s != curState)// && (state == needState || state == ableState))
         {
-            qDebug() << "Central broom state " << toString(state);
+            qDebug() << "Central broom state " << toString(curState);
         }
     }
-    else if (state > needState || state > ableState)
+    else if (curState > needState || curState > ableState)
     {// прогрессируем вниз
-        BroomStates s = state;
-        stateDown();
-        if (s != state)// && (state == needState || state == ableState))
+        BroomStates s = curState;
+        stateDown(curState);
+        if (s != curState)// && (state == needState || state == ableState))
         {
-            qDebug() << "Central broom state " << toString(state);
+            qDebug() << "Central broom state " << toString(curState);
         }
     }
 }
 
-CentralBroom::BroomStates CentralBroom::stateUp()
+CentralBroom::BroomStates CentralBroom::stateUp(BroomStates state)
 {// пытаемся прогрессировать статусом вверх (если что меняем направление статуса, если вдруг был понижающий прогресс)
     switch (state) {
     case BroomOff:
@@ -553,6 +549,7 @@ CentralBroom::BroomStates CentralBroom::stateUp()
         setState(BroomSlideOut);
         break;
     case BroomSlided:
+        qDebug()<< "Finish broom sliding";
         setState(BroomBounceOut);
         break;
     case BroomBounceOut:
@@ -565,10 +562,10 @@ CentralBroom::BroomStates CentralBroom::stateUp()
     default:
         break;
     }
-    return state;
+    return curState;
 }
 
-CentralBroom::BroomStates CentralBroom::stateDown()
+CentralBroom::BroomStates CentralBroom::stateDown(BroomStates state)
 {// пытаемся прогрессировать статусом вниз (если что меняем направление статуса, если вдруг был повышающий прогресс)
     switch (state) {
     case BroomDownOut:
@@ -623,5 +620,5 @@ CentralBroom::BroomStates CentralBroom::stateDown()
     default:
         break;
     }
-    return state;
+    return curState;
 }

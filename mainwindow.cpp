@@ -27,7 +27,7 @@
 QLocale EngLocale (QLocale::Russian);
 
 static int ptsInc = 0;
-QString programmVersionString = "AutoCleaner APPM v3.012";
+QString programmVersionString = "AutoCleaner APPM v3.013";
 
 //Changes
 // 3.001 - форкнулся от APPM2 imx6, удалил лишнее и накатил на нее все от разбери с 200 и 318D4
@@ -44,6 +44,133 @@ QString programmVersionString = "AutoCleaner APPM v3.012";
 // на ПВИ должен быть настроен j1939 (ядро с поддержкой) . так же должен быть сконфигурен can1 can2 как j1939 с адресом 0x08 для камаза и 0x07 для движка сзади
 // на последних машинах перепутали can0 и can1(((
 
+
+void MainWindow::configureChannels()
+{
+    systemConfigure.configurationVersion = 110;
+    systemConfigure.boardsType[0] = BOARD_CP;
+    //    systemConfigure.channelsType[0][0] = OUT_MODE_NORMAL;
+    //    systemConfigure.channelsType[0][1] = OUT_MODE_NORMAL;
+    //    systemConfigure.channelsType[0][2] = OUT_MODE_NORMAL;
+    //    systemConfigure.channelsType[0][3] = OUT_MODE_NORMAL;
+    //    systemConfigure.channelsType[0][4] = IN_MODE_NORMAL;
+    //    systemConfigure.channelsType[0][5] = IN_MODE_NORMAL;
+    //    systemConfigure.channelsType[0][6] = IN_MODE_NORMAL;
+    //    systemConfigure.channelsType[0][7] = IN_MODE_NORMAL;
+
+    systemConfigure.boardsType[1] = BOARD_OUT;
+    systemConfigure.channelsType[1][0] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[1][1] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[1][2] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[1][3] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[1][4] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[1][5] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[1][6] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[1][7] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[1][8] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[1][9] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[1][10] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[1][11] = OUT_MODE_NORMAL;
+
+    systemConfigure.boardsType[2] = BOARD_OUT;
+    systemConfigure.channelsType[2][0] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[2][1] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[2][2] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[2][3] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[2][4] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[2][5] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[2][6] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[2][7] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[2][8] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[2][9] = OUT_MODE_PFM;
+    systemConfigure.channelsType[2][10] = OUT_MODE_PFM;
+    systemConfigure.channelsType[2][11] = OUT_MODE_PFM;
+
+    systemConfigure.boardsType[3] = BOARD_IN_AN;
+    systemConfigure.channelsType[3][0] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[3][1] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[3][2] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[3][3] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[3][4] = IN_MODE_ANALOG_8;
+    systemConfigure.channelsType[3][5] = IN_MODE_ANALOG_8;
+    systemConfigure.channelsType[3][6] = IN_MODE_ANALOG_8;
+    systemConfigure.channelsType[3][7] = IN_MODE_ANALOG_8;
+    systemConfigure.channelsType[3][8] = IN_MODE_ANALOG_8;
+    systemConfigure.channelsType[3][9] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[3][10] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[3][11] = IN_MODE_NORMAL;
+
+    systemConfigure.boardsType[4] = BOARD_UNKNOWN;
+    systemConfigure.channelsType[4][0] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[4][1] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[4][2] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[4][3] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[4][4] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[4][5] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[4][6] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[4][7] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[4][8] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[4][9] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[4][10] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[4][11] = IN_MODE_NORMAL;
+
+    systemConfigure.boardsType[5] = BOARD_OUT;
+    systemConfigure.channelsType[5][0] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[5][1] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[5][2] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[5][3] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[5][4] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[5][5] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[5][6] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[5][7] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[5][8] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[5][9] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[5][10] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[5][11] = OUT_MODE_NORMAL;
+
+    systemConfigure.boardsType[6] = BOARD_IN;
+    systemConfigure.channelsType[6][0] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[6][1] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[6][2] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[6][3] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[6][4] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[6][5] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[6][6] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[6][7] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[6][8] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[6][9] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[6][10] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[6][11] = IN_MODE_NORMAL;
+
+
+    systemConfigure.boardsType[7] = BOARD_OUT;
+    systemConfigure.channelsType[7][0] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[7][1] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[7][2] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[7][3] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[7][4] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[7][5] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[7][6] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[7][7] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[7][8] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[7][9] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[7][10] = OUT_MODE_NORMAL;
+    systemConfigure.channelsType[7][11] = OUT_MODE_NORMAL;
+
+    systemConfigure.boardsType[8] = BOARD_IN;
+    systemConfigure.channelsType[8][0] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[8][1] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[8][2] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[8][3] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[8][4] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[8][5] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[8][6] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[8][7] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[8][8] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[8][9] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[8][10] = IN_MODE_NORMAL;
+    systemConfigure.channelsType[8][11] = IN_MODE_NORMAL;
+}
 
 MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     : QMainWindow(parent)
@@ -127,12 +254,15 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     if (need_to_reconf)
         QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini");
     settings = new QSettings(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini", QSettings::IniFormat);
+
     //дефолтные настройки
+
     defaultValues.insert("Global/canDeivce", "can1");
     defaultValues.insert("Global/j1939Deivce", "can0");
     defaultValues.insert("Global/password", "1234");
     defaultValues.insert("Global/secretPassword", "51234");
     defaultValues.insert("Global/brightness.level", 1);
+    defaultValues.insert("Global/restartIgnitionDelay", 60); //added
 
     defaultValues.insert("Hydraulic/temperatures.Warning", 50);
     defaultValues.insert("Hydraulic/temperatures.Critical", 80);
@@ -370,129 +500,8 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     can0 = NULL;
     readSettings();
 
-    systemConfigure.configurationVersion = 110;
-    systemConfigure.boardsType[0] = BOARD_CP;
-    //    systemConfigure.channelsType[0][0] = OUT_MODE_NORMAL;
-    //    systemConfigure.channelsType[0][1] = OUT_MODE_NORMAL;
-    //    systemConfigure.channelsType[0][2] = OUT_MODE_NORMAL;
-    //    systemConfigure.channelsType[0][3] = OUT_MODE_NORMAL;
-    //    systemConfigure.channelsType[0][4] = IN_MODE_NORMAL;
-    //    systemConfigure.channelsType[0][5] = IN_MODE_NORMAL;
-    //    systemConfigure.channelsType[0][6] = IN_MODE_NORMAL;
-    //    systemConfigure.channelsType[0][7] = IN_MODE_NORMAL;
+    configureChannels();
 
-    systemConfigure.boardsType[1] = BOARD_OUT;
-    systemConfigure.channelsType[1][0] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[1][1] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[1][2] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[1][3] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[1][4] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[1][5] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[1][6] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[1][7] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[1][8] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[1][9] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[1][10] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[1][11] = OUT_MODE_NORMAL;
-
-    systemConfigure.boardsType[2] = BOARD_OUT;
-    systemConfigure.channelsType[2][0] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[2][1] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[2][2] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[2][3] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[2][4] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[2][5] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[2][6] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[2][7] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[2][8] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[2][9] = OUT_MODE_PFM;
-    systemConfigure.channelsType[2][10] = OUT_MODE_PFM;
-    systemConfigure.channelsType[2][11] = OUT_MODE_PFM;
-
-    systemConfigure.boardsType[3] = BOARD_IN_AN;
-    systemConfigure.channelsType[3][0] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[3][1] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[3][2] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[3][3] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[3][4] = IN_MODE_ANALOG_8;
-    systemConfigure.channelsType[3][5] = IN_MODE_ANALOG_8;
-    systemConfigure.channelsType[3][6] = IN_MODE_ANALOG_8;
-    systemConfigure.channelsType[3][7] = IN_MODE_ANALOG_8;
-    systemConfigure.channelsType[3][8] = IN_MODE_ANALOG_8;
-    systemConfigure.channelsType[3][9] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[3][10] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[3][11] = IN_MODE_NORMAL;
-
-    systemConfigure.boardsType[4] = BOARD_UNKNOWN;
-    systemConfigure.channelsType[4][0] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[4][1] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[4][2] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[4][3] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[4][4] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[4][5] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[4][6] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[4][7] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[4][8] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[4][9] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[4][10] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[4][11] = IN_MODE_NORMAL;
-
-    systemConfigure.boardsType[5] = BOARD_OUT;
-    systemConfigure.channelsType[5][0] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[5][1] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[5][2] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[5][3] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[5][4] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[5][5] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[5][6] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[5][7] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[5][8] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[5][9] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[5][10] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[5][11] = OUT_MODE_NORMAL;
-
-    systemConfigure.boardsType[6] = BOARD_IN;
-    systemConfigure.channelsType[6][0] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[6][1] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[6][2] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[6][3] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[6][4] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[6][5] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[6][6] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[6][7] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[6][8] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[6][9] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[6][10] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[6][11] = IN_MODE_NORMAL;
-
-
-    systemConfigure.boardsType[7] = BOARD_OUT;
-    systemConfigure.channelsType[7][0] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[7][1] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[7][2] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[7][3] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[7][4] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[7][5] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[7][6] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[7][7] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[7][8] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[7][9] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[7][10] = OUT_MODE_NORMAL;
-    systemConfigure.channelsType[7][11] = OUT_MODE_NORMAL;
-
-    systemConfigure.boardsType[8] = BOARD_IN;
-    systemConfigure.channelsType[8][0] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[8][1] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[8][2] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[8][3] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[8][4] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[8][5] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[8][6] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[8][7] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[8][8] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[8][9] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[8][10] = IN_MODE_NORMAL;
-    systemConfigure.channelsType[8][11] = IN_MODE_NORMAL;
 
 
 
@@ -614,12 +623,23 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     menuMode = SweepMode;
     startClean = false;
-    starterStarted = false;
-    starterStartedTime = QDateTime::currentDateTime();
-    //starter = false;
-    starterStartedAlarmed = false;
-    starterBroomAlarmed = false;
-    starterBunkerAlarmed = false;
+    //================================================
+    starterState = StarterState::Idle;
+    rollState = RollState::Idle;
+    starterStateEnteredAt = QDateTime::currentDateTime();
+    rollStateEnteredAt = QDateTime::currentDateTime();
+
+    // Эти переменные оставляем, они всё ещё нужны
+    starterAttemptsUsed = 0;
+    rollAttemptsUsed = 0;
+    starterNeedReboot = false;
+    rollNeedReboot = false;
+    starterPressedPrev = false;
+    prerollButtonPrev = false;
+    prerollStarterButtonPrev = false;
+    rollInputPrev = false;
+    //================================================
+
     chooseFrm = false;
 //    pultUp = false;
 //    pultUpCounter = 0;
@@ -773,23 +793,19 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     needRollProcedure = false;
     rollCompleted = false;
 
-    starterPauseActive = false;
-    starterAttemptsUsed = 0;
-    starterNeedReboot = false;
-    starterPressedPrev = false;
-    starterPauseWarned = false;
 
-    prerollButtonPrev = false;
-    prerollStarterButtonPrev = false;
-    rollInputPrev = false;
-    prerollSequenceActive = false;
-    prerollSequenceStep = 0;
-    prerollStarterUnlocked = false;
-    rollRunActive = false;
-    rollPauseActive = false;
-    rollAttemptsUsed = 0;
-    rollNeedReboot = false;
-    rollPauseWarned = false;
+    // прокрутка
+
+    // prerollStepStartedAt = QDateTime::currentDateTime();
+    // rollRunStartedAt = QDateTime::currentDateTime();
+    // rollPauseStartedAt = QDateTime::currentDateTime();
+//----------------------------------------
+
+
+
+
+
+
     serviceIgnitionAutoRestoreBlocked = false;
 
     logNeedRollShown = false;
@@ -1511,7 +1527,7 @@ void MainWindow::mainProgress()
     }
 
     updateEngineAndRollLocks();
-    processPrerollInService();
+    updateRollStateMachine();
 
     if (superDiagMode)
     {
@@ -1684,7 +1700,8 @@ void MainWindow::mainProgress()
     showModeButton();
     showMatrixFRMButton();
     // работа со стартером
-    showStarter();
+    updateStarterStateMachine();
+    //showStarter();
     // свет
     showFRM();
 
@@ -1902,247 +1919,6 @@ void MainWindow::updateEngineAndRollLocks()
     }
 }
 
-void MainWindow::processPrerollInService()
-{
-    QPushButton* prerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_preroll");
-    QPushButton* starterPrerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_starterPreroll");
-    QLabel* statusLabel = serviceOtherEngineLeftForm->findChild<QLabel*>("label_prerollStatus");
-
-    const bool serviceEngineVisible = superDiagMode && serviceOtherEngineLeftForm->isVisible();
-    serviceIgnitionAutoRestoreBlocked = serviceEngineVisible || prerollSequenceActive || rollRunActive;
-
-    if (starterPrerollButton != NULL)
-        starterPrerollButton->setEnabled(prerollStarterUnlocked && !rollNeedReboot && !rollBlocked());
-
-    // Обновляем состояние кнопки ПРОКРУТКА (зафиксирована когда идёт подготовка или активна)
-    if (prerollButton != NULL)
-        prerollButton->setChecked(prerollSequenceActive || prerollStarterUnlocked);
-
-    // Обновляем статусную строку
-    if (statusLabel != NULL)
-    {
-        QString statusText;
-        if (rollNeedReboot)
-            statusText = "Лимит попыток исчерпан. Требуется перезагрузка пульта.";
-        else if (rollRunActive)
-        {
-            const int elapsed = qAbs(rollRunStartedAt.secsTo(QDateTime::currentDateTime()));
-            statusText = QString("Прокрутка активна... %1 сек. | Попытка %2/%3")
-                .arg(elapsed).arg(rollAttemptsUsed).arg(rollMaxAttempts);
-        }
-        else if (inRollPause())
-            statusText = QString("Пауза между попытками: %1 сек.").arg(rollPauseSecondsLeft());
-        else if (prerollSequenceActive)
-            statusText = "Подготовка прокрутки (выключение зажигания)...";
-        else if (prerollStarterUnlocked)
-            statusText = "Готово — нажмите СТАРТЕР ПРОКРУТКА для прокрутки";
-        else if (rollBlocked())
-        {
-            QStringList reasons;
-            if (rollLockedByTemperature)    reasons << "холодный двигатель (ждите теплореле)";
-            if (rollLockedByEmergency)      reasons << "аварийный режим";
-            statusText = "Прокрутка заблокирована: " + reasons.join(", ");
-            if (statusLabel->styleSheet() != "color: red;")
-                statusLabel->setStyleSheet("color: red;");
-        }
-        else if (needRollProcedure)
-            statusText = "Требуется прокрутка. Нажмите ПРОКРУТКА для подготовки.";
-        else if (rollCompleted)
-            statusText = "Прокрутка успешно завершена";
-        else
-            statusText = "";
-
-        if (rollBlocked() && !statusText.isEmpty())
-        {
-            if (statusLabel->styleSheet() != "color: red;")
-                statusLabel->setStyleSheet("color: red;");
-        }
-        else
-        {
-            if (statusLabel->styleSheet() != "color: yellow;")
-                statusLabel->setStyleSheet("color: yellow;");
-        }
-
-        if (statusLabel->text() != statusText)
-            statusLabel->setText(statusText);
-    }
-
-    const bool prerollPressed = serviceEngineVisible && prerollButton != NULL && prerollButton->isDown();
-    const bool prerollPressedEdge = prerollPressed && !prerollButtonPrev;
-
-    const bool prerollStarterPressed = serviceEngineVisible && starterPrerollButton != NULL && starterPrerollButton->isDown();
-    const bool prerollStarterPressedEdge = prerollStarterPressed && !prerollStarterButtonPrev;
-
-    const bool rollInputPressed = can0->getState(StateRollIn).toBool();
-    const bool rollInputPressedEdge = rollInputPressed && !rollInputPrev;
-
-    if (prerollPressedEdge)
-    {
-        if (prerollSequenceActive || prerollStarterUnlocked)
-        {
-            // ОТМЕНА: выходим из режима прокрутки, восстанавливаем зажигание
-            prerollSequenceActive = false;
-            prerollStarterUnlocked = false;
-            stopRollOutput();
-            can0->setState(StateStarterAllow, false);
-            restoreIgnitionAfterRoll();
-            addLog("Режим прокрутки отменён оператором", InfoStatus);
-        }
-        else if (rollBlocked())
-        {
-            addLog("Прокрутка заблокирована", WarningStatus);
-        }
-        else
-        {
-            addLog("Запуск алгоритма прокрутки", WarningStatus);
-            prerollSequenceActive = true;
-            prerollSequenceStep = 1;
-            prerollStepStartedAt = QDateTime::currentDateTime();
-            prerollStarterUnlocked = false;
-            stopRollOutput();
-            can0->setState(StateStarterAllow, false);
-            can0->setState(StateIgnitionOut, false);
-            ignitionOffTimer = 0;
-        }
-    }
-
-    if (prerollSequenceActive)
-    {
-        const int elapsed = qAbs(prerollStepStartedAt.secsTo(QDateTime::currentDateTime()));
-        if (prerollSequenceStep == 1 && elapsed >= 2)
-        {
-            can0->setState(StateStarterAllow, true);
-            prerollSequenceStep = 2;
-            prerollStepStartedAt = QDateTime::currentDateTime();
-        }
-        else if (prerollSequenceStep == 2 && elapsed >= 1)
-        {
-            prerollStarterUnlocked = true;
-            prerollSequenceActive = false;
-            addLog("Прокрутка подготовлена", InfoStatus);
-        }
-    }
-
-    if (rollPauseActive && !inRollPause())
-    {
-        rollPauseActive = false;
-        rollPauseWarned = false;
-    }
-
-    const bool rollStartRequest = prerollStarterPressedEdge || rollInputPressedEdge;
-    if (rollStartRequest && !rollRunActive)
-    {
-        if (rollBlocked())
-        {
-            addLog("Прокрутка заблокирована", WarningStatus);
-        }
-        else if (inRollPause())
-        {
-            addLog("Пауза между пусками " + QString::number(rollPauseSecondsLeft()) + " секунды осталось", WarningStatus);
-            rollPauseWarned = true;
-        }
-        else if (!prerollStarterUnlocked && !rollInputPressedEdge)
-        {
-            addLog("Сначала выполните подготовку прокрутки", WarningStatus);
-        }
-        else
-        {
-            rollRunActive = true;
-            rollRunStartedAt = QDateTime::currentDateTime();
-            rollAttemptsUsed++;
-            stopStarterOutput();
-            can0->setState(StateStarterRoll, true);
-            addLog("Стартер прокрутка включен", WarningStatus);
-        }
-    }
-
-    if (rollRunActive)
-    {
-        const bool rollButtonStillPressed = prerollStarterPressed || rollInputPressed;
-        if (rollRunActive)
-        {
-            // АВАРИЙНАЯ ОСТАНОВКА: зажигание включилось во время прокрутки
-            if (can0->getState(StateIgnitionOut).toBool())
-            {
-                stopRollOutput();
-                rollRunActive = false;
-                prerollStarterUnlocked = false;
-                can0->setState(StateStarterAllow, false);
-                restoreIgnitionAfterRoll();   // уже есть из проблемы 3
-                addLog("Прокрутка прервана: обнаружено включение зажигания", WarningStatus);
-            }
-            // Прокрутка работает только пока оператор удерживает кнопку/вход
-            else if (!rollButtonStillPressed)
-            {
-                stopRollOutput();
-                rollRunActive = false;
-                addLog("Прокрутка остановлена оператором", InfoStatus);
-                restoreIgnitionAfterRoll();
-                // Добровольная остановка — не считаем за неудачу, паузу не запускаем
-            }
-            else
-            {
-                const bool oilRele = !can0->getState(StateOilRele).toBool();
-                const int elapsedRoll = qAbs(rollRunStartedAt.secsTo(QDateTime::currentDateTime()));
-                if (oilRele)
-                {
-                    stopRollOutput();
-                    rollRunActive = false;
-                    rollPauseActive = false;
-                    rollNeedReboot = false;
-                    rollAttemptsUsed = 0;
-                    prerollStarterUnlocked = false;
-                    can0->setState(StateStarterAllow, false);
-                    rollCompleted = true;
-                    needRollProcedure = false;
-                    starterLockedByRoll = false;
-                    lastEngineStartDate = QDate::currentDate();
-                    settings->setValue("Engine/lastStartDate", lastEngineStartDate);
-                    settings->sync();
-                    // ВОССТАНАВЛИВАЕМ ЗАЖИГАНИЕ после успешной прокрутки
-                    restoreIgnitionAfterRoll();
-
-
-                    addLog("Прокрутка завершена по реле масла", InfoStatus);
-                }
-                else if (elapsedRoll >= rollMaxWorkSec)
-                {
-                    stopRollOutput();
-                    rollRunActive = false;
-                    rollPauseActive = true;
-                    rollPauseStartedAt = QDateTime::currentDateTime();
-                    restoreIgnitionAfterRoll();
-                    addLog("Долгая работа стартера", FatalStatus);
-                    if (rollAttemptsUsed >= rollMaxAttempts)
-                    {
-                        rollNeedReboot = true;
-                        addLog("Достигнут лимит попыток прокрутки, требуется перезагрузка пульта", FatalStatus);
-                    }
-                }
-            }
-        }
-    }
-    if (rollNeedReboot)
-    {
-        prerollStarterUnlocked = false;
-        can0->setState(StateStarterAllow, false);
-    }
-
-    prerollButtonPrev = prerollPressed;
-    prerollStarterButtonPrev = prerollStarterPressed;
-    rollInputPrev = rollInputPressed;
-    prerollButtonPrev = prerollPressed;
-    prerollStarterButtonPrev = prerollStarterPressed;
-    rollInputPrev = rollInputPressed;
-
-    // Обновляем состояние кнопки ПРОКРУТКА
-    if (prerollButton != NULL)
-    {
-        bool rollModeActive = prerollSequenceActive || prerollStarterUnlocked || rollRunActive;
-        prerollButton->setChecked(rollModeActive);
-    }
-}
-
 void MainWindow::restoreIgnitionAfterRoll()
 {
     // Восстанавливаем зажигание немедленно
@@ -2309,6 +2085,8 @@ void MainWindow::showPultOffIgnition()
 {
     if (serviceIgnitionAutoRestoreBlocked)
         return;
+    if (restartIgnitionDelay <= 0)  //added
+        return;
 
     ignitionOffTimer++;
     if (ignitionOffTimer >= restartIgnitionDelay * 10)
@@ -2324,188 +2102,25 @@ void MainWindow::showFRM()
         ui->pushButton_frmKung->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_k_on.png);");
     else if (!workMode.frmKung && ui->pushButton_frmKung->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);")
         ui->pushButton_frmKung->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);");
-    if (workMode.frmKung)
-        can0->setState(StateKungL5, true);
-    else
-        can0->setState(StateKungL5, false);
+
+    can0->setState(StateKungL5, workMode.frmKung);
 
     // frm щетка
     if (workMode.frmBroom && ui->pushButton_frmBroom->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_h_on.png);")
         ui->pushButton_frmBroom->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_h_on.png);");
     else if (!workMode.frmBroom && ui->pushButton_frmBroom->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_h_off.png);")
         ui->pushButton_frmBroom->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_h_off.png);");
-    if (workMode.frmBroom)
-        can0->setState(StateFRMBroomL1, true);
-    else
-        can0->setState(StateFRMBroomL1, false);
+
+    can0->setState(StateFRMBroomL1, workMode.frmBroom);
 
     // frm магнит
     if (workMode.frmMagnet && ui->pushButton_frmMagnet->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_m_on.png);")
         ui->pushButton_frmMagnet->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_m_on.png);");
     else if (!workMode.frmMagnet && ui->pushButton_frmMagnet->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_m_off.png);")
         ui->pushButton_frmMagnet->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_m_off.png);");
-    if (workMode.frmMagnet)
-        can0->setState(StateFRMBackL2, true);
-    else
-        can0->setState(StateFRMBackL2, false);
-}
 
-void MainWindow::showStarter()
-{
-    const bool starterPressed = gpioMatirx->keyPressed == GPIOInput::IN_STARTER;
-    const auto rpm = engine->getRpm();
-    // Если идёт прокрутка — стартер не управляется отсюда
-    if (rollRunActive || prerollSequenceActive)
-    {
-        starterPressedPrev = starterPressed;
-        return;
-    }
+    can0->setState(StateFRMBackL2, workMode.frmMagnet);
 
-    if (rpm < 500 && engineStartedOk)
-        addLog("Двигатель заглох!!!", FatalStatus);
-
-    if (!inStarterPause())
-    {
-        starterPauseActive = false;
-        starterPauseWarned = false;
-    }
-
-    const bool starterPressedEdge = starterPressed && !starterPressedPrev;
-
-    // // БЛОКИРОВКА: пока идёт прокрутка — кнопка стартера не управляет зажиганием
-    // if (rollRunActive || prerollSequenceActive)
-    // {
-    //     starterPressedPrev = starterPressed;
-    //     return;
-    // }
-
-    const bool engineRunning = rpm > 700;
-
-    if (engineRunning)
-    {
-        stopStarterOutput();
-        starterStarted = false;
-    }
-
-    if (starterPressedEdge && engineRunning)//двигатель запущен и нажали кнопку стартера
-    {
-        // Повторное нажатие при работающем двигателе — глушим ДВС
-        can0->setState(StateIgnitionOut, false);
-        ignitionOffTimer = 0;
-        engineStartedOk = false;
-        starterPauseActive = true;
-        addLog("Повторное нажатие старт/стоп: выключаем зажигание", WarningStatus);
-    }
-    else if (starterPressed)// либо двигатель не запущен, либо нажали на кнопку стартера не только что, но всё ещё держим
-    {
-        if(!starterPauseActive){//если не находимся в паузе после глушения ДВС
-
-            can0->setState(StateIgnitionOut, true);//осуществляем запуск
-        }
-
-        if (!engineRunning)//если двигатель не запущен
-        {
-            if (starterNeedReboot)
-            {
-                if (starterPressedEdge)
-                    addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
-                stopStarterOutput();
-                starterStarted = false;
-            }
-            else if (starterBlocked())
-            {
-                if (starterPressedEdge)
-                {
-                    if (starterLockedByRoll)
-                        addLog("Требуется прокрутка вспомогательного ДВС", WarningStatus);
-                    else if (starterLockedByTemperature || engine->waitOnStart)
-                        addLog("Требуется прогрев вспомогательного ДВС", WarningStatus);
-                    else
-                        addLog("Стартер заблокирован аварийным состоянием", FatalStatus);
-                }
-                stopStarterOutput();
-                starterStarted = false;
-            }
-            else if (inStarterPause())
-            {
-                if (starterPressedEdge || !starterPauseWarned)
-                {
-                    addLog("Пауза между пусками " + QString::number(starterPauseSecondsLeft()) + " секунды осталось", WarningStatus);
-                    starterPauseWarned = true;
-                }
-                stopStarterOutput();
-                starterStarted = false;
-            }
-            else
-            {
-                if (!starterStarted)
-                {
-                    starterStarted = true;
-                    starterStartedTime = QDateTime::currentDateTime();
-                    starterAttemptsUsed++;
-                    addLog("Стартер включен", WarningStatus);
-                    gpio->setOutput(GPIOOutput::OUT_STARTER, true);
-                    gpio->setOutput(GPIOOutput::OUT_STARTER_LIGHT, true);
-                }
-
-                const int starterRunTime = qAbs(starterStartedTime.secsTo(QDateTime::currentDateTime()));
-                if (engineRunning)
-                {
-                    stopStarterOutput();
-                    starterStarted = false;
-                    starterPauseActive = false;
-                    starterNeedReboot = false;
-                    starterAttemptsUsed = 0;
-                    addLog("Двигатель набрал обороты", WarningStatus);
-                }
-                else if (starterRunTime >= starterMaxWorkSec)
-                {
-                    stopStarterOutput();
-                    starterStarted = false;
-                    starterPauseActive = true;
-                    starterPauseStartedAt = QDateTime::currentDateTime();
-                    addLog("Долгая работа стартера", FatalStatus);
-                    if (starterAttemptsUsed >= starterMaxAttempts)
-                    {
-                        starterNeedReboot = true;
-                        addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
-                    }
-                }
-            }
-        }
-
-    }
-    else
-    {
-        if (starterStarted)
-        {
-            stopStarterOutput();
-            starterStarted = false;
-            if (!engineRunning)
-            {
-                starterPauseActive = true;
-                starterPauseStartedAt = QDateTime::currentDateTime();
-                if (starterAttemptsUsed >= starterMaxAttempts)
-                {
-                    starterNeedReboot = true;
-                    addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
-                }
-            }
-        }
-    }
-
-    if (engineRunning)
-    {
-        engineStartedOk = true;
-        starterNeedReboot = false;
-        starterAttemptsUsed = 0;
-    }
-    else
-    {
-        engineStartedOk = false;
-    }
-
-    starterPressedPrev = starterPressed;
 }
 
 void MainWindow::showStartClean()
@@ -3023,13 +2638,13 @@ bool MainWindow::isOrgansTransitioning()
     CentralBroom::BroomStates broomTarget = broomCentral->needState;
     if (broomCentral->needState != CentralBroom::BroomOff && broomCentral->ableState < broomCentral->needState)
         broomTarget = broomCentral->ableState;
-    if (broomCentral->state != broomTarget)
+    if (broomCentral->curState != broomTarget)
         return true;
 
     FrontRail::FrontRailStates railTarget = frontRail->needState;
     if (frontRail->needState != FrontRail::FrontRailOff && frontRail->ableState < frontRail->needState)
         railTarget = frontRail->ableState;
-    if (frontRail->state != railTarget)
+    if (frontRail->curState  != railTarget)
         return true;
 
     BackMagnet::BackMagnetStates magnetTarget = backMagnet->needState;
@@ -3549,6 +3164,848 @@ void MainWindow::on_pushButton_homeState_clicked()
     // вынуждаем все органы убраться поновой. обманка
     backMagnet->state = BackMagnet::BackMagnetDowned;
     blower->state = Blower::BlowerRotated;
-    frontRail->state = FrontRail::FrontRailFlowed;
-    broomCentral->state = CentralBroom::BroomRotated;
+    frontRail->curState  = FrontRail::FrontRailFlowed;
+    broomCentral->curState = CentralBroom::BroomRotated;
 }
+
+//==================Engine state============================
+
+double MainWindow::elapsedInStarterState() const
+{
+    return starterStateEnteredAt.msecsTo(QDateTime::currentDateTime()) / 1000.0;
+}
+
+double MainWindow::elapsedInRollState() const
+{
+    return rollStateEnteredAt.msecsTo(QDateTime::currentDateTime()) / 1000.0;
+}
+
+bool MainWindow::isRollActive() const
+{
+    return rollState == RollState::Preparation
+           || rollState == RollState::Ready
+           || rollState == RollState::Rolling
+           || rollState == RollState::Pause;
+}
+
+void MainWindow::transitionStarter(StarterState newState, const QString& reason)
+{
+    static const char* names[] = {
+        "Idle", "IgnitionOn", "Cranking", "Running", "PostStopPause", "ErrorNeedReboot"
+    };
+
+    if (starterState == newState)
+        return;
+
+    addLog(QString("[СТАРТЕР] %1 → %2: %3")
+               .arg(names[static_cast<int>(starterState)])
+               .arg(names[static_cast<int>(newState)])
+               .arg(reason), InfoStatus);
+
+    starterState = newState;
+    starterStateEnteredAt = QDateTime::currentDateTime();
+
+    switch (newState) {
+    case StarterState::Idle:
+        stopStarterOutput();
+        can0->setState(StateStarterAllow, false);
+        break;
+
+    case StarterState::IgnitionOn:
+        can0->setState(StateIgnitionOut, true);
+        ignitionOffTimer = 0;
+        break;
+
+    case StarterState::Cranking:
+        starterAttemptsUsed++;
+        gpio->setOutput(GPIOOutput::OUT_STARTER, true);
+        gpio->setOutput(GPIOOutput::OUT_STARTER_LIGHT, true);
+        addLog("Стартер включен", WarningStatus);
+        break;
+
+    case StarterState::Running:
+        stopStarterOutput();
+        starterAttemptsUsed = 0;
+        starterNeedReboot = false;
+        engineStartedOk = true;
+        break;
+
+    case StarterState::PostStopPause:
+        stopStarterOutput();
+        starterPauseStartedAt = QDateTime::currentDateTime();
+        if (starterAttemptsUsed >= starterMaxAttempts) {
+            starterNeedReboot = true;
+            addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
+        }
+        break;
+
+    case StarterState::ErrorNeedReboot:
+        stopStarterOutput();
+        starterNeedReboot = true;
+        break;
+    }
+}
+
+void MainWindow::transitionRoll(RollState newState, const QString& reason)
+{
+    static const char* names[] = {
+        "Idle", "Preparation", "Ready", "Rolling", "Pause", "Completed", "ErrorNeedReboot"
+    };
+
+    if (rollState == newState)
+        return;
+
+    addLog(QString("[ПРОКРУТКА] %1 → %2: %3")
+               .arg(names[static_cast<int>(rollState)])
+               .arg(names[static_cast<int>(newState)])
+               .arg(reason), InfoStatus);
+
+    RollState oldState = rollState;
+    rollState = newState;
+    rollStateEnteredAt = QDateTime::currentDateTime();
+
+    switch (newState) {
+    case RollState::Idle:
+        stopRollOutput();
+        can0->setState(StateStarterAllow, false);
+        if (oldState != RollState::Completed && oldState != RollState::ErrorNeedReboot) {
+            restoreIgnitionAfterRoll();
+        }
+        break;
+
+    case RollState::Preparation:
+        stopRollOutput();
+        can0->setState(StateStarterAllow, false);
+        can0->setState(StateIgnitionOut, false);
+        ignitionOffTimer = 0;
+        break;
+
+    case RollState::Ready:
+        can0->setState(StateStarterAllow, true);
+        addLog("Прокрутка подготовлена", InfoStatus);
+        break;
+
+    case RollState::Rolling:
+        rollAttemptsUsed++;
+        stopStarterOutput();
+        can0->setState(StateStarterRoll, true);
+        rollRunStartedAt = QDateTime::currentDateTime();
+        addLog("Стартер прокрутка включен", WarningStatus);
+        break;
+
+    case RollState::Pause:
+        stopRollOutput();
+        rollPauseStartedAt = QDateTime::currentDateTime();
+        restoreIgnitionAfterRoll();
+        if (rollAttemptsUsed >= rollMaxAttempts) {
+            addLog("Достигнут лимит попыток прокрутки, требуется перезагрузка пульта", FatalStatus);
+            transitionRoll(RollState::ErrorNeedReboot, "Исчерпаны попытки");
+            return;
+        }
+        break;
+
+    case RollState::Completed:
+        stopRollOutput();
+        rollCompleted = true;
+        needRollProcedure = false;
+        starterLockedByRoll = false;
+        rollNeedReboot = false;
+        lastEngineStartDate = QDate::currentDate();
+        settings->setValue("Engine/lastStartDate", lastEngineStartDate);
+        settings->sync();
+        removeBadSettings();
+        restoreIgnitionAfterRoll();
+        addLog("Прокрутка завершена по реле масла", InfoStatus);
+        break;
+
+    case RollState::ErrorNeedReboot:
+        stopRollOutput();
+        rollNeedReboot = true;
+        can0->setState(StateStarterAllow, false);
+        break;
+    }
+}
+
+bool MainWindow::canStartEngine()
+{
+    if (starterNeedReboot || starterState == StarterState::ErrorNeedReboot) {
+        addLog("Стартер заблокирован: требуется перезагрузка пульта", WarningStatus);
+        return false;
+    }
+    if (starterLockedByRoll) {
+        addLog("Стартер заблокирован: требуется прокрутка вспомогательного ДВС", WarningStatus);
+        return false;
+    }
+    if (starterLockedByTemperature || engine->waitOnStart) {
+        addLog("Стартер заблокирован: требуется прогрев вспомогательного ДВС", WarningStatus);
+        return false;
+    }
+    if (starterLockedByEmergency) {
+        addLog("Стартер заблокирован: аварийный режим", FatalStatus);
+        return false;
+    }
+    if (starterState == StarterState::PostStopPause) {
+        int left = starterPauseSecondsLeft();
+        if (left > 0) {
+            addLog("Стартер заблокирован: пауза между пусками " + QString::number(left) + " сек", WarningStatus);
+            return false;
+        }
+    }
+    return true;
+}
+
+void MainWindow::updateStarterStateMachine()
+{
+    const bool starterPressed = gpioMatirx->keyPressed == GPIOInput::IN_STARTER;
+    const bool starterEdge = starterPressed && !starterPressedPrev;
+    const bool engineRunning = engine->getRpm() > 700;
+
+    // Если активна прокрутка — стартер не управляется отсюда
+    if (isRollActive()) {
+        starterPressedPrev = starterPressed;
+        return;
+    }
+
+    // Двигатель заглох во время работы
+    if (!engineRunning && starterState == StarterState::Running) {
+        addLog("Двигатель заглох!!!", FatalStatus);
+        transitionStarter(StarterState::Idle, "Двигатель остановился");
+    }
+
+    switch (starterState) {
+    case StarterState::Idle:
+        if (starterEdge) {
+            if (engineRunning) {
+                // Глушение
+                can0->setState(StateIgnitionOut, false);
+                ignitionOffTimer = 0;
+                engineStartedOk = false;
+                transitionStarter(StarterState::PostStopPause, "Оператор глушит двигатель");
+            } else if (canStartEngine()) {
+                transitionStarter(StarterState::IgnitionOn, "Кнопка стартера");
+            }
+        }
+        break;
+
+    case StarterState::IgnitionOn:
+        if (engineRunning) {
+            transitionStarter(StarterState::Running, "Двигатель завёлся");
+        } else if (!starterPressed) {
+            transitionStarter(StarterState::Idle, "Оператор отпустил кнопку до стартера");
+        } else if (elapsedInStarterState() >= 1.0) {
+            transitionStarter(StarterState::Cranking, "Задержка перед стартером");
+        }
+        break;
+
+    case StarterState::Cranking:
+        if (engineRunning) {
+            transitionStarter(StarterState::Running, "Успешный запуск");
+        } else if (!starterPressed) {
+            transitionStarter(StarterState::PostStopPause, "Оператор отпустил кнопку");
+        } else if (elapsedInStarterState() >= starterMaxWorkSec) {
+            transitionStarter(StarterState::PostStopPause, "Превышено время кручения");
+        }
+        break;
+
+    case StarterState::Running:
+        if (starterEdge) {
+            can0->setState(StateIgnitionOut, false);
+            ignitionOffTimer = 0;
+            engineStartedOk = false;
+            transitionStarter(StarterState::PostStopPause, "Оператор глушит двигатель");
+        }
+        break;
+
+    case StarterState::PostStopPause:
+        if (elapsedInStarterState() >= starterPauseSec) {
+            if (starterNeedReboot) {
+                transitionStarter(StarterState::ErrorNeedReboot, "Пауза окончена, лимит попыток исчерпан");
+            } else {
+                transitionStarter(StarterState::Idle, "Пауза окончена");
+            }
+        }
+        break;
+
+    case StarterState::ErrorNeedReboot:
+        if (starterEdge) {
+            addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
+        }
+        break;
+    }
+
+    starterPressedPrev = starterPressed;
+}
+
+void MainWindow::updateRollStateMachine()
+{
+    const bool serviceEngineVisible = superDiagMode && serviceOtherEngineLeftForm->isVisible();
+    serviceIgnitionAutoRestoreBlocked = serviceEngineVisible || isRollActive();
+
+    QPushButton* prerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_preroll");
+    QPushButton* starterPrerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_starterPreroll");
+
+    const bool prerollPressed = serviceEngineVisible && prerollButton != nullptr && prerollButton->isDown();
+    const bool prerollEdge = prerollPressed && !prerollButtonPrev;
+
+    const bool starterPrerollPressed = serviceEngineVisible && starterPrerollButton != nullptr && starterPrerollButton->isDown();
+    const bool starterPrerollEdge = starterPrerollPressed && !prerollStarterButtonPrev;
+
+    const bool rollInputPressed = can0->getState(StateRollIn).toBool();
+    const bool rollInputEdge = rollInputPressed && !rollInputPrev;
+
+    const bool rollStartRequest = starterPrerollEdge || rollInputEdge;
+    const bool rollButtonStillPressed = starterPrerollPressed || rollInputPressed;
+
+    // UI обновляем до переходов, чтобы отражать текущее состояние
+    updateRollUI();
+
+    switch (rollState) {
+    case RollState::Idle:
+        if (prerollEdge) {
+            if (rollBlocked()) {
+                addLog("Прокрутка заблокирована", WarningStatus);
+            } else {
+                transitionRoll(RollState::Preparation, "Оператор запустил подготовку");
+            }
+        }
+        break;
+
+    case RollState::Preparation:
+        if (prerollEdge) {
+            transitionRoll(RollState::Idle, "Оператор отменил подготовку");
+        } else if (elapsedInRollState() >= 2.0) {
+            transitionRoll(RollState::Ready, "Зажигание выключено");
+        }
+        break;
+
+    case RollState::Ready:
+        if (prerollEdge) {
+            transitionRoll(RollState::Idle, "Оператор отменил прокрутку");
+        } else if (rollStartRequest) {
+            if (rollBlocked()) {
+                addLog("Прокрутка заблокирована", WarningStatus);
+            } else {
+                transitionRoll(RollState::Rolling, "Оператор запустил прокрутку");
+            }
+        }
+        break;
+
+    case RollState::Rolling:
+        if (can0->getState(StateIgnitionOut).toBool()) {
+            transitionRoll(RollState::Idle, "Обнаружено включение зажигания");
+        } else if (!rollButtonStillPressed) {
+            transitionRoll(RollState::Idle, "Оператор остановил прокрутку");
+        } else if (!can0->getState(StateOilRele).toBool()) {
+            transitionRoll(RollState::Completed, "Реле масла сработало");
+        } else if (elapsedInRollState() >= rollMaxWorkSec) {
+            addLog("Долгая работа стартера", FatalStatus);
+            transitionRoll(RollState::Pause, "Превышено время прокрутки");
+        }
+        break;
+
+    case RollState::Pause:
+        if (elapsedInRollState() >= rollPauseSec) {
+            transitionRoll(RollState::Idle, "Пауза между попытками окончена");
+        }
+        break;
+
+    case RollState::Completed:
+        if (prerollEdge) {
+            // Повторная прокрутка
+            rollCompleted = false;
+            transitionRoll(RollState::Preparation, "Повторная подготовка");
+        }
+        break;
+
+    case RollState::ErrorNeedReboot:
+        if (prerollEdge) {
+            addLog("Лимит попыток исчерпан. Требуется перезагрузка пульта.", WarningStatus);
+        }
+        break;
+    }
+
+    prerollButtonPrev = prerollPressed;
+    prerollStarterButtonPrev = starterPrerollPressed;
+    rollInputPrev = rollInputPressed;
+}
+
+void MainWindow::updateRollUI()
+{
+    QPushButton* prerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_preroll");
+    QPushButton* starterPrerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_starterPreroll");
+    QLabel* statusLabel = serviceOtherEngineLeftForm->findChild<QLabel*>("label_prerollStatus");
+
+    if (starterPrerollButton != nullptr) {
+        bool canStartPreroll = (rollState == RollState::Ready)
+        && !rollNeedReboot
+            && !rollBlocked();
+        starterPrerollButton->setEnabled(canStartPreroll);
+    }
+
+    if (prerollButton != nullptr) {
+        prerollButton->setChecked(rollState != RollState::Idle);
+    }
+
+    if (statusLabel == nullptr)
+        return;
+
+    QString statusText;
+    QString colorStyle = "color: yellow;";
+
+    switch (rollState) {
+    case RollState::Idle:
+        if (rollNeedReboot) {
+            statusText = "Лимит попыток исчерпан. Требуется перезагрузка пульта.";
+            colorStyle = "color: red;";
+        } else if (rollBlocked()) {
+            QStringList reasons;
+            if (rollLockedByTemperature) reasons << "холодный двигатель (ждите теплореле)";
+            if (rollLockedByEmergency)   reasons << "аварийный режим";
+            statusText = "Прокрутка заблокирована: " + reasons.join(", ");
+            colorStyle = "color: red;";
+        } else if (needRollProcedure) {
+            statusText = "Требуется прокрутка. Нажмите ПРОКРУТКА для подготовки.";
+        } else if (rollCompleted) {
+            statusText = "Прокрутка успешно завершена";
+        } else {
+            statusText = "";
+        }
+        break;
+
+    case RollState::Preparation:
+        statusText = "Подготовка прокрутки (выключение зажигания)...";
+        break;
+
+    case RollState::Ready:
+        statusText = "Готово — нажмите СТАРТЕР ПРОКРУТКА для прокрутки";
+        break;
+
+    case RollState::Rolling: {
+        int elapsed = static_cast<int>(elapsedInRollState());
+        statusText = QString("Прокрутка активна... %1 сек. | Попытка %2/%3")
+                         .arg(elapsed).arg(rollAttemptsUsed).arg(rollMaxAttempts);
+        break;
+    }
+
+    case RollState::Pause:
+        statusText = QString("Пауза между попытками: %1 сек.")
+                         .arg(rollPauseSecondsLeft());
+        break;
+
+    case RollState::Completed:
+        statusText = "Прокрутка успешно завершена";
+        break;
+
+    case RollState::ErrorNeedReboot:
+        statusText = "Лимит попыток исчерпан. Требуется перезагрузка пульта.";
+        colorStyle = "color: red;";
+        break;
+    }
+
+    if (statusLabel->styleSheet() != colorStyle)
+        statusLabel->setStyleSheet(colorStyle);
+    if (statusLabel->text() != statusText)
+        statusLabel->setText(statusText);
+}
+
+
+
+// void MainWindow::processPrerollInService()
+// {
+//     QPushButton* prerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_preroll");
+//     QPushButton* starterPrerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_starterPreroll");
+//     QLabel* statusLabel = serviceOtherEngineLeftForm->findChild<QLabel*>("label_prerollStatus");
+
+//     const bool serviceEngineVisible = superDiagMode && serviceOtherEngineLeftForm->isVisible();
+//     serviceIgnitionAutoRestoreBlocked = serviceEngineVisible || prerollSequenceActive || rollRunActive;
+
+//     if (starterPrerollButton != NULL)
+//         starterPrerollButton->setEnabled(prerollStarterUnlocked && !rollNeedReboot && !rollBlocked());
+
+//     // Обновляем состояние кнопки ПРОКРУТКА (зафиксирована когда идёт подготовка или активна)
+//     if (prerollButton != NULL)
+//         prerollButton->setChecked(prerollSequenceActive || prerollStarterUnlocked);
+
+//     // Обновляем статусную строку
+//     if (statusLabel != NULL)
+//     {
+//         QString statusText;
+//         if (rollNeedReboot)
+//             statusText = "Лимит попыток исчерпан. Требуется перезагрузка пульта.";
+//         else if (rollRunActive)
+//         {
+//             const int elapsed = qAbs(rollRunStartedAt.secsTo(QDateTime::currentDateTime()));
+//             statusText = QString("Прокрутка активна... %1 сек. | Попытка %2/%3")
+//                 .arg(elapsed).arg(rollAttemptsUsed).arg(rollMaxAttempts);
+//         }
+//         else if (inRollPause())
+//             statusText = QString("Пауза между попытками: %1 сек.").arg(rollPauseSecondsLeft());
+//         else if (prerollSequenceActive)
+//             statusText = "Подготовка прокрутки (выключение зажигания)...";
+//         else if (prerollStarterUnlocked)
+//             statusText = "Готово — нажмите СТАРТЕР ПРОКРУТКА для прокрутки";
+//         else if (rollBlocked())
+//         {
+//             QStringList reasons;
+//             if (rollLockedByTemperature)    reasons << "холодный двигатель (ждите теплореле)";
+//             if (rollLockedByEmergency)      reasons << "аварийный режим";
+//             statusText = "Прокрутка заблокирована: " + reasons.join(", ");
+//             if (statusLabel->styleSheet() != "color: red;")
+//                 statusLabel->setStyleSheet("color: red;");
+//         }
+//         else if (needRollProcedure)
+//             statusText = "Требуется прокрутка. Нажмите ПРОКРУТКА для подготовки.";
+//         else if (rollCompleted)
+//             statusText = "Прокрутка успешно завершена";
+//         else
+//             statusText = "";
+
+//         if (rollBlocked() && !statusText.isEmpty())
+//         {
+//             if (statusLabel->styleSheet() != "color: red;")
+//                 statusLabel->setStyleSheet("color: red;");
+//         }
+//         else
+//         {
+//             if (statusLabel->styleSheet() != "color: yellow;")
+//                 statusLabel->setStyleSheet("color: yellow;");
+//         }
+
+//         if (statusLabel->text() != statusText)
+//             statusLabel->setText(statusText);
+//     }
+
+//     const bool prerollPressed = serviceEngineVisible && prerollButton != NULL && prerollButton->isDown();
+//     const bool prerollPressedEdge = prerollPressed && !prerollButtonPrev;
+
+//     const bool prerollStarterPressed = serviceEngineVisible && starterPrerollButton != NULL && starterPrerollButton->isDown();
+//     const bool prerollStarterPressedEdge = prerollStarterPressed && !prerollStarterButtonPrev;
+
+//     const bool rollInputPressed = can0->getState(StateRollIn).toBool();
+//     const bool rollInputPressedEdge = rollInputPressed && !rollInputPrev;
+
+//     if (prerollPressedEdge)
+//     {
+//         if (prerollSequenceActive || prerollStarterUnlocked)
+//         {
+//             // ОТМЕНА: выходим из режима прокрутки, восстанавливаем зажигание
+//             prerollSequenceActive = false;
+//             prerollStarterUnlocked = false;
+//             stopRollOutput();
+//             can0->setState(StateStarterAllow, false);
+//             restoreIgnitionAfterRoll();
+//             addLog("Режим прокрутки отменён оператором", InfoStatus);
+//         }
+//         else if (rollBlocked())
+//         {
+//             addLog("Прокрутка заблокирована", WarningStatus);
+//         }
+//         else
+//         {
+//             addLog("Запуск алгоритма прокрутки", WarningStatus);
+//             prerollSequenceActive = true;
+//             prerollSequenceStep = 1;
+//             prerollStepStartedAt = QDateTime::currentDateTime();
+//             prerollStarterUnlocked = false;
+//             stopRollOutput();
+//             can0->setState(StateStarterAllow, false);
+//             can0->setState(StateIgnitionOut, false);
+//             ignitionOffTimer = 0;
+//         }
+//     }
+
+//     if (prerollSequenceActive)
+//     {
+//         const int elapsed = qAbs(prerollStepStartedAt.secsTo(QDateTime::currentDateTime()));
+//         if (prerollSequenceStep == 1 && elapsed >= 2)
+//         {
+//             can0->setState(StateStarterAllow, true);
+//             prerollSequenceStep = 2;
+//             prerollStepStartedAt = QDateTime::currentDateTime();
+//         }
+//         else if (prerollSequenceStep == 2 && elapsed >= 1)
+//         {
+//             prerollStarterUnlocked = true;
+//             prerollSequenceActive = false;
+//             addLog("Прокрутка подготовлена", InfoStatus);
+//         }
+//     }
+
+//     if (rollPauseActive && !inRollPause())
+//     {
+//         rollPauseActive = false;
+//         rollPauseWarned = false;
+//     }
+
+//     const bool rollStartRequest = prerollStarterPressedEdge || rollInputPressedEdge;
+//     if (rollStartRequest && !rollRunActive)
+//     {
+//         if (rollBlocked())
+//         {
+//             addLog("Прокрутка заблокирована", WarningStatus);
+//         }
+//         else if (inRollPause())
+//         {
+//             addLog("Пауза между пусками " + QString::number(rollPauseSecondsLeft()) + " секунды осталось", WarningStatus);
+//             rollPauseWarned = true;
+//         }
+//         else if (!prerollStarterUnlocked && !rollInputPressedEdge)
+//         {
+//             addLog("Сначала выполните подготовку прокрутки", WarningStatus);
+//         }
+//         else
+//         {
+//             rollRunActive = true;
+//             rollRunStartedAt = QDateTime::currentDateTime();
+//             rollAttemptsUsed++;
+//             stopStarterOutput();
+//             can0->setState(StateStarterRoll, true);
+//             addLog("Стартер прокрутка включен", WarningStatus);
+//         }
+//     }
+
+//     if (rollRunActive)
+//     {
+//         const bool rollButtonStillPressed = prerollStarterPressed || rollInputPressed;
+//         if (rollRunActive)
+//         {
+//             // АВАРИЙНАЯ ОСТАНОВКА: зажигание включилось во время прокрутки
+//             if (can0->getState(StateIgnitionOut).toBool())
+//             {
+//                 stopRollOutput();
+//                 rollRunActive = false;
+//                 prerollStarterUnlocked = false;
+//                 can0->setState(StateStarterAllow, false);
+//                 restoreIgnitionAfterRoll();   // уже есть из проблемы 3
+//                 addLog("Прокрутка прервана: обнаружено включение зажигания", WarningStatus);
+//             }
+//             // Прокрутка работает только пока оператор удерживает кнопку/вход
+//             else if (!rollButtonStillPressed)
+//             {
+//                 stopRollOutput();
+//                 rollRunActive = false;
+//                 addLog("Прокрутка остановлена оператором", InfoStatus);
+//                 restoreIgnitionAfterRoll();
+//                 // Добровольная остановка — не считаем за неудачу, паузу не запускаем
+//             }
+//             else
+//             {
+//                 const bool oilRele = !can0->getState(StateOilRele).toBool();
+//                 const int elapsedRoll = qAbs(rollRunStartedAt.secsTo(QDateTime::currentDateTime()));
+//                 if (oilRele)
+//                 {
+//                     stopRollOutput();
+//                     rollRunActive = false;
+//                     rollPauseActive = false;
+//                     rollNeedReboot = false;
+//                     rollAttemptsUsed = 0;
+//                     prerollStarterUnlocked = false;
+//                     can0->setState(StateStarterAllow, false);
+//                     rollCompleted = true;
+//                     needRollProcedure = false;
+//                     starterLockedByRoll = false;
+//                     lastEngineStartDate = QDate::currentDate();
+//                     settings->setValue("Engine/lastStartDate", lastEngineStartDate);
+//                     settings->sync();
+//                     // ВОССТАНАВЛИВАЕМ ЗАЖИГАНИЕ после успешной прокрутки
+//                     restoreIgnitionAfterRoll();
+
+
+//                     addLog("Прокрутка завершена по реле масла", InfoStatus);
+//                 }
+//                 else if (elapsedRoll >= rollMaxWorkSec)
+//                 {
+//                     stopRollOutput();
+//                     rollRunActive = false;
+//                     rollPauseActive = true;
+//                     rollPauseStartedAt = QDateTime::currentDateTime();
+//                     restoreIgnitionAfterRoll();
+//                     addLog("Долгая работа стартера", FatalStatus);
+//                     if (rollAttemptsUsed >= rollMaxAttempts)
+//                     {
+//                         rollNeedReboot = true;
+//                         addLog("Достигнут лимит попыток прокрутки, требуется перезагрузка пульта", FatalStatus);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     if (rollNeedReboot)
+//     {
+//         prerollStarterUnlocked = false;
+//         can0->setState(StateStarterAllow, false);
+//     }
+
+//     prerollButtonPrev = prerollPressed;
+//     prerollStarterButtonPrev = prerollStarterPressed;
+//     rollInputPrev = rollInputPressed;
+//     prerollButtonPrev = prerollPressed;
+//     prerollStarterButtonPrev = prerollStarterPressed;
+//     rollInputPrev = rollInputPressed;
+
+//     // Обновляем состояние кнопки ПРОКРУТКА
+//     if (prerollButton != NULL)
+//     {
+//         bool rollModeActive = prerollSequenceActive || prerollStarterUnlocked || rollRunActive;
+//         prerollButton->setChecked(rollModeActive);
+//     }
+// }
+
+
+// void MainWindow::showStarter()
+// {
+//     const bool starterPressed = gpioMatirx->keyPressed == GPIOInput::IN_STARTER;
+//     const auto rpm = engine->getRpm();
+//     // Если идёт прокрутка — стартер не управляется отсюда
+//     if (rollRunActive || prerollSequenceActive)
+//     {
+//         starterPressedPrev = starterPressed;
+//         return;
+//     }
+
+//     if (rpm < 500 && engineStartedOk)
+//         addLog("Двигатель заглох!!!", FatalStatus);
+
+//     if (!inStarterPause())
+//     {
+//         starterPauseActive = false;
+//         starterPauseWarned = false;
+//     }
+
+//     const bool starterPressedEdge = starterPressed && !starterPressedPrev;
+
+//     // // БЛОКИРОВКА: пока идёт прокрутка — кнопка стартера не управляет зажиганием
+//     // if (rollRunActive || prerollSequenceActive)
+//     // {
+//     //     starterPressedPrev = starterPressed;
+//     //     return;
+//     // }
+
+//     const bool engineRunning = rpm > 700;
+
+//     if (engineRunning)
+//     {
+//         stopStarterOutput();
+//         starterStarted = false;
+//     }
+
+//     if (starterPressedEdge && engineRunning)//двигатель запущен и нажали кнопку стартера
+//     {
+//         // Повторное нажатие при работающем двигателе — глушим ДВС
+//         can0->setState(StateIgnitionOut, false);
+//         ignitionOffTimer = 0;
+//         engineStartedOk = false;
+//         starterPauseActive = true;
+//         addLog("Повторное нажатие старт/стоп: выключаем зажигание", WarningStatus);
+//     }
+//     else if (starterPressed)// либо двигатель не запущен, либо нажали на кнопку стартера не только что, но всё ещё держим
+//     {
+//         if(!starterPauseActive){//если не находимся в паузе после глушения ДВС
+
+//             can0->setState(StateIgnitionOut, true);//осуществляем запуск
+//         }
+
+//         if (!engineRunning)//если двигатель не запущен
+//         {
+//             if (starterNeedReboot)
+//             {
+//                 if (starterPressedEdge)
+//                     addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
+//                 stopStarterOutput();
+//                 starterStarted = false;
+//             }
+//             else if (starterBlocked())
+//             {
+//                 if (starterPressedEdge)
+//                 {
+//                     if (starterLockedByRoll)
+//                         addLog("Требуется прокрутка вспомогательного ДВС", WarningStatus);
+//                     else if (starterLockedByTemperature || engine->waitOnStart)
+//                         addLog("Требуется прогрев вспомогательного ДВС", WarningStatus);
+//                     else
+//                         addLog("Стартер заблокирован аварийным состоянием", FatalStatus);
+//                 }
+//                 stopStarterOutput();
+//                 starterStarted = false;
+//             }
+//             else if (inStarterPause())
+//             {
+//                 if (starterPressedEdge || !starterPauseWarned)
+//                 {
+//                     addLog("Пауза между пусками " + QString::number(starterPauseSecondsLeft()) + " секунды осталось", WarningStatus);
+//                     starterPauseWarned = true;
+//                 }
+//                 stopStarterOutput();
+//                 starterStarted = false;
+//             }
+//             else
+//             {
+//                 if (!starterStarted)
+//                 {
+//                     starterStarted = true;
+//                     starterStartedTime = QDateTime::currentDateTime();
+//                     starterAttemptsUsed++;
+//                     addLog("Стартер включен", WarningStatus);
+//                     gpio->setOutput(GPIOOutput::OUT_STARTER, true);
+//                     gpio->setOutput(GPIOOutput::OUT_STARTER_LIGHT, true);
+//                 }
+
+//                 const int starterRunTime = qAbs(starterStartedTime.secsTo(QDateTime::currentDateTime()));
+//                 if (engineRunning)
+//                 {
+//                     stopStarterOutput();
+//                     starterStarted = false;
+//                     starterPauseActive = false;
+//                     starterNeedReboot = false;
+//                     starterAttemptsUsed = 0;
+//                     addLog("Двигатель набрал обороты", WarningStatus);
+//                 }
+//                 else if (starterRunTime >= starterMaxWorkSec)
+//                 {
+//                     stopStarterOutput();
+//                     starterStarted = false;
+//                     starterPauseActive = true;
+//                     starterPauseStartedAt = QDateTime::currentDateTime();
+//                     addLog("Долгая работа стартера", FatalStatus);
+//                     if (starterAttemptsUsed >= starterMaxAttempts)
+//                     {
+//                         starterNeedReboot = true;
+//                         addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
+//                     }
+//                 }
+//             }
+//         }
+
+//     }
+//     else
+//     {
+//         if (starterStarted)
+//         {
+//             stopStarterOutput();
+//             starterStarted = false;
+//             if (!engineRunning)
+//             {
+//                 starterPauseActive = true;
+//                 starterPauseStartedAt = QDateTime::currentDateTime();
+//                 if (starterAttemptsUsed >= starterMaxAttempts)
+//                 {
+//                     starterNeedReboot = true;
+//                     addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
+//                 }
+//             }
+//         }
+//     }
+
+//     if (engineRunning)
+//     {
+//         engineStartedOk = true;
+//         starterNeedReboot = false;
+//         starterAttemptsUsed = 0;
+//     }
+//     else
+//     {
+//         engineStartedOk = false;
+//     }
+
+//     starterPressedPrev = starterPressed;
+// }

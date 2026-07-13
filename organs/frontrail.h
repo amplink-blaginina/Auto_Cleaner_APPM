@@ -45,8 +45,8 @@ public:
     bool testStateTimer();
     float getTimeout();
     void checkFriendVars();
-    FrontRailStates stateUp();
-    FrontRailStates stateDown();
+    FrontRailStates stateUp(FrontRailStates state);
+    FrontRailStates stateDown(FrontRailStates state);
 
     QDateTime startActionTime;
 
@@ -58,8 +58,8 @@ public:
                      // считаем что 0 это самое правое значение и поворот влево увеличивает его до 100)
 
     // установка и получение состояния модуля
-    void setState(FrontRailStates state_);
-    FrontRailStates state; // стутус который мы предполагаем сейчас (лигические выводы)
+    void setState(FrontRailStates state);
+    FrontRailStates curState; // стутус который мы предполагаем сейчас (лигические выводы)
     FrontRailStates needState; // статус который мы желаем достичь
     FrontRailStates ableState; // статус который мы можем достичь
     FrontRailStates getState();

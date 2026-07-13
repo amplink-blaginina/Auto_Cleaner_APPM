@@ -85,13 +85,13 @@ QString FrontRail::toString(FrontRailStates s)
 void FrontRail::setState(FrontRailStates state_)
 {
     qDebug()<<" статус отвала: "<<state_;
-    state = state_;
-    if (state == FrontRail::FrontRailOff)
+    curState = state_;
+    if (curState == FrontRail::FrontRailOff)
     {// перешла в домашнее щетка
         // отменить опускание
         goNone();
     }
-    if (state == FrontRail::FrontRailDownOut)
+    if (curState  == FrontRail::FrontRailDownOut)
     {// началось опускание ( из верхнего в нижние, мимо домашнего)
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailDownOut, 0) > 0) {
@@ -100,11 +100,11 @@ void FrontRail::setState(FrontRailStates state_)
             ((MainWindow*)parent)->addLog("Отвал опускается", MainWindow::InfoStatus);
         }
     }
-    if (state == FrontRail::FrontRailDowned)
+    if (curState  == FrontRail::FrontRailDowned)
     {// опустилась на нужный уровень
         goNone();
     }
-    if (state == FrontRail::FrontRailDownIn)
+    if (curState  == FrontRail::FrontRailDownIn)
     {// поднимаем из нижнего в самое верхнее
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailDownIn, 0) > 0) {
@@ -113,7 +113,7 @@ void FrontRail::setState(FrontRailStates state_)
             ((MainWindow*)parent)->addLog("Отвал поднимается", MainWindow::InfoStatus);
         }
     }
-    if (state == FrontRail::FrontRailFlowOut)
+    if (curState  == FrontRail::FrontRailFlowOut)
     {// началось плавание
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailFlowOut, 0) > 0)
@@ -122,7 +122,7 @@ void FrontRail::setState(FrontRailStates state_)
             goFlow();
         }
     }
-    if (state == FrontRail::FrontRailFlowed)
+    if (curState  == FrontRail::FrontRailFlowed)
     {// закончилось плавание
         if (((MainWindow*)parent)->workMode.frontDumpFlow)
         {
@@ -132,12 +132,12 @@ void FrontRail::setState(FrontRailStates state_)
         else
             goNoFlow();
     }
-    if (state == FrontRail::FrontRailFlowIn)
+    if (curState  == FrontRail::FrontRailFlowIn)
     {// заканчиваем плавание
         goNoFlow();
         ((MainWindow*)parent)->addLog("Отвал не плавающий", MainWindow::InfoStatus);
     }
-    if (state == FrontRail::FrontRailSlideOut)
+    if (curState  == FrontRail::FrontRailSlideOut)
     {// начинается поворот на нужный угол
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailSlideOut, 0) > 0) {
@@ -149,7 +149,7 @@ void FrontRail::setState(FrontRailStates state_)
             ((MainWindow*)parent)->addLog("Отвал поворачивает", MainWindow::InfoStatus);
         }
     }
-    if (state == FrontRail::FrontRailSlideIn)
+    if (curState  == FrontRail::FrontRailSlideIn)
     {
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailSlideIn, 0) > 0) {
@@ -158,11 +158,11 @@ void FrontRail::setState(FrontRailStates state_)
             ((MainWindow*)parent)->addLog("Отвал поворачивает", MainWindow::InfoStatus);
         }
     }
-    if (state == FrontRail::FrontRailSlided)
+    if (curState  == FrontRail::FrontRailSlided)
     {// повернулась куда надо
         goNone();
     }
-    if (state == FrontRail::FrontRailBounceOut)
+    if (curState  == FrontRail::FrontRailBounceOut)
     {// отскок — поворот в противоположную сторону
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailBounceOut, 0) > 0) {
@@ -174,7 +174,7 @@ void FrontRail::setState(FrontRailStates state_)
             ((MainWindow*)parent)->addLog("Отвал отскок", MainWindow::InfoStatus);
         }
     }
-    if (state == FrontRail::FrontRailBounced)
+    if (curState  == FrontRail::FrontRailBounced)
     {// отскок завершён
         goNone();
     }
@@ -225,7 +225,7 @@ void FrontRail::goNoFlow()
 }
 FrontRail::FrontRailStates FrontRail::getState()
 {
-    return state;
+    return curState ;
 }
 
 void FrontRail::setNeedState(FrontRailStates state_)
@@ -265,7 +265,7 @@ void FrontRail::checkNeedState()
 
 float FrontRail::getTimeout()
 {//получает таймаут в секундах (сколько надо простаивать в той или иной операции)
-    return timeouts.value(state, 0);
+    return timeouts.value(curState , 0);
 }
 
 bool FrontRail::testStateTimer()
@@ -284,7 +284,7 @@ bool FrontRail::testStateTimer()
     // проверяем концевики
     bool dkpAndPositionTest = false;
     // рейка идет вверх, ждем концевик ПЕРЕДНЯЯ
-    if (state == FrontRail::FrontRailDownIn)
+    if (curState  == FrontRail::FrontRailDownIn)
     {
         const bool sensorReached = myCan->getState(StateDKPDumpUp).toBool();
         if (timeTest && !sensorReached)
@@ -305,16 +305,16 @@ bool FrontRail::testStateTimer()
 
     }
     // вниз концевика нет. если таймер прошел то считаем что все ок
-    if (state == FrontRail::FrontRailDownOut && timeTest)
+    if (curState  == FrontRail::FrontRailDownOut && timeTest)
         dkpAndPositionTest = true;
-    if (state == FrontRail::FrontRailFlowOut && timeTest)
+    if (curState  == FrontRail::FrontRailFlowOut && timeTest)
         dkpAndPositionTest = true;
-    if (state == FrontRail::FrontRailFlowIn && timeTest)
+    if (curState  == FrontRail::FrontRailFlowIn && timeTest)
         dkpAndPositionTest = true;
-    if (state == FrontRail::FrontRailBounceOut && timeTest)
+    if (curState  == FrontRail::FrontRailBounceOut && timeTest)
         dkpAndPositionTest = true;
     // щетка идет вбок, ждем концевик
-    if (state == FrontRail::FrontRailSlideOut)
+    if (curState  == FrontRail::FrontRailSlideOut)
     {
         const bool sensorReached = myCan->getState((needSlided ? StateDKPDumpLeft : StateDKPDumpRight)).toBool();
         if (timeTest && !sensorReached)
@@ -335,7 +335,7 @@ bool FrontRail::testStateTimer()
             dkpAndPositionTest = true;// не ждем таймера и разрешаем завершить процесс
         }
     }
-    if (state == FrontRail::FrontRailSlideIn)
+    if (curState  == FrontRail::FrontRailSlideIn)
     {
         const bool sensorReached = myCan->getState(StateDKPDumpRight).toBool();
         if (timeTest && !sensorReached)
@@ -492,27 +492,27 @@ void FrontRail::progressLoop()
 {
     // проверяет до какого состояния может добираться щетка
     checkNeedState();
-    if (state < needState && state < ableState)
+    if (curState < needState && curState < ableState)
     {// нужно прогрессировать вверх (выдвигать, мыть и гусей не забыть)
-        FrontRailStates s = state;
-        stateUp();
-        if (s != state)// && (state == needState || state == ableState))
+        FrontRailStates s = curState;
+        stateUp(curState);
+        if (s != curState)// && (state == needState || state == ableState))
         {
-            qDebug() << "Front rail state " << toString(state);
+            qDebug() << "Front rail state " << toString(curState);
         }
     }
-    else if (state > needState || state > ableState)
+    else if (curState > needState || curState > ableState)
     {// прогрессируем вниз
-        FrontRailStates s = state;
-        stateDown();
-        if (s != state)// && (state == needState || state == ableState))
+        FrontRailStates s = curState;
+        stateDown(curState );
+        if (s != curState)// && (state == needState || state == ableState))
         {
-            qDebug() << "Front rail state " << toString(state);
+            qDebug() << "Front rail state " << toString(curState);
         }
     }
 }
 
-FrontRail::FrontRailStates FrontRail::stateUp()
+FrontRail::FrontRailStates FrontRail::stateUp(FrontRailStates state)
 {// пытаемся прогрессировать статусом вверх (если что меняем направление статуса, если вдруг был понижающий прогресс)
     switch (state) {
     case FrontRailOff:
@@ -562,7 +562,7 @@ FrontRail::FrontRailStates FrontRail::stateUp()
     return state;
 }
 
-FrontRail::FrontRailStates FrontRail::stateDown()
+FrontRail::FrontRailStates FrontRail::stateDown(FrontRailStates state)
 {// пытаемся прогрессировать статусом вниз (если что меняем направление статуса, если вдруг был повышающий прогресс)
     switch (state) {
     case FrontRailDownOut:

@@ -146,6 +146,46 @@ public:
         SettingsMode   = 4
     };
 
+    // === Автомат стартера (основной запуск) ===
+    enum class StarterState {
+        Idle,           // Ничего не происходит
+        IgnitionOn,     // Зажигание включено, ждём стабилизации
+        Cranking,       // Крутим стартером
+        Running,        // Двигатель работает
+        PostStopPause,  // Пауза после глушения (60 с)
+        ErrorNeedReboot // Исчерпаны попытки
+    };
+
+    // === Автомат прокрутки (сервисный режим) ===
+    enum class RollState {
+        Idle,           // Не активна
+        Preparation,    // Гасим зажигание, ждём 2 с
+        Ready,          // Разрешение подано, ждём кнопки
+        Rolling,        // Крутим стартером
+        Pause,          // Перерыв между попытками
+        Completed,      // Успешно завершено
+        ErrorNeedReboot // Исчерпаны попытки
+    };
+
+    StarterState starterState = StarterState::Idle;
+    RollState    rollState    = RollState::Idle;
+
+    QDateTime starterStateEnteredAt;
+    QDateTime rollStateEnteredAt;
+
+    // Заменят showStarter() и processPrerollInService()
+    void updateStarterStateMachine();
+    void updateRollStateMachine();
+
+    // Вспомогатели
+    void transitionStarter(StarterState newState, const QString& reason);
+    void transitionRoll(RollState newState, const QString& reason);
+    double elapsedInStarterState() const;
+    double elapsedInRollState() const;
+    bool isRollActive() const;
+    bool canStartEngine();
+    void updateRollUI();
+
     MainWindow(int argc, char *argv[], QWidget *parent = nullptr);
     ~MainWindow();
 
@@ -197,7 +237,6 @@ public:
     void showStatus();
     void showPultOffIgnition();
     void showFRM();
-    void showStarter();
     void showStartClean();
     void showModeButton();
     void showMatrixFRMButton();
@@ -412,13 +451,14 @@ private:
     bool inRollPause() const;
     int starterPauseSecondsLeft() const;
     int rollPauseSecondsLeft() const;
-    void processPrerollInService();
     void updateSensorAndWarningIndicators();
     void updateIndicatorPixmap(QLabel* label, const QString& colorName, const QString& baseName);
 
     // void updatePrerollButtonsVisual();
     // void cachePrerollButtons();
     void restoreIgnitionAfterRoll();
+    void configureChannels();
+
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);

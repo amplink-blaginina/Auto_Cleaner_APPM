@@ -11,8 +11,10 @@ BackMagnet::BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settin
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
     parent = parent_;
-    setState(BackMagnetOff);
-    setNeedState(BackMagnetOff);
+    state = BackMagnetOff;
+    needState = BackMagnetOff;
+    goOff();
+
     settings = settings_;
     startClean = false;
     choosed = false;
@@ -55,6 +57,10 @@ QString BackMagnet::toString(BackMagnetStates s)
 
 void BackMagnet::setState(BackMagnetStates state_)
 {
+    if(state == state_){
+        return;
+    }
+
     state = state_;
 
     if (state == BackMagnet::BackMagnetOff)

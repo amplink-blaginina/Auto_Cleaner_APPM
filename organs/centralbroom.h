@@ -36,6 +36,7 @@ public:
     };
 
     Q_ENUM(BroomStates);
+
     explicit CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, QObject *parent_);
     QObject * parent;
     MyCan *myCan;
@@ -50,8 +51,8 @@ public:
     bool testStateTimer();
     int getTimeout();
     void checkFriendVars();
-    BroomStates stateUp();
-    BroomStates stateDown();
+    BroomStates stateUp(BroomStates state);
+    BroomStates stateDown(BroomStates state);
 
     QDateTime startActionTime;
 
@@ -67,7 +68,7 @@ public:
 
     // установка и получение состояния модуля
     void setState(BroomStates state_);
-    BroomStates state; // стутус который мы предполагаем сейчас (лигические выводы)
+    BroomStates curState; // стутус который мы предполагаем сейчас (лигические выводы)
     BroomStates needState; // статус который мы желаем достичь
     BroomStates ableState; // статус который мы можем достичь
     BroomStates getState();
