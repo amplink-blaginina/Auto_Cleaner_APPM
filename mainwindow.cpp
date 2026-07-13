@@ -769,12 +769,13 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     pauseCleanTimeCounter = 0;
     pauseActive = false;
 
-    starterMaxWorkSec = 15;
-    starterPauseSec = 60;
-    starterMaxAttempts = 3;
-    rollMaxWorkSec = 15;
-    rollPauseSec = 60;
-    rollMaxAttempts = 3;
+    starter.maxWorkSec = 15;
+    starter.pauseSec = 60;
+    starter.maxAttempts = 3;
+    roll.maxWorkSec = 15;
+    roll.pauseSec = 60;
+    roll.maxAttempts = 3;
+
     requireRollAfterDays = 5;
     lowTempRequireWarm = -10;
     waterSensorRedHours = 2;
@@ -793,19 +794,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     rollLockedByEmergency = false;
     needRollProcedure = false;
     rollCompleted = false;
-
-
-    // прокрутка
-
-    // prerollStepStartedAt = QDateTime::currentDateTime();
-    // rollRunStartedAt = QDateTime::currentDateTime();
-    // rollPauseStartedAt = QDateTime::currentDateTime();
-//----------------------------------------
-
-
-
-
-
 
     serviceIgnitionAutoRestoreBlocked = false;
 
@@ -1049,12 +1037,12 @@ void MainWindow::readSettings()
 
     requireRollAfterDays = readSettingsValue("Engine/startRollRequiredDays").toInt();
     lowTempRequireWarm = readSettingsValue("Engine/startLowTemperatureEdge").toInt();
-    starterMaxWorkSec = readSettingsValue("Engine/starterMaxWorkSec").toInt();
-    starterPauseSec = readSettingsValue("Engine/starterPauseSec").toInt();
-    starterMaxAttempts = readSettingsValue("Engine/starterMaxAttempts").toInt();
-    rollMaxWorkSec = readSettingsValue("Engine/rollMaxWorkSec").toInt();
-    rollPauseSec = readSettingsValue("Engine/rollPauseSec").toInt();
-    rollMaxAttempts = readSettingsValue("Engine/rollMaxAttempts").toInt();
+    starter.maxWorkSec = readSettingsValue("Engine/starterMaxWorkSec").toInt();
+    starter.pauseSec = readSettingsValue("Engine/starterPauseSec").toInt();
+    starter.maxAttempts = readSettingsValue("Engine/starterMaxAttempts").toInt();
+    roll.maxWorkSec = readSettingsValue("Engine/rollMaxWorkSec").toInt();
+    roll.pauseSec = readSettingsValue("Engine/rollPauseSec").toInt();
+    roll.maxAttempts = readSettingsValue("Engine/rollMaxAttempts").toInt();
     waterSensorRedHours = readSettingsValue("Engine/waterSensorRedHours").toInt();
     airFilterRedHours = readSettingsValue("Engine/airFilterRedHours").toInt();
     waterSensorEmergencyMode = readSettingsValue("Engine/waterSensorEmergencyMode").toBool();
@@ -1820,7 +1808,7 @@ bool MainWindow::inStarterPause() const
         return false;
     const int passed = qAbs(starterPauseStartedAt.secsTo(QDateTime::currentDateTime()));
     //qDebug()<<"timer: "<<passed<<"   targetTime: "<<starterPauseSec;
-    return passed < starterPauseSec;
+    return passed < starter.pauseSec;
 }
 
 bool MainWindow::inRollPause() const
@@ -1829,7 +1817,7 @@ bool MainWindow::inRollPause() const
         return false;
 
     const int passed = qAbs(rollPauseStartedAt.secsTo(QDateTime::currentDateTime()));
-    return passed < rollPauseSec;
+    return passed < roll.pauseSec;
 }
 
 int MainWindow::starterPauseSecondsLeft() const
@@ -1837,7 +1825,7 @@ int MainWindow::starterPauseSecondsLeft() const
     if (!starterPauseActive)
         return 0;
     const int passed = qAbs(starterPauseStartedAt.secsTo(QDateTime::currentDateTime()));
-    return qMax(0, starterPauseSec - passed);
+    return qMax(0, starter.pauseSec - passed);
 }
 
 int MainWindow::rollPauseSecondsLeft() const
@@ -1845,7 +1833,7 @@ int MainWindow::rollPauseSecondsLeft() const
     if (!rollPauseActive)
         return 0;
     const int passed = qAbs(rollPauseStartedAt.secsTo(QDateTime::currentDateTime()));
-    return qMax(0, rollPauseSec - passed);
+    return qMax(0, roll.pauseSec - passed);
 }
 
 bool MainWindow::starterBlocked() const
@@ -2507,6 +2495,12 @@ void MainWindow:: setImage(QLabel *label, QString path){
     if (label->styleSheet() != path)
         label->setStyleSheet(path);
 }
+
+void MainWindow:: setImage(QPushButton *btn, QString path){
+    if (btn->styleSheet() != path)
+        btn->setStyleSheet(path);
+}
+
 void MainWindow::updateUIIcons(){
     // меняем картиночки доступности кнопок после анализа
     // дулка
@@ -2710,13 +2704,12 @@ void MainWindow::applyWorkModeToDeployedOrgans()
 
 void  MainWindow::showCentralBroomLeft()
 {
+    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_";
     if (startClean)
     {
         if (ui->pushButton_centralBroomUp->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_UP)
         {
-            if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_up_on.png);")
-                ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_up_on.png);");
-
+            setImage(ui->label_centralBroomUpDown, path + "up_on.png);");
             ui->pushButton_centralBroomUp->setProperty("wasDown", true);
             if (workMode.centralBroomPress)
                 broomCentral->goPressUp();
@@ -2725,9 +2718,7 @@ void  MainWindow::showCentralBroomLeft()
         }
         else if (ui->pushButton_centralBroomUp->property("wasDown").toBool())
         {
-            if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);")
-                ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);");
-
+            setImage(ui->label_centralBroomUpDown, path + "off.png);");
             ui->pushButton_centralBroomUp->setProperty("wasDown", false);
             if (workMode.centralBroomPress)
                 broomCentral->goPressNone();
@@ -2736,9 +2727,7 @@ void  MainWindow::showCentralBroomLeft()
         }
         if (ui->pushButton_centralBroomDown->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_DOWN)
         {
-            if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_down_on.png);")
-                ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_down_on.png);");
-
+            setImage(ui->label_centralBroomUpDown, path + "down_on.png);");
             ui->pushButton_centralBroomDown->setProperty("wasDown", true);
             if (workMode.centralBroomPress)
                 broomCentral->goPressDown();
@@ -2748,9 +2737,7 @@ void  MainWindow::showCentralBroomLeft()
         }
         else if (ui->pushButton_centralBroomDown->property("wasDown").toBool())
         {
-            if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);")
-                ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);");
-
+            setImage(ui->label_centralBroomUpDown, path + "off);");
             ui->pushButton_centralBroomDown->setProperty("wasDown", false);
             if (workMode.centralBroomPress)
                 broomCentral->goPressNone();
@@ -2807,37 +2794,30 @@ void  MainWindow::showCentralBroomRight()
 
 void MainWindow::showDumpLeft()
 {
+    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
     if (startClean)
     {
         if (ui->pushButton_dumpUp->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_UP)
         {
-            if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_up_off.png);")
-                ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_up_off.png);");
-
+            setImage(ui->label_dumpUpDown, path + " up_off.png);");
             ui->pushButton_dumpUp->setProperty("wasDown", true);
             frontRail->goUp();
         }
         else if (ui->pushButton_dumpUp->property("wasDown").toBool())
         {
-            if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);")
-                ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);");
-
+            setImage(ui->label_dumpUpDown, path + "off.png);");
             ui->pushButton_dumpUp->setProperty("wasDown", false);
             frontRail->goNone();
         }
         if (ui->pushButton_dumpDown->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_DOWN)
         {
-            if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_down_off.png);")
-                ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_down_off.png);");
-
+            setImage(ui->label_dumpUpDown,path + "down_off.png);");
             ui->pushButton_dumpDown->setProperty("wasDown", true);
             frontRail->goDown();
         }
         else if (ui->pushButton_dumpDown->property("wasDown").toBool())
         {
-            if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);")
-                ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);");
-
+            setImage(ui->label_dumpUpDown,path + "off.png);");
             ui->pushButton_dumpDown->setProperty("wasDown", false);
             frontRail->goNone();
         }
@@ -2887,37 +2867,30 @@ void MainWindow::showDumpRight()
 
 void MainWindow::showBlower()
 {
+    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
     if (startClean)
     {
         if (ui->pushButton_blowerUp->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_UP)
         {
-            if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_up_on.png);")
-                ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_up_on.png);");
-
+            setImage(ui->label_blowerUpDown, path + "up_on.png);");
             ui->pushButton_blowerUp->setProperty("wasDown", true);
             blower->goUp();
         }
         else if (ui->pushButton_blowerUp->property("wasDown").toBool())
         {
-            if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);")
-                ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);");
-
+            setImage(ui->label_blowerUpDown, path + "off.png);");
             ui->pushButton_blowerUp->setProperty("wasDown", false);
             blower->goOff();
         }
         if (ui->pushButton_blowerDown->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_DOWN)
         {
-            if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_down_on.png);")
-                ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_down_on.png);");
-
+            setImage(ui->label_blowerUpDown, path + "down_on.png);");
             ui->pushButton_blowerDown->setProperty("wasDown", true);
             blower->goDown();
         }
         else if (ui->pushButton_blowerDown->property("wasDown").toBool())
         {
-            if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);")
-                ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);");
-
+            setImage(ui->label_blowerUpDown, path + "off.png);");
             ui->pushButton_blowerDown->setProperty("wasDown", false);
             blower->goOff();
         }
@@ -3245,7 +3218,7 @@ void MainWindow::transitionStarter(StarterState newState, const QString& reason)
     case StarterState::PostStopPause:
         stopStarterOutput();
         starterPauseStartedAt = QDateTime::currentDateTime();
-        if (starterAttemptsUsed >= starterMaxAttempts) {
+        if (starterAttemptsUsed >= starter.maxAttempts) {
             starterNeedReboot = true;
             addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
         }
@@ -3309,7 +3282,7 @@ void MainWindow::transitionRoll(RollState newState, const QString& reason)
         stopRollOutput();
         rollPauseStartedAt = QDateTime::currentDateTime();
         restoreIgnitionAfterRoll();
-        if (rollAttemptsUsed >= rollMaxAttempts) {
+        if (rollAttemptsUsed >= roll.maxAttempts) {
             addLog("Достигнут лимит попыток прокрутки, требуется перезагрузка пульта", FatalStatus);
             transitionRoll(RollState::ErrorNeedReboot, "Исчерпаны попытки");
             return;
@@ -3445,7 +3418,7 @@ void MainWindow::updateStarterStateMachine()
             transitionStarter(StarterState::Running, "Успешный запуск");
         } else if (!starterPressed) {
             transitionStarter(StarterState::PostStopPause, "Оператор отпустил кнопку");
-        } else if (elapsedInStarterState() >= starterMaxWorkSec) {
+        } else if (elapsedInStarterState() >= starter.maxWorkSec) {
             transitionStarter(StarterState::PostStopPause, "Превышено время кручения");
         }
         break;
@@ -3460,7 +3433,7 @@ void MainWindow::updateStarterStateMachine()
         break;
 
     case StarterState::PostStopPause:
-        if (elapsedInStarterState() >= starterPauseSec) {
+        if (elapsedInStarterState() >= starter.pauseSec) {
             if (starterNeedReboot) {
                 transitionStarter(StarterState::ErrorNeedReboot, "Пауза окончена, лимит попыток исчерпан");
             } else {
@@ -3507,12 +3480,13 @@ void MainWindow::updateRollStateMachine()
 
     switch (rollState) {
     case RollState::Idle:
-        if (prerollEdge) {
-            if (rollBlocked()) {
-                addLog("Прокрутка заблокирована", WarningStatus);
-            } else {
-                transitionRoll(RollState::Preparation, "Оператор запустил подготовку");
-            }
+        if (!prerollEdge){
+            break;
+        }
+        if (rollBlocked()) {
+            addLog("Прокрутка заблокирована", WarningStatus);
+        } else {
+            transitionRoll(RollState::Preparation, "Оператор запустил подготовку");
         }
         break;
 
@@ -3543,14 +3517,14 @@ void MainWindow::updateRollStateMachine()
             transitionRoll(RollState::Idle, "Оператор остановил прокрутку");
         } else if (!can0->getState(StateOilRele).toBool()) {
             transitionRoll(RollState::Completed, "Реле масла сработало");
-        } else if (elapsedInRollState() >= rollMaxWorkSec) {
+        } else if (elapsedInRollState() >= roll.maxWorkSec) {
             addLog("Долгая работа стартера", FatalStatus);
             transitionRoll(RollState::Pause, "Превышено время прокрутки");
         }
         break;
 
     case RollState::Pause:
-        if (elapsedInRollState() >= rollPauseSec) {
+        if (elapsedInRollState() >= roll.pauseSec) {
             transitionRoll(RollState::Idle, "Пауза между попытками окончена");
         }
         break;
@@ -3629,7 +3603,7 @@ void MainWindow::updateRollUI()
     case RollState::Rolling: {
         int elapsed = static_cast<int>(elapsedInRollState());
         statusText = QString("Прокрутка активна... %1 сек. | Попытка %2/%3")
-                         .arg(elapsed).arg(rollAttemptsUsed).arg(rollMaxAttempts);
+                         .arg(elapsed).arg(rollAttemptsUsed).arg(roll.maxAttempts);
         break;
     }
 

@@ -167,6 +167,12 @@ public:
         ErrorNeedReboot // Исчерпаны попытки
     };
 
+    struct StarterLimits {
+        int maxWorkSec = 15;
+        int pauseSec = 60;
+        int maxAttempts = 3;
+    } starter, roll;  // starter.maxWorkSec, roll.maxWorkSec
+
     StarterState starterState = StarterState::Idle;
     RollState    rollState    = RollState::Idle;
 
@@ -319,13 +325,6 @@ public:
     bool superDiagMode;
     int pauseCleanTimeCounter;
     bool pauseActive;
-
-    int starterMaxWorkSec;
-    int starterPauseSec;
-    int starterMaxAttempts;
-    int rollMaxWorkSec;
-    int rollPauseSec;
-    int rollMaxAttempts;
     int requireRollAfterDays;
     int lowTempRequireWarm;
     int waterSensorRedHours;
@@ -465,6 +464,7 @@ private:
     void setSweepType(quint8 type);
     void updateUIIcons();
     void setImage(QLabel *label, QString path);
+    void setImage(QPushButton *btn, QString path);
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
