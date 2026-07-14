@@ -133,6 +133,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     defaultValues.insert("Global/password", "1234");
     defaultValues.insert("Global/secretPassword", "51234");
     defaultValues.insert("Global/brightness.level", 1);
+    defaultValues.insert("Global/restartIgnitionDelay", 60);
 
     defaultValues.insert("Hydraulic/temperatures.Warning", 50);
     defaultValues.insert("Hydraulic/temperatures.Critical", 80);
@@ -2394,6 +2395,7 @@ void MainWindow::showStarter()
         ignitionOffTimer = 0;
         engineStartedOk = false;
         starterPauseActive = true;
+        starterPauseStartedAt = QDateTime::currentDateTime();
         addLog("Повторное нажатие старт/стоп: выключаем зажигание", WarningStatus);
     }
     else if (starterPressed)// либо двигатель не запущен, либо нажали на кнопку стартера не только что, но всё ещё держим
