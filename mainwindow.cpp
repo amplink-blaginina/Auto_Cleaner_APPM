@@ -178,6 +178,24 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 {
     ui->setupUi(this);
 
+    setupApplication(argc, argv);
+    setupFonts();
+    setupSettingsStorage();
+    setupDefaultSettings();
+    setupMaintenanceTracking();
+    setupMessageLog();
+    loadRuntimeSettings();
+    setupHardwareConfiguration();
+    setupDiagnosticsAndCommunication();
+    setupStateMachinesAndFlags();
+    setupServiceAndSettingsForms();
+    setupTimers();
+    setupCleaningModules();
+    finalizeInitialization();
+}
+
+void MainWindow::setupApplication(int argc, char *argv[])
+{
     QApplication* a = qobject_cast<QApplication*>(QApplication::instance());
 
     a->setApplicationName("AutoCleaner_APPM");
@@ -188,10 +206,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     parser.addHelpOption();
     parser.addVersionOption();
 
-//    QCommandLineOption verboseOption(
-//        QStringList() << "v" << "verbose",
-//        "Включить подробный вывод.");
-//    parser.addOption(verboseOption);
+    //    QCommandLineOption verboseOption(
+    //        QStringList() << "v" << "verbose",
+    //        "Включить подробный вывод.");
+    //    parser.addOption(verboseOption);
 
     // Разбор аргументов
     parser.process(*a);
@@ -218,7 +236,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     workMode.frmKung = false;
     workMode.sweepType = LightSweep;
     qRegisterMetaType<struct can_frame>();
+}
 
+void MainWindow::setupFonts()
+{
     // загружаем сторонние шрифты
     QFontDatabase fontDB;
     fontDB.addApplicationFont(":/Images/Fonts/Montserrat.ttf");
@@ -246,7 +267,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     font.setFamily("CentSchbkCyrill BT");
     font.setPointSize(31);
+}
 
+void MainWindow::setupSettingsStorage()
+{
     bool need_to_reconf = false;
     // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
     removeBadSettings();
@@ -254,7 +278,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     if (need_to_reconf)
         QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini");
     settings = new QSettings(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini", QSettings::IniFormat);
+}
 
+void MainWindow::setupDefaultSettings()
+{
     //дефолтные настройки
 
     defaultValues.insert("Global/canDeivce", "can1");
@@ -339,7 +366,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     defaultValues.insert("Global/hydraulicPressure3B", "0");
     defaultValues.insert("Global/hydraulicPressure4K", "1");
     defaultValues.insert("Global/hydraulicPressure4B", "0");
+}
 
+void MainWindow::setupMaintenanceTracking()
+{
     // инит главных счетчиков
     defaultValues.insert("TOCur/Engine", 0);
     defaultValues.insert("TOCur/EngineToday", 0); // срез на начало дня
@@ -353,29 +383,29 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     TOAlarmValues.insert("EngineOil", 0);
     TOSourceValues.insert("EngineOil", 0);
 
-//    defaultValues.insert("TO/PneumaticCheck", 24 * 3600);
-//    defaultValues.insert("TOCur/PneumaticCheck", 0);
-//    TONameValues.insert("PneumaticCheck", "Работа пневмосистемы");
-//    TOAlarmValues.insert("PneumaticCheck", 0);
-//    TOSourceValues.insert("PneumaticCheck", 1);
+    //    defaultValues.insert("TO/PneumaticCheck", 24 * 3600);
+    //    defaultValues.insert("TOCur/PneumaticCheck", 0);
+    //    TONameValues.insert("PneumaticCheck", "Работа пневмосистемы");
+    //    TOAlarmValues.insert("PneumaticCheck", 0);
+    //    TOSourceValues.insert("PneumaticCheck", 1);
 
-//    defaultValues.insert("TO/Hydraulic", 70 * 3600);
-//    defaultValues.insert("TOCur/Hydraulic", 0);
-//    TONameValues.insert("Hydraulic", "Гидравлика");
-//    TOAlarmValues.insert("Hydraulic", 0);
-//    TOSourceValues.insert("Hydraulic", 1);
+    //    defaultValues.insert("TO/Hydraulic", 70 * 3600);
+    //    defaultValues.insert("TOCur/Hydraulic", 0);
+    //    TONameValues.insert("Hydraulic", "Гидравлика");
+    //    TOAlarmValues.insert("Hydraulic", 0);
+    //    TOSourceValues.insert("Hydraulic", 1);
 
-//    defaultValues.insert("TO/Sharnirs", 24 * 3600);
-//    defaultValues.insert("TOCur/Sharnirs", 0);
-//    TONameValues.insert("Sharnirs", "Состояние шарниров");
-//    TOAlarmValues.insert("Sharnirs", 0);
-//    TOSourceValues.insert("Sharnirs", 1);
+    //    defaultValues.insert("TO/Sharnirs", 24 * 3600);
+    //    defaultValues.insert("TOCur/Sharnirs", 0);
+    //    TONameValues.insert("Sharnirs", "Состояние шарниров");
+    //    TOAlarmValues.insert("Sharnirs", 0);
+    //    TOSourceValues.insert("Sharnirs", 1);
 
-//    defaultValues.insert("TO/FanGear", 24 * 3600);
-//    defaultValues.insert("TOCur/FanGear", 0);
-//    TONameValues.insert("FanGear", "Клиноременная передача вентилятора");
-//    TOAlarmValues.insert("FanGear", 0);
-//    TOSourceValues.insert("FanGear", 1);
+    //    defaultValues.insert("TO/FanGear", 24 * 3600);
+    //    defaultValues.insert("TOCur/FanGear", 0);
+    //    TONameValues.insert("FanGear", "Клиноременная передача вентилятора");
+    //    TOAlarmValues.insert("FanGear", 0);
+    //    TOSourceValues.insert("FanGear", 1);
 
     defaultValues.insert("TO/HydraulicOilCheck", 24 * 3600);
     defaultValues.insert("TOCur/HydraulicOilCheck", 0);
@@ -383,29 +413,29 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     TOAlarmValues.insert("HydraulicOilCheck", 0);
     TOSourceValues.insert("HydraulicOilCheck", 1);
 
-//    defaultValues.insert("TO/WorkCheck", 24 * 3600);
-//    defaultValues.insert("TOCur/WorkCheck", 0);
-//    TONameValues.insert("WorkCheck", "Работа органов и спецоборудования");
-//    TOAlarmValues.insert("WorkCheck", 0);
-//    TOSourceValues.insert("WorkCheck", 1);
+    //    defaultValues.insert("TO/WorkCheck", 24 * 3600);
+    //    defaultValues.insert("TOCur/WorkCheck", 0);
+    //    TONameValues.insert("WorkCheck", "Работа органов и спецоборудования");
+    //    TOAlarmValues.insert("WorkCheck", 0);
+    //    TOSourceValues.insert("WorkCheck", 1);
 
-//    defaultValues.insert("TO/WaterCheck", 24 * 3600);
-//    defaultValues.insert("TOCur/WaterCheck", 0);
-//    TONameValues.insert("WaterCheck", "Работа систем увлажнения");
-//    TOAlarmValues.insert("WaterCheck", 0);
-//    TOSourceValues.insert("WaterCheck", 1);
+    //    defaultValues.insert("TO/WaterCheck", 24 * 3600);
+    //    defaultValues.insert("TOCur/WaterCheck", 0);
+    //    TONameValues.insert("WaterCheck", "Работа систем увлажнения");
+    //    TOAlarmValues.insert("WaterCheck", 0);
+    //    TOSourceValues.insert("WaterCheck", 1);
 
-//    defaultValues.insert("TO/PneumaticJointCheck", 24 * 3600);
-//    defaultValues.insert("TOCur/PneumaticJointCheck", 0);
-//    TONameValues.insert("PneumaticJointCheck", "Герметичность соединений пневмосистемы");
-//    TOAlarmValues.insert("PneumaticJointCheck", 0);
-//    TOSourceValues.insert("PneumaticJointCheck", 1);
+    //    defaultValues.insert("TO/PneumaticJointCheck", 24 * 3600);
+    //    defaultValues.insert("TOCur/PneumaticJointCheck", 0);
+    //    TONameValues.insert("PneumaticJointCheck", "Герметичность соединений пневмосистемы");
+    //    TOAlarmValues.insert("PneumaticJointCheck", 0);
+    //    TOSourceValues.insert("PneumaticJointCheck", 1);
 
-//    defaultValues.insert("TO/FanWashing", 24 * 3600);
-//    defaultValues.insert("TOCur/FanWashing", 0);
-//    TONameValues.insert("FanWashing", "Промывка вентилятора");
-//    TOAlarmValues.insert("FanWashing", 0);
-//    TOSourceValues.insert("FanWashing", 1);
+    //    defaultValues.insert("TO/FanWashing", 24 * 3600);
+    //    defaultValues.insert("TOCur/FanWashing", 0);
+    //    TONameValues.insert("FanWashing", "Промывка вентилятора");
+    //    TOAlarmValues.insert("FanWashing", 0);
+    //    TOSourceValues.insert("FanWashing", 1);
 
     defaultValues.insert("TO/CarLubrication", 100 * 3600);
     defaultValues.insert("TOCur/CarLubrication", 0);
@@ -419,59 +449,59 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     TOAlarmValues.insert("CarTightening", 0);
     TOSourceValues.insert("CarTightening", 1);
 
-//    defaultValues.insert("TO/SomeCheck1", 100 * 3600);
-//    defaultValues.insert("TOCur/SomeCheck1", 0);
-//    TONameValues.insert("SomeCheck1", "Привод вентилятора, кард. вал, муфта, натяжение ремня");
-//    TOAlarmValues.insert("SomeCheck1", 0);
-//    TOSourceValues.insert("SomeCheck1", 1);
+    //    defaultValues.insert("TO/SomeCheck1", 100 * 3600);
+    //    defaultValues.insert("TOCur/SomeCheck1", 0);
+    //    TONameValues.insert("SomeCheck1", "Привод вентилятора, кард. вал, муфта, натяжение ремня");
+    //    TOAlarmValues.insert("SomeCheck1", 0);
+    //    TOSourceValues.insert("SomeCheck1", 1);
 
-//    defaultValues.insert("TO/BroomTightening", 100 * 3600);
-//    defaultValues.insert("TOCur/BroomTightening", 0);
-//    TONameValues.insert("BroomTightening", "Затяжка болтов гидромоторов щеток");
-//    TOAlarmValues.insert("BroomTightening", 0);
-//    TOSourceValues.insert("BroomTightening", 1);
+    //    defaultValues.insert("TO/BroomTightening", 100 * 3600);
+    //    defaultValues.insert("TOCur/BroomTightening", 0);
+    //    TONameValues.insert("BroomTightening", "Затяжка болтов гидромоторов щеток");
+    //    TOAlarmValues.insert("BroomTightening", 0);
+    //    TOSourceValues.insert("BroomTightening", 1);
 
-//    defaultValues.insert("TO/FanLubricant", 100 * 3600);
-//    defaultValues.insert("TOCur/FanLubricant", 0);
-//    TONameValues.insert("FanLubricant", "Состояние вентилятора, смазка подшипников");
-//    TOAlarmValues.insert("FanLubricant", 0);
-//    TOSourceValues.insert("FanLubricant", 1);
+    //    defaultValues.insert("TO/FanLubricant", 100 * 3600);
+    //    defaultValues.insert("TOCur/FanLubricant", 0);
+    //    TONameValues.insert("FanLubricant", "Состояние вентилятора, смазка подшипников");
+    //    TOAlarmValues.insert("FanLubricant", 0);
+    //    TOSourceValues.insert("FanLubricant", 1);
 
-//    defaultValues.insert("TO/HydraulicJointCheck", 100 * 3600);
-//    defaultValues.insert("TOCur/HydraulicJointCheck", 0);
-//    TONameValues.insert("HydraulicJointCheck", "Состояние соединений гидравлической системы");
-//    TOAlarmValues.insert("HydraulicJointCheck", 0);
-//    TOSourceValues.insert("HydraulicJointCheck", 1);
+    //    defaultValues.insert("TO/HydraulicJointCheck", 100 * 3600);
+    //    defaultValues.insert("TOCur/HydraulicJointCheck", 0);
+    //    TONameValues.insert("HydraulicJointCheck", "Состояние соединений гидравлической системы");
+    //    TOAlarmValues.insert("HydraulicJointCheck", 0);
+    //    TOSourceValues.insert("HydraulicJointCheck", 1);
 
-//    defaultValues.insert("TO/BackCoverSeal", 100 * 3600);
-//    defaultValues.insert("TOCur/BackCoverSeal", 0);
-//    TONameValues.insert("BackCoverSeal", "Уплотнение задней крышки");
-//    TOAlarmValues.insert("BackCoverSeal", 0);
-//    TOSourceValues.insert("BackCoverSeal", 1);
+    //    defaultValues.insert("TO/BackCoverSeal", 100 * 3600);
+    //    defaultValues.insert("TOCur/BackCoverSeal", 0);
+    //    TONameValues.insert("BackCoverSeal", "Уплотнение задней крышки");
+    //    TOAlarmValues.insert("BackCoverSeal", 0);
+    //    TOSourceValues.insert("BackCoverSeal", 1);
 
-//    defaultValues.insert("TO/OilFilterInHydroTank", 100 * 3600);
-//    defaultValues.insert("TOCur/OilFilterInHydroTank", 0);
-//    TONameValues.insert("OilFilterInHydroTank", "Фильтрующие элементы масляных фильтров в гидробаке");
-//    TOAlarmValues.insert("OilFilterInHydroTank", 0);
-//    TOSourceValues.insert("OilFilterInHydroTank", 1);
+    //    defaultValues.insert("TO/OilFilterInHydroTank", 100 * 3600);
+    //    defaultValues.insert("TOCur/OilFilterInHydroTank", 0);
+    //    TONameValues.insert("OilFilterInHydroTank", "Фильтрующие элементы масляных фильтров в гидробаке");
+    //    TOAlarmValues.insert("OilFilterInHydroTank", 0);
+    //    TOSourceValues.insert("OilFilterInHydroTank", 1);
 
-//    defaultValues.insert("TO/HydraulicOilChange", 100 * 3600);
-//    defaultValues.insert("TOCur/HydraulicOilChange", 0);
-//    TONameValues.insert("HydraulicOilChange", "Замена масла гидросистемы");
-//    TOAlarmValues.insert("HydraulicOilChange", 0);
-//    TOSourceValues.insert("HydraulicOilChange", 1);
+    //    defaultValues.insert("TO/HydraulicOilChange", 100 * 3600);
+    //    defaultValues.insert("TOCur/HydraulicOilChange", 0);
+    //    TONameValues.insert("HydraulicOilChange", "Замена масла гидросистемы");
+    //    TOAlarmValues.insert("HydraulicOilChange", 0);
+    //    TOSourceValues.insert("HydraulicOilChange", 1);
 
-//    defaultValues.insert("TO/ElectricCheck", 100 * 3600);
-//    defaultValues.insert("TOCur/ElectricCheck", 0);
-//    TONameValues.insert("ElectricCheck", "Работа электрооборудования");
-//    TOAlarmValues.insert("ElectricCheck", 0);
-//    TOSourceValues.insert("ElectricCheck", 1);
+    //    defaultValues.insert("TO/ElectricCheck", 100 * 3600);
+    //    defaultValues.insert("TOCur/ElectricCheck", 0);
+    //    TONameValues.insert("ElectricCheck", "Работа электрооборудования");
+    //    TOAlarmValues.insert("ElectricCheck", 0);
+    //    TOSourceValues.insert("ElectricCheck", 1);
 
-//    defaultValues.insert("TO/HydroTankWash", 100 * 3600);
-//    defaultValues.insert("TOCur/HydroTankWash", 0);
-//    TONameValues.insert("HydroTankWash", "Промыть водяной бак и коммуникацию");
-//    TOAlarmValues.insert("HydroTankWash", 0);
-//    TOSourceValues.insert("HydroTankWash", 1);
+    //    defaultValues.insert("TO/HydroTankWash", 100 * 3600);
+    //    defaultValues.insert("TOCur/HydroTankWash", 0);
+    //    TONameValues.insert("HydroTankWash", "Промыть водяной бак и коммуникацию");
+    //    TOAlarmValues.insert("HydroTankWash", 0);
+    //    TOSourceValues.insert("HydroTankWash", 1);
 
     defaultValues.insert("TO/EngineTO", 100 * 3600);
     defaultValues.insert("TOCur/EngineTO", 0);
@@ -479,11 +509,11 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     TOAlarmValues.insert("EngineTO", 0);
     TOSourceValues.insert("EngineTO", 1);
 
-//    defaultValues.insert("TO/SleavesCheck", 500 * 3600);
-//    defaultValues.insert("TOCur/SleavesCheck", 0);
-//    TONameValues.insert("SleavesCheck", "Состояние всех рукавов");
-//    TOAlarmValues.insert("SleavesCheck", 0);
-//    TOSourceValues.insert("SleavesCheck", 1);
+    //    defaultValues.insert("TO/SleavesCheck", 500 * 3600);
+    //    defaultValues.insert("TOCur/SleavesCheck", 0);
+    //    TONameValues.insert("SleavesCheck", "Состояние всех рукавов");
+    //    TOAlarmValues.insert("SleavesCheck", 0);
+    //    TOSourceValues.insert("SleavesCheck", 1);
 
     defaultValues.insert("TO/PressureFilterChange", 500 * 3600);
     defaultValues.insert("TOCur/PressureFilterChange", 0);
@@ -491,19 +521,16 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     TOAlarmValues.insert("PressureFilterChange", 0);
     TOSourceValues.insert("PressureFilterChange", 1);
 
-//    defaultValues.insert("TO/WaterCheck2", 500 * 3600);
-//    defaultValues.insert("TOCur/WaterCheck2", 0);
-//    TONameValues.insert("WaterCheck2", "Ревизия систем увлажнения");
-//    TOAlarmValues.insert("WaterCheck2", 0);
-//    TOSourceValues.insert("WaterCheck2", 1);
+    //    defaultValues.insert("TO/WaterCheck2", 500 * 3600);
+    //    defaultValues.insert("TOCur/WaterCheck2", 0);
+    //    TONameValues.insert("WaterCheck2", "Ревизия систем увлажнения");
+    //    TOAlarmValues.insert("WaterCheck2", 0);
+    //    TOSourceValues.insert("WaterCheck2", 1);
+}
 
-    can0 = NULL;
-    readSettings();
-
+void MainWindow::setupHardwareConfiguration()
+{
     configureChannels();
-
-
-
 
     addElement(StateValveA1, "Силовой клапан A1", 1, 0, OUT_MODE_NORMAL);
     addElement(StateValveF1, "(F1)Подъем отвала", 1, 1, OUT_MODE_NORMAL);
@@ -541,7 +568,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     addElement(StateHydraulicBroomPressPressure, "Давление гидросистемы контура поджатия щетки", 3, 7, IN_MODE_ANALOG_8);
     addElement(StateHydraulicOilTemperature, "Датчик температуры гидросистемы", 3, 8, IN_MODE_ANALOG_8);
     addElement(StateDKPBackMagnetUp, "Датчик ДКП магнит верх", 3, 9, IN_MODE_NORMAL);
-//    addElement(StateEngineReady, "Датчик готовности ДВС", 3, 10, IN_MODE_NORMAL);
+    //    addElement(StateEngineReady, "Датчик готовности ДВС", 3, 10, IN_MODE_NORMAL);
     addElement(StateDKPBlowerUp1, "Датчик ДКП продувка верх 1", 3, 10, IN_MODE_NORMAL);
     addElement(StateDKPBlowerUp2, "Датчик ДКП продувка верх 2", 3, 11, IN_MODE_NORMAL);
 
@@ -571,7 +598,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     addElement(StateDKPBroomUp, "Датчик ДКП щетка верх", 8, 9, IN_MODE_NORMAL);
 
     readSystemConfigure();
+}
 
+void MainWindow::setupMessageLog()
+{
     // верхний лог со скролом
     messageList = new MessageList(this);
     messageList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -584,11 +614,16 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     connect(messageList, SIGNAL(entered(QModelIndex)), this, SLOT(messageListPressed()));
     connect(messageList, SIGNAL(viewportEntered()), this, SLOT(messageListPressed()));
 
-
     ui->logLayout->addWidget(messageList);
+}
 
-    QString can_device = readSettingsValue("Global/canDeivce").toString();
-    QString j1939_device = readSettingsValue("Global/j1939Deivce").toString();
+void MainWindow::loadRuntimeSettings()
+{
+    can0 = NULL;
+    readSettings();
+
+    can_device = readSettingsValue("Global/canDeivce").toString();
+    j1939_device = readSettingsValue("Global/j1939Deivce").toString();
     restartIgnitionDelay = readSettingsValue("Global/restartIgnitionDelay").toInt();
     qDebug()<<"ignitionDelay: "<<restartIgnitionDelay;
     readSettingsValue("Global/password").toInt();
@@ -600,7 +635,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     ui->label_date->setFont(QFont("Mont",15));
     ui->label_time->setFont(QFont("Mont",20));
+}
 
+void MainWindow::setupDiagnosticsAndCommunication()
+{
     // режим опасной диагностики
     superDiagMode = false;
 
@@ -620,7 +658,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     // закидываем настрокий конфигурацции для кана
     can0->fillSystemConfigure(&systemConfigure, &systemElements);
     logger->fillSystemConfigure(&can0->systemConfigure, &can0->systemElements);// тырим ее у кана потому что он расставляет важные параметры
+}
 
+void MainWindow::setupStateMachinesAndFlags()
+{
     menuMode = SweepMode;
     startClean = false;
     //================================================
@@ -642,8 +683,8 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     //================================================
 
     chooseFrm = false;
-//    pultUp = false;
-//    pultUpCounter = 0;
+    //    pultUp = false;
+    //    pultUpCounter = 0;
     backGearCounter = 0;
     backControl = false;
     backIdleCounter = 0;
@@ -671,8 +712,14 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     KVControl = false;
     currentKV = 0;
 
+    serviceIgnitionAutoRestoreBlocked = false;
+}
+
+void MainWindow::setupServiceAndSettingsForms()
+{
     serviceSetingsName = new QLabel(this);
     serviceSetingsName->setStyleSheet("color: white");
+    QFont font;
     font.setFamily("Mont");
     font.setPointSize(16);
     serviceSetingsName->setFont(font);
@@ -718,6 +765,12 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     settingsMainRightForm = new SettingsMainRightForm(this);
     settingsMainRightForm->hide();
 
+    blockScreen = new BlockForm(this);
+    blockScreen->hide();
+}
+
+void MainWindow::setupTimers()
+{
     // создаем таймер для обслуживания общих узлов
     connect(&mainProgressTimer, SIGNAL(timeout()), this, SLOT(mainProgress()));
     mainProgressTimer.start(100);
@@ -729,10 +782,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     oneSecondTimer.start(1000);
 
     connect (&goHomeTimer, SIGNAL(timeout()), this, SLOT(resetDevices()));
+}
 
-    blockScreen = new BlockForm(this);
-    blockScreen->hide();
-
+void MainWindow::setupCleaningModules()
+{
     // создаем виджет двигателя
     engine = new Engine(canj1939, this);
     // создаем виджеты щеток и прочих модулей
@@ -740,7 +793,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     frontRail = new FrontRail(can0, NULL, settings, this);
     backMagnet = new BackMagnet(can0, NULL, settings, this);
     blower = new Blower(can0, NULL, settings, this);
+}
 
+void MainWindow::finalizeInitialization()
+{
     resetDevices();
     //can0->setState(StateBoardsPowerOut, true);
     showWorkMode();
@@ -795,8 +851,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     needRollProcedure = false;
     rollCompleted = false;
 
-    serviceIgnitionAutoRestoreBlocked = false;
-
     logNeedRollShown = false;
     logNeedWarmShown = false;
     waterSensorActivePrev = false;
@@ -816,7 +870,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     can0->setState(StateStarterAllow, false);
     can0->setState(StateStarterRoll, false);
 }
-
 void MainWindow::buttonsLightCheck()
 {
     if (buttonsLightLevel < buttonsLightLevelEdge) {buttonsLightLevel++;}
@@ -1358,14 +1411,11 @@ void MainWindow::oneSecond()
     {// надо записать сегодняшний срез и сохранить его
         dateToday = DateAndTime.date();
         engineToday = TOCurValues["Engine"];
-        settings->beginGroup("TOCur");
-        settings->setValue("EngineToday", engineToday);
-        settings->setValue("DateToday", dateToday);
-        settings->endGroup();
-        settings->sync();
-        // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
-        removeBadSettings();
-    }
+        safeSyncSettings("TOCur", {
+                                      {"EngineToday", engineToday},
+                                      {"DateToday", dateToday}
+                                  }, true);
+        }
     // отображаем моточасы
     QString temp = "%1";
     temp = temp.arg(TOCurValues["Engine"] / 3600, 5, 10, QChar('0'));
@@ -1382,13 +1432,7 @@ void MainWindow::oneSecond()
         // перед этим удаляем lock файл - были случаи что lock файл блокировал запись настроек
         if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
             QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
-
-        settings->beginGroup("TOCur");
-        settings->setValue("Engine", TOCurValues["Engine"]);
-        settings->endGroup();
-        settings->sync();
-        // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
-        removeBadSettings();
+        safeSyncSettings("TOCur", {{"Engine", TOCurValues["Engine"]}}, true);
     }
     if (TOCurValues["System"] - TOCurValues["SystemLast"] > 5 * 60)
     {// пора сохранить кой какие данные каждые 5 минут
@@ -1397,13 +1441,8 @@ void MainWindow::oneSecond()
         // перед этим удаляем lock файл - были случаи что lock файл блокировал запись настроек
         if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
             QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
+        safeSyncSettings("TOCur", {{"System", TOCurValues["System"]}}, true);
 
-        settings->beginGroup("TOCur");
-        settings->setValue("System", TOCurValues["System"]);
-        settings->endGroup();
-        settings->sync();
-        // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
-        removeBadSettings();
     }
 
     bool to_test = false;
@@ -1504,15 +1543,11 @@ void MainWindow::mainProgress()
             //сохраним важные параметры
             if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
                 QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
-
-            settings->beginGroup("TOCur");
-            settings->setValue("System", TOCurValues["System"]);
-            settings->setValue("Engine", TOCurValues["Engine"]);
-            settings->setValue("FrontEngine", TOCurValues["FrontEngine"]);
-            settings->endGroup();
-            settings->sync();
-            // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
-            removeBadSettings();
+            safeSyncSettings("TOCur", {
+                                          {"System", TOCurValues["System"]},
+                                          {"Engine", TOCurValues["Engine"]},
+                                          {"FrontEngine", TOCurValues["FrontEngine"]}
+                                      }, true);
         }
     }
     else
@@ -3628,7 +3663,31 @@ void MainWindow::updateRollUI()
         statusLabel->setText(statusText);
 }
 
+void MainWindow::safeSyncSettings(const QString& group,
+                                  const QMap<QString, QVariant>& values,
+                                  bool callSystemSync)
+{
+    const QString lockPath = QCoreApplication::applicationDirPath()
+    + "/settingsAutoCleaner.ini.lock";
 
+    if (QFile::exists(lockPath))
+        QFile::remove(lockPath);
+
+    if (!group.isEmpty()) {
+        settings->beginGroup(group);
+        for (auto it = values.cbegin(); it != values.cend(); ++it)
+            settings->setValue(it.key(), it.value());
+        settings->endGroup();
+    } else {
+        for (auto it = values.cbegin(); it != values.cend(); ++it)
+            settings->setValue(it.key(), it.value());
+    }
+
+    settings->sync();
+    if (callSystemSync)
+        system("sync");
+    removeBadSettings();
+}
 
 // void MainWindow::processPrerollInService()
 // {

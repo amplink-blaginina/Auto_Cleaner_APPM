@@ -441,6 +441,8 @@ private:
     QTimer repaintTimer;
     QTimer oneSecondTimer;
     QTimer goHomeTimer;
+    QString can_device;
+    QString j1939_device;
 
     void stopStarterOutput();
     void stopRollOutput();
@@ -465,6 +467,23 @@ private:
     void updateUIIcons();
     void setImage(QLabel *label, QString path);
     void setImage(QPushButton *btn, QString path);
+
+    void setupApplication(int argc, char *argv[]);
+    void setupFonts();
+    void setupSettingsStorage();
+    void setupDefaultSettings();
+    void setupMaintenanceTracking();
+    void setupHardwareConfiguration();
+    void setupMessageLog();
+    void loadRuntimeSettings();
+    void setupDiagnosticsAndCommunication();
+    void setupStateMachinesAndFlags();
+    void setupServiceAndSettingsForms();
+    void setupTimers();
+    void setupCleaningModules();
+    void finalizeInitialization();
+
+    void safeSyncSettings(const QString &group, const QMap<QString, QVariant> &values, bool callSystemSync);
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
