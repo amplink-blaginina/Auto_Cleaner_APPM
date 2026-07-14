@@ -63,6 +63,8 @@ void CentralBroom::readSettings()
 
 QString CentralBroom::toString(BroomStates s)
 {
+    switch (s) {
+    case BroomOff:
         return "BroomOff";
         break;
     case BroomDownOut:
@@ -115,7 +117,7 @@ QString CentralBroom::toString(BroomStates s)
 void CentralBroom::setState(BroomStates state_)
 {
     state = state_;
-
+    auto mainWindow = (MainWindow*)parent;
     if (state == CentralBroom::BroomOff)
     {// поднялась щетка
         // остановим поднимаение
@@ -128,7 +130,7 @@ void CentralBroom::setState(BroomStates state_)
         goNone();
         goDown();
         //myCan->setState(StateFRMBroomL1, true);
-        ((MainWindow*)parent)->addLog("Щетка опускается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка опускается", MainWindow::InfoStatus);
     }
     if (state == CentralBroom::BroomDowned)
     {
@@ -140,27 +142,27 @@ void CentralBroom::setState(BroomStates state_)
         startActionTime = QDateTime::currentDateTime();
         goNone();
         goUp();
-        ((MainWindow*)parent)->addLog("Щетка поднимается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка поднимается", MainWindow::InfoStatus);
     }
     if (state == CentralBroom::BroomFlowOut)
     {// началось плавание
         startActionTime = QDateTime::currentDateTime();
         goNone();
         goFlow();
-        ((MainWindow*)parent)->addLog("Щетка плавающая", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка плавающая", MainWindow::InfoStatus);
     }
     if (state == CentralBroom::BroomFlowed)
     {// закончилось плавание
-        if (!((MainWindow*)parent)->workMode.centralBroomFlow)
+        if (!mainWindow->workMode.centralBroomFlow)
         {
             goNoFlow();
-            ((MainWindow*)parent)->addLog("Щетка не плавающая", MainWindow::InfoStatus);
+            mainWindow->addLog("Щетка не плавающая", MainWindow::InfoStatus);
         }
     }
     if (state == CentralBroom::BroomFlowIn)
     {// заканчиваем плавание
         goNoFlow();
-        ((MainWindow*)parent)->addLog("Щетка не плавающая", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка не плавающая", MainWindow::InfoStatus);
     }
     if (state == CentralBroom::BroomSlideOut)
     {
@@ -170,14 +172,14 @@ void CentralBroom::setState(BroomStates state_)
             goRight();
         else
             goLeft();
-        ((MainWindow*)parent)->addLog("Щетка поворачивается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка поворачивается", MainWindow::InfoStatus);
     }
     if (state == CentralBroom::BroomSlideIn)
     {
         startActionTime = QDateTime::currentDateTime();
         goNone();
         goRight();
-        ((MainWindow*)parent)->addLog("Щетка поворачивается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка поворачивается", MainWindow::InfoStatus);
     }
     if (state == CentralBroom::BroomSlided)
     {
@@ -186,14 +188,14 @@ void CentralBroom::setState(BroomStates state_)
     if (state == CentralBroom::BroomRotateOut)
     {
         startActionTime = QDateTime::currentDateTime();
-        ((MainWindow*)parent)->addLog("Щетка раскручивается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка раскручивается", MainWindow::InfoStatus);
     }
     if (state == CentralBroom::BroomRotateIn)
     {
         startActionTime = QDateTime::currentDateTime();
         // тормозим щетки
         goNoRotate();
-        ((MainWindow*)parent)->addLog("Щетка останавливается", MainWindow::InfoStatus);
+        mainWindow->addLog("Щетка останавливается", MainWindow::InfoStatus);
     }
     if (state == CentralBroom::BroomBounceOut)
     {// отскок — поворот в противоположную сторону
@@ -204,7 +206,7 @@ void CentralBroom::setState(BroomStates state_)
                 goLeft();
             else
                 goRight();
-            ((MainWindow*)parent)->addLog("Щетка отскок", MainWindow::InfoStatus);
+            mainWindow->addLog("Щетка отскок", MainWindow::InfoStatus);
         }
     }
     if (state == CentralBroom::BroomBounced)
