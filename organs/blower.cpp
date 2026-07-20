@@ -181,6 +181,13 @@ void Blower::goDown()
     myCan->setState(StateValveE5, true);
 }
 
+void Blower::goNone(){
+    myCan->setState(StateValveA1, false);
+    myCan->setState(StateValveE5, false);
+    myCan->setState(StateValveE1, false);
+    myCan->setState(StateValveE3, false);
+    myCan->setState(StateValveE7, false);
+}
 
 Blower::BlowerStates Blower::getState()
 {

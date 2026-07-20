@@ -11,6 +11,8 @@
 #include <QGraphicsOpacityEffect>
 #include <QPalette>
 #include <QDate>
+#include <custombutton.h>
+#include <custombuttonsgroup.h>
 
 #include <sys/socket.h>
 #include <net/if.h>
@@ -114,6 +116,14 @@ public:
         quint8 sweepType;
     };
 
+    struct BtnData{
+        QString commonPath;
+        QString selectedPath;
+        QString normalPath;
+        std::function<void()> onPress;
+        std::function<void()> onRelease;
+    };
+
     struct CleanConfiguration
     {
         bool frontDumpUse;
@@ -144,6 +154,20 @@ public:
         BunkerMode = 2,
         DiagMode   = 3,
         SettingsMode   = 4
+    };
+
+    enum Direction {
+        None = 0,
+        Up = 1,
+        Down = 2,
+        Left = 3,
+        Right = 4,
+    };
+
+    enum Organ{
+        BroomOrgan,
+        BlowerOrgan,
+        DumpOrgan
     };
 
     MainWindow(int argc, char *argv[], QWidget *parent = nullptr);
@@ -195,6 +219,9 @@ public:
 
     void showWorkMode();
     void showStatus();
+    void showStatus(QLabel *label, bool check);
+    void showStatus(QLabel *label, bool check, QString message, bool showMsg = true);
+    void showStatus(QLabel *label, bool check, QString messageOn, QString messageOff);
     void showPultOffIgnition();
     void showFRM();
     void showStarter();
@@ -305,6 +332,9 @@ public:
     bool rollLockedByEmergency;
     bool needRollProcedure;
     bool rollCompleted;
+    bool waterAlarm;
+    bool airAlarm;
+    bool oilAlarm;
 
     bool starterPauseActive;
     QDateTime starterPauseStartedAt;
@@ -393,6 +423,31 @@ public:
     MyCanJ1939 *canj1939;
     MyCanJ1939 *canj1939Main;
 
+    //==============Buttons=================
+
+    CustomButton *btn_broom_up;
+    CustomButton *btn_broom_down;
+    CustomButton *btn_broom_left;
+    CustomButton *btn_broom_right;
+    CustomButtonGroup *btn_group_broom_hor;
+    CustomButtonGroup *btn_group_broom_vert;
+
+
+    CustomButton *btn_dump_up;
+    CustomButton *btn_dump_down;
+    CustomButton *btn_dump_left;
+    CustomButton *btn_dump_right;
+    CustomButtonGroup *btn_group_dump_hor;
+    CustomButtonGroup *btn_group_dump_vert;
+
+
+    CustomButton *btn_blower_up;
+    CustomButton *btn_blower_down;
+    CustomButton *btn_blower_left;
+    CustomButton *btn_blower_right;
+    CustomButtonGroup *btn_group_blower_hor;
+    CustomButtonGroup *btn_group_blower_vert;
+
 private:
     Ui::MainWindow *ui;
 
@@ -402,6 +457,7 @@ private:
     QTimer repaintTimer;
     QTimer oneSecondTimer;
     QTimer goHomeTimer;
+    //std::unordered_map<std::pair<CleanConfiguration, Direction>, double> dict;
 
     void stopStarterOutput();
     void stopRollOutput();
@@ -419,6 +475,37 @@ private:
     // void updatePrerollButtonsVisual();
     // void cachePrerollButtons();
     void restoreIgnitionAfterRoll();
+    void setStyle(QWidget *btn, QString path);
+    void setBlowerState();
+    void changeSweepMode(quint8 mode);
+    void setDumpState();
+
+    void setBroomState();
+
+    //void setStyle(QPushButton *btn, QString path);
+    void tryMoveBroomDown();
+    void tryMoveBroomUp();
+    void tryMoveBroomLeft();
+    void tryMoveBroomRight();
+    void broomSingleMovement(Direction dir);
+    bool isDisabled();
+    void createTimers();
+
+    void createButtons();
+    bool isBroomDownPressed();
+    bool isBroomUpPressed();
+    void setOrgansButtonsState(CustomButtonGroup::Mode mode);
+    void onBroomReleased();
+    void onRailReleased();
+    void onBlowerReleased();
+    QString getFatalStatusMessage();
+    void updateButtonsIcons();
+    void updateButtonsActiveState();
+    void updateOrgansStates();
+    void setBtnState(QWidget *widget, QString path, std::function<void ()> handler);
+    //void setBtnState(QWidget *widget, QPushButton *btn, QString path, std::function<void ()> handler);
+    void selectBtnState(bool gpioPressed, QLabel *lbl, QPushButton *btn, QString onPath, QString offPath, std::function<void ()> onPress, std::function<void ()> onRelease);
+    void selectBtnState(bool gpioPressed, QPushButton *btn, QString onPath, QString offPath, std::function<void ()> onPressHandler, std::function<void ()> onReleaseHandler);
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
@@ -451,20 +538,19 @@ private slots:
     void on_pushButton_leafSweep_clicked();
     void on_pushButton_mediumSweep_clicked();
     void on_pushButton_heavySweep_clicked();
+
+    void on_pushButton_dumpUp_released();
     void on_pushButton_centralBroomLeft_clicked();
     void on_pushButton_centralBroomRight_clicked();
     void on_pushButton_settings_clicked();
-    void on_pushButton_dumpUp_clicked();
-    void on_pushButton_dumpDown_clicked();
+
     void on_pushButton_dumpLeft_clicked();
     void on_pushButton_dumpRight_clicked();
     void on_pushButton_dumpFlow_clicked();
-    void on_pushButton_centralBroomUp_clicked();
-    void on_pushButton_centralBroomDown_clicked();
+
     void on_pushButton_centralBroomFlow_clicked();
     void on_pushButton_centralBroomPress_clicked();
-    void on_pushButton_blowerUp_clicked();
-    void on_pushButton_blowerDown_clicked();
+
     void on_pushButton_blowerLeft_clicked();
     void on_pushButton_blowerRight_clicked();
     void on_pushButton_backMagnet_clicked();
@@ -472,5 +558,30 @@ private slots:
     void on_pushButton_frmBroom_clicked();
     void on_pushButton_frmMagnet_clicked();
     void on_pushButton_homeState_clicked();
+
+
+    void on_pushButton_centralBroomUp_pressed();
+    void on_pushButton_centralBroomUp_released();
+    void on_pushButton_centralBroomDown_pressed();
+    void on_pushButton_centralBroomDown_released();
+    void on_pushButton_centralBroomLeft_pressed();
+    void on_pushButton_centralBroomLeft_released();
+    void on_pushButton_centralBroomRight_pressed();
+    void on_pushButton_centralBroomRight_released();
+    void on_pushButton_dumpDown_pressed();
+    void on_pushButton_dumpDown_released();
+    void on_pushButton_dumpLeft_pressed();
+    void on_pushButton_dumpLeft_released();
+    void on_pushButton_dumpRight_pressed();
+    void on_pushButton_dumpRight_released();
+    void on_pushButton_dumpUp_pressed();
+    void on_pushButton_blowerRight_pressed();
+    void on_pushButton_blowerRight_released();
+    void on_pushButton_blowerLeft_pressed();
+    void on_pushButton_blowerLeft_released();
+    void on_pushButton_blowerDown_released();
+    void on_pushButton_blowerDown_pressed();
+    void on_pushButton_blowerUp_released();
+    void on_pushButton_blowerUp_pressed();
 };
 #endif // MAINWINDOW_H

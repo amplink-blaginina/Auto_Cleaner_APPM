@@ -78,6 +78,7 @@ public:
     void setAbleState(BlowerStates state_);
     BlowerStates getAbleState();
 
+    void goNone();
 public slots:
     // слот для получания данных из CAN
     void progressLoop();

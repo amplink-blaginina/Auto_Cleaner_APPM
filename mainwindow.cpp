@@ -11,6 +11,8 @@
 #include <QScroller>
 #include <QScrollBar>
 #include <QPushButton>
+#include <custombutton.h>
+#include <custombuttonsgroup.h>
 
 // pwm
 #include <sys/socket.h>
@@ -27,7 +29,7 @@
 QLocale EngLocale (QLocale::Russian);
 
 static int ptsInc = 0;
-QString programmVersionString = "AutoCleaner APPM v3.012";
+QString programmVersionString = "AutoCleaner APPM v3.014";
 
 //Changes
 // 3.001 - форкнулся от APPM2 imx6, удалил лишнее и накатил на нее все от разбери с 200 и 318D4
@@ -44,6 +46,18 @@ QString programmVersionString = "AutoCleaner APPM v3.012";
 // на ПВИ должен быть настроен j1939 (ядро с поддержкой) . так же должен быть сконфигурен can1 can2 как j1939 с адресом 0x08 для камаза и 0x07 для движка сзади
 // на последних машинах перепутали can0 и can1(((
 
+
+void MainWindow::createTimers()
+{
+    connect(&mainProgressTimer, SIGNAL(timeout()), this, SLOT(mainProgress()));
+    mainProgressTimer.start(100);
+
+    connect(&repaintTimer, SIGNAL(timeout()), this, SLOT(repaintProgress()));
+    repaintTimer.start(500);
+
+    connect(&oneSecondTimer, SIGNAL(timeout()), this, SLOT(oneSecond()));
+    oneSecondTimer.start(1000);
+}
 
 MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     : QMainWindow(parent)
@@ -699,14 +713,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     settingsMainRightForm->hide();
 
     // создаем таймер для обслуживания общих узлов
-    connect(&mainProgressTimer, SIGNAL(timeout()), this, SLOT(mainProgress()));
-    mainProgressTimer.start(100);
-
-    connect(&repaintTimer, SIGNAL(timeout()), this, SLOT(repaintProgress()));
-    repaintTimer.start(500);
-
-    connect(&oneSecondTimer, SIGNAL(timeout()), this, SLOT(oneSecond()));
-    oneSecondTimer.start(1000);
+    createTimers();
 
     connect (&goHomeTimer, SIGNAL(timeout()), this, SLOT(resetDevices()));
 
@@ -773,6 +780,9 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     rollLockedByEmergency = false;
     needRollProcedure = false;
     rollCompleted = false;
+    waterAlarm = false;
+    airAlarm = false;
+    oilAlarm = false;
 
     starterPauseActive = false;
     starterAttemptsUsed = 0;
@@ -811,6 +821,25 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     can0->setState(StateStarterAllow, false);
     can0->setState(StateStarterRoll, false);
+    createButtons();
+}
+
+void MainWindow::createButtons(){
+    //!!!
+    // btn_broom_up = new CustomButton(ui->pushButton_centralBroomUp, ui->label_centralBroomUpDown);
+    // btn_broom_up->setIcons("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_",
+    //                        "off.png);",
+    //                        "up_on.png);",
+    //                        "off.png);");
+    // btn_broom_down = new CustomButton(ui->pushButton_centralBroomDown, ui->label_centralBroomUpDown);
+    // btn_broom_down->setIcons("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_",
+    //                        "off.png);",
+    //                        "up_on.png);",
+    //                        "off.png);");
+
+    // btn_group_broom_vert = new CustomButtonGroup(ui->label_centralBroomUpDown);
+    // btn_group_broom_vert->addButton(btn_broom_up);
+    // btn_group_broom_vert->addButton(btn_broom_down);
 }
 
 void MainWindow::buttonsLightCheck()
@@ -984,15 +1013,13 @@ void MainWindow::readSettings()
     cleanConfiguration.centralBroomUse = readSettingsValue("CleanConfiguration/centralBroomUse").toBool();
     cleanConfiguration.blowUse = readSettingsValue("CleanConfiguration/blowUse").toBool();
 
-    // охлаждение двигателя
-    ventEdge = readSettingsValue("Engine/rpm.VentEdge").toInt();
-    // адрес двигателя
-    enigneAddr = readSettingsValue("Engine/addr").toInt();
-    // пороги скорости
-    enableCleanSpeed = readSettingsValue("Global/enableCleanSpeed").toInt();
+
+    ventEdge = readSettingsValue("Engine/rpm.VentEdge").toInt();// охлаждение двигателя
+    enigneAddr = readSettingsValue("Engine/addr").toInt();// адрес двигателя
+    enableCleanSpeed = readSettingsValue("Global/enableCleanSpeed").toInt();// пороги скорости
     disableCleanSpeed = readSettingsValue("Global/disableCleanSpeed").toInt();
-    // сознаваться ли про чек энжын?
-    showCheckEngine = readSettingsValue("Global/showCheckEngine").toBool();
+
+    showCheckEngine = readSettingsValue("Global/showCheckEngine").toBool();// сознаваться ли про чек энжын?
 
     buttonsLightLevelEdge = readSettingsValue("Global/buttonsLightLevelEdge").toInt();
     buttonsLightLevelEdge = 10; // TODO ????
@@ -1060,7 +1087,7 @@ void MainWindow::readSettings()
 
 void MainWindow::startIgnition()
 {// запуск зажигания
-    qDebug() << "start ignition";
+    //qDebug() << "start ignition";
     //gp->Set_GPIO_State(OUT_IGNITION, 1);
     can0->setState(StateIgnitionOut, true);
 }
@@ -1292,6 +1319,14 @@ void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data)
     if (ui->J1939MainStatus->isVisible())
         ui->J1939MainStatus->hide();
 }
+// void MainWindow::setSettings(QString engine, QString group, ){
+//     engineToday = TOCurValues["Engine"];
+//     settings->beginGroup("TOCur");
+//     settings->setValue("EngineToday", engineToday);
+//     settings->setValue("DateToday", dateToday);
+//     settings->endGroup();
+//     settings->sync();
+// }
 
 void MainWindow::oneSecond()
 {// универсальный таймер для всяких нужд (раз в сек)
@@ -1467,28 +1502,31 @@ bool MainWindow::inHomeState()
     return false;
 }
 
+bool MainWindow::isDisabled(){
+    return !can0->getState(Board0IN1).toBool() || can0->getState(StatePVIPowerIn).toBool();}
+
 // тут проверяются узлы которые являются общими для всех (например насос воды используется 8 блоками, поэтому тут проверяем если он долго никому не нужен то выключаем воду)
-void MainWindow::mainProgress()
-{
+
+void MainWindow::mainProgress(){
 
     if (ui->pushButton_backMagnet->isDown())
         qDebug() << "down";
-    // проверка подсветки
-    buttonsLightCheck();
+
+    buttonsLightCheck();// проверка подсветки
 
     // test
     ui->label_key->setText("Кнопка: " + QString::number((int)gpioMatirx->keyPressed));
 
-    if (!can0->getState(Board0IN1).toBool() || can0->getState(StatePVIPowerIn).toBool())
-    {// вырубили зажигание-надо готовиться к остановке (или нажали кнопку пви)
+    if (isDisabled())// вырубили зажигание-надо готовиться к остановке (или нажали кнопку пви)
+    {
         // сделаем флуш всего
         if (!stopInProgress)
         {
+            stopInProgress = true;
             if (!can0->getState(Board0IN1).toBool())
                 addLog("Ключ зажигания повернут. Начинается выключение ПВИ", WarningStatus);
             else
                 addLog("Нажали кнопку выключения ПВИ. Начинается выключение ПВИ ( удерживайте кнопку )", WarningStatus);
-            stopInProgress = true;
             logger->setStop(true);
             //сохраним важные параметры
             if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
@@ -1514,8 +1552,7 @@ void MainWindow::mainProgress()
     updateEngineAndRollLocks();
     processPrerollInService();
 
-    if (superDiagMode)
-    {
+    if (superDiagMode)    {
         updateSensorAndWarningIndicators();
         serviceDevicesHydraulicsLeftForm->updateVisual();
         serviceDevicesDKPLeftForm->updateVisual();
@@ -1524,8 +1561,7 @@ void MainWindow::mainProgress()
 
         return; // ни чем не управляем пока включена диагностика!!!
     }
-    if (menuMode == SettingsMode)
-    {
+    if (menuMode == SettingsMode)    {
         settingsSettingsConfigurationLeftForm->updateVisual();
     }
 
@@ -1533,24 +1569,22 @@ void MainWindow::mainProgress()
     speedCounter++;
     voltageCounter++;
     frontRPMCounter++;
-    if (frontRPMCounter > 50)
-    {
+    if (frontRPMCounter > 50)    {
         frontRPM = 0;
     }
-    if (engine->online > ENGINE_ONLINE_EDGE * 10)
-    {
+    if (engine->online > ENGINE_ONLINE_EDGE * 10)    {
         if (ui->label_engineTemp->text() != "n/a")
             ui->label_engineTemp->setText("n/a");
         if (ui->label_engineRPM->text() != "n/a")
             ui->label_engineRPM->setText("n/a");
     }
-    else
-    {
+    else    {
         if (ui->label_engineTemp->text() != QString::number(engine->engineCoolantTemp))
             ui->label_engineTemp->setText(QString::number(engine->engineCoolantTemp));
         if (ui->label_engineRPM->text() != QString::number(engine->getRpm()))
             ui->label_engineRPM->setText(QString::number(engine->getRpm()));
     }
+
 
 //    if (speedCounter > 50)
 //    {
@@ -1629,10 +1663,8 @@ void MainWindow::mainProgress()
 //        hydroTempWarn = false;
 //    }
 
-    if (menuMode != DiagMode && menuMode != SettingsMode)
-    {// в режиме диагностики не умничаем, в остальных случаях пробуем понять что сейчас не используется и выключить это
-        if (!startClean && inHomeState() && !serviceMainRightForm->isVisible())
-        {
+    if (menuMode != DiagMode && menuMode != SettingsMode)    {// в режиме диагностики не умничаем, в остальных случаях пробуем понять что сейчас не используется и выключить это
+        if (!startClean && inHomeState() && !serviceMainRightForm->isVisible())        {
             // вроде как не надо чтобы горели маяки
 //            if (gpio->getInput(GPIOInput::IN_AVAR))
 //            {
@@ -1640,14 +1672,12 @@ void MainWindow::mainProgress()
 
             // а так же вырубим коробки отбора мощности
             //if (!gp->GPIO[IN_LEFT_DOWN] && !gp->GPIO[IN_LEFT_UP] && !KVControl && !gp->GPIO[IN_RIGHT_DOWN] && !gp->GPIO[IN_RIGHT_UP])
-            if (!KVControl)
-            {// только если не заняты работой от кнопок с пульта
+            if (!KVControl)            {// только если не заняты работой от кнопок с пульта
                 can0->setState(StateValveA1, false);
             }
         }
         // доабвил с аэродрома опасно
-        if (!canStart() && ui->pushButton_startstop->isEnabled())
-        {// серим старт
+        if (!canStart() && ui->pushButton_startstop->isEnabled())        {// серим старт
             //pushbuttonStartStopEffect->setOpacity(0.2);
             ui->pushButton_startstop->setEnabled(false);
         }
@@ -1664,8 +1694,7 @@ void MainWindow::mainProgress()
 //        }
 
         if (blower->getState() <= Blower::BlowerStates::BlowerDowned
-                && broomCentral->getState() <= CentralBroom::BroomStates::BroomDowned)
-        {// если модули не крутятся - выключаем распределитель и убавляем обороты
+                && broomCentral->getState() <= CentralBroom::BroomStates::BroomDowned)        {// если модули не крутятся - выключаем распределитель и убавляем обороты
             // устанавливыаем обороты чтобы двигло зря не работал
             quint16 rpm = rpmNone * 8;
             canForEngine->setEngineCommand(rpm);
@@ -1876,9 +1905,9 @@ void MainWindow::updateEngineAndRollLocks()
     }
     // === КОНЕЦ ИСПРАВЛЕНИЯ ===
 
-    const bool waterAlarm = can0->getState(StateWaterSensor).toBool() && waterSensorEmergencyMode;
-    const bool airAlarm = can0->getState(StateAirFilterBad).toBool() && airFilterEmergencyMode;
-    const bool oilAlarm = can0->getState(StateOilFilterBad).toBool();
+    waterAlarm = can0->getState(StateWaterSensor).toBool() && waterSensorEmergencyMode;
+    airAlarm = can0->getState(StateAirFilterBad).toBool() && airFilterEmergencyMode;
+    oilAlarm = can0->getState(StateOilFilterBad).toBool();
     starterLockedByEmergency = !ignoreAllEmergency && (waterAlarm || airAlarm || oilAlarm);
     rollLockedByEmergency = !ignoreAllEmergency && (waterAlarm || airAlarm || oilAlarm);
 
@@ -1943,8 +1972,7 @@ void MainWindow::processPrerollInService()
             if (rollLockedByTemperature)    reasons << "холодный двигатель (ждите теплореле)";
             if (rollLockedByEmergency)      reasons << "аварийный режим";
             statusText = "Прокрутка заблокирована: " + reasons.join(", ");
-            if (statusLabel->styleSheet() != "color: red;")
-                statusLabel->setStyleSheet("color: red;");
+            setStyle(statusLabel,"color: red;");
         }
         else if (needRollProcedure)
             statusText = "Требуется прокрутка. Нажмите ПРОКРУТКА для подготовки.";
@@ -1955,13 +1983,11 @@ void MainWindow::processPrerollInService()
 
         if (rollBlocked() && !statusText.isEmpty())
         {
-            if (statusLabel->styleSheet() != "color: red;")
-                statusLabel->setStyleSheet("color: red;");
+            setStyle(statusLabel,"color: red;");
         }
         else
         {
-            if (statusLabel->styleSheet() != "color: yellow;")
-                statusLabel->setStyleSheet("color: yellow;");
+            setStyle(statusLabel,"color: yellow;");
         }
 
         if (statusLabel->text() != statusText)
@@ -2249,16 +2275,11 @@ void MainWindow::showStatus()
     updateEngineAndRollLocks();
 
     // wait_on_start
-    if (engine->waitOnStart && !ui->label_wait_on_start->isVisible())
-    {
-        addLog("Требуется прогрев двигателя", MainWindow::WarningStatus);
-        ui->label_wait_on_start->show();
-    }
-    else if (!engine->waitOnStart && ui->label_wait_on_start->isVisible())
-    {
-        addLog("Двигатель прогрет", MainWindow::InfoStatus);
-        ui->label_wait_on_start->hide();
-    }
+    showStatus(ui->label_wait_on_start,
+               engine->waitOnStart,
+               "Требуется прогрев двигателя",
+               "Двигатель прогрет");
+
     // повлеждекние двигателя
     if ((engine->damage == 2 || engine->damage == 1) && !ui->label_engine_damage->isVisible() && showCheckEngine)
     {
@@ -2270,41 +2291,26 @@ void MainWindow::showStatus()
     {
         ui->label_engine_damage->hide();
     }
+
     // клапан а1
-    if (can0->getState(StateValveA1).toBool() && !ui->label_a1->isVisible())
-    {
-//        addLog("Засорен напорный фильтр", MainWindow::WarningStatus);
-        ui->label_a1->show();
-    }
-    else if (!can0->getState(StateValveA1).toBool() && ui->label_a1->isVisible())
-    {
-        ui->label_a1->hide();
-    }
+    auto valveA1State = can0->getState(StateValveA1).toBool();
+    showStatus(ui->label_a1,
+               valveA1State);//"Засорен напорный фильтр"
 
     // напорный фильтр
-    if ((can0->getState(StatePressureFilter1).toBool() || can0->getState(StatePressureFilter2).toBool() || can0->getState(StatePressureFilter3).toBool()) && !ui->label_pressure_filter->isVisible())
-    {
-        addLog("Засорен напорный фильтр", MainWindow::WarningStatus);
-        ui->label_pressure_filter->show();
-    }
-    else if (!(can0->getState(StatePressureFilter1).toBool() || can0->getState(StatePressureFilter2).toBool() || can0->getState(StatePressureFilter3).toBool()) && ui->label_pressure_filter->isVisible())
-    {
-        ui->label_pressure_filter->hide();
-    }
+    auto pressureFiltersState = can0->getState(StatePressureFilter1).toBool() || can0->getState(StatePressureFilter2).toBool() || can0->getState(StatePressureFilter3).toBool();
+    showStatus(ui->label_pressure_filter,
+               pressureFiltersState,
+               "Засорен напорный фильтр");
 
     // сливной фильтр
-    if (can0->getState(StateDrainFilterD28).toBool() && !ui->label_drain_filter->isVisible())
-    {
-        addLog("Засорен сливной фильтр", MainWindow::WarningStatus);
-        ui->label_drain_filter->show();
-    }
-    else if (!can0->getState(StateDrainFilterD28).toBool() && ui->label_drain_filter->isVisible())
-    {
-        ui->label_drain_filter->hide();
-    }
-
+    auto drainFilterState = can0->getState(StateDrainFilterD28).toBool();
+    showStatus(ui->label_drain_filter,
+               drainFilterState,
+               "Засорен сливной фильтр");
     updateSensorAndWarningIndicators();
 }
+
 
 void MainWindow::showPultOffIgnition()
 {
@@ -2401,14 +2407,11 @@ void MainWindow::showStarter()
     else if (starterPressed)// либо двигатель не запущен, либо нажали на кнопку стартера не только что, но всё ещё держим
     {
         if(!starterPauseActive){//если не находимся в паузе после глушения ДВС
-
             can0->setState(StateIgnitionOut, true);//осуществляем запуск
         }
 
-        if (!engineRunning)//если двигатель не запущен
-        {
-            if (starterNeedReboot)
-            {
+        if (!engineRunning){//если двигатель не запущен
+            if (starterNeedReboot){
                 if (starterPressedEdge)
                     addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
                 stopStarterOutput();
@@ -2423,25 +2426,21 @@ void MainWindow::showStarter()
                     else if (starterLockedByTemperature || engine->waitOnStart)
                         addLog("Требуется прогрев вспомогательного ДВС", WarningStatus);
                     else
-                        addLog("Стартер заблокирован аварийным состоянием", FatalStatus);
+                        addLog(getFatalStatusMessage(), FatalStatus);
                 }
                 stopStarterOutput();
                 starterStarted = false;
             }
-            else if (inStarterPause())
-            {
-                if (starterPressedEdge || !starterPauseWarned)
-                {
+            else if (inStarterPause())            {
+                if (starterPressedEdge || !starterPauseWarned)                {
                     addLog("Пауза между пусками " + QString::number(starterPauseSecondsLeft()) + " секунды осталось", WarningStatus);
                     starterPauseWarned = true;
                 }
                 stopStarterOutput();
                 starterStarted = false;
             }
-            else
-            {
-                if (!starterStarted)
-                {
+            else{
+                if (!starterStarted){
                     starterStarted = true;
                     starterStartedTime = QDateTime::currentDateTime();
                     starterAttemptsUsed++;
@@ -2451,8 +2450,7 @@ void MainWindow::showStarter()
                 }
 
                 const int starterRunTime = qAbs(starterStartedTime.secsTo(QDateTime::currentDateTime()));
-                if (engineRunning)
-                {
+                if (engineRunning){
                     stopStarterOutput();
                     starterStarted = false;
                     starterPauseActive = false;
@@ -2460,15 +2458,13 @@ void MainWindow::showStarter()
                     starterAttemptsUsed = 0;
                     addLog("Двигатель набрал обороты", WarningStatus);
                 }
-                else if (starterRunTime >= starterMaxWorkSec)
-                {
+                else if (starterRunTime >= starterMaxWorkSec){
                     stopStarterOutput();
                     starterStarted = false;
                     starterPauseActive = true;
                     starterPauseStartedAt = QDateTime::currentDateTime();
                     addLog("Долгая работа стартера", FatalStatus);
-                    if (starterAttemptsUsed >= starterMaxAttempts)
-                    {
+                    if (starterAttemptsUsed >= starterMaxAttempts){
                         starterNeedReboot = true;
                         addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
                     }
@@ -2477,18 +2473,14 @@ void MainWindow::showStarter()
         }
 
     }
-    else
-    {
-        if (starterStarted)
-        {
+    else    {
+        if (starterStarted){
             stopStarterOutput();
             starterStarted = false;
-            if (!engineRunning)
-            {
+            if (!engineRunning){
                 starterPauseActive = true;
                 starterPauseStartedAt = QDateTime::currentDateTime();
-                if (starterAttemptsUsed >= starterMaxAttempts)
-                {
+                if (starterAttemptsUsed >= starterMaxAttempts){
                     starterNeedReboot = true;
                     addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
                 }
@@ -2496,14 +2488,12 @@ void MainWindow::showStarter()
         }
     }
 
-    if (engineRunning)
-    {
+    if (engineRunning){
         engineStartedOk = true;
         starterNeedReboot = false;
         starterAttemptsUsed = 0;
     }
-    else
-    {
+    else{
         engineStartedOk = false;
     }
 
@@ -2512,12 +2502,10 @@ void MainWindow::showStarter()
 
 void MainWindow::showStartClean()
 {
-    if (gpioMatirx->keyPressed == GPIOInput::IN_STARTCLEAN)
-    {
+    if (gpioMatirx->keyPressed == GPIOInput::IN_STARTCLEAN)    {
         startCleanTimeCounter++;
     }
-    else
-    {
+    else{
         if (startCleanTimeCounter > 1)
             on_pushButton_startstop_clicked();
         startCleanTimeCounter = 0;
@@ -2600,7 +2588,6 @@ void MainWindow::on_pushButton_startstop_clicked()
     }
     showWorkMode();
 }
-
 
 void MainWindow::settingsAskPassword()
 {
@@ -2723,66 +2710,762 @@ void MainWindow::settingsClosed()
 void MainWindow::showWorkMode()
 {
     if (!pauseActive)
+        updateOrgansStates();
+    updateButtonsActiveState();// проверим доступность кнопошков
+    updateButtonsIcons();// меняем картиночки доступности кнопок после анализа
+}
+
+bool MainWindow::canStart()
+{
+    return true;
+}
+
+float MainWindow::hydraulicPressureValue(int index) const
+{
+    static const DeviceStates pressureStates[4] = {
+        StateHydraulicDistibutorPressure,
+        StateHydraulicBroomPressure,
+        StateHydraulicFanPressure,
+        StateHydraulicBroomPressPressure
+    };
+
+    if (index < 0 || index >= 4)
+        return 0.0f;
+
+    return hydraulicPressureK[index] * can0->getState(pressureStates[index]).toFloat() + hydraulicPressureB[index];
+}
+
+void MainWindow::toggleAllFrm()
+{
+    const bool enable = !(workMode.frmKung && workMode.frmBroom && workMode.frmMagnet);
+    workMode.frmKung = enable;
+    workMode.frmBroom = enable;
+    workMode.frmMagnet = enable;
+    showWorkMode();
+}
+
+bool MainWindow::isIdleMode()
+{
+    // проверяекм надо ли затенять кнопки переключения режимов
+    if (blower->getState() != Blower::BlowerOff
+        || broomCentral->getState() != CentralBroom::BroomOff
+        || frontRail->getState() != FrontRail::FrontRailOff
+        || backMagnet->getState() != BackMagnet::BackMagnetOff
+        || startClean)
     {
-        // задаем режимы органам
-        // щетка
-        if (workMode.centralBroomLeft||workMode.centralBroomRight)
-        {
-            broomCentral->setNeedState(CentralBroom::BroomFlowed);
-            broomCentral->choosed = true;
-        }
+        return false;
+    }
+    return true;
+}
+
+bool MainWindow::isOrgansTransitioning(){
+    // органы в процессе перехода - ручное управление заблокировано
+    // при движении к работе цель ограничивается ableState, при выключении всегда идём к Off
+
+    CentralBroom::BroomStates broomTarget = broomCentral->needState;
+    if (broomCentral->needState != CentralBroom::BroomOff && broomCentral->ableState < broomCentral->needState)
+        broomTarget = broomCentral->ableState;
+    if (broomCentral->state != broomTarget)
+        return true;
+
+    FrontRail::FrontRailStates railTarget = frontRail->needState;
+    if (frontRail->needState != FrontRail::FrontRailOff && frontRail->ableState < frontRail->needState)
+        railTarget = frontRail->ableState;
+    if (frontRail->state != railTarget)
+        return true;
+
+    BackMagnet::BackMagnetStates magnetTarget = backMagnet->needState;
+    if (backMagnet->needState != BackMagnet::BackMagnetOff && backMagnet->ableState < backMagnet->needState)
+        magnetTarget = backMagnet->ableState;
+    if (backMagnet->state != magnetTarget)
+        return true;
+
+    Blower::BlowerStates blowerTarget = blower->needState;
+    if (blower->needState != Blower::BlowerOff && blower->ableState < blower->needState)
+        blowerTarget = blower->ableState;
+    if (blower->state != blowerTarget)
+        return true;
+
+    return false;
+}
+
+void MainWindow::applyWorkModeToDeployedOrgans(){
+    // При отключенном прижиме сбрасываем поджим сразу, чтобы не оставались активные клапаны.
+    if (!workMode.centralBroomPress)
+        broomCentral->goPressNone();
+
+    if(!startClean){
+        return;
+    }
+
+    if (broomCentral->getState() >= CentralBroom::BroomFlowed){
+        if (workMode.centralBroomFlow)
+            broomCentral->goFlow();
         else
-        {
-            broomCentral->setNeedState(CentralBroom::BroomOff);
-            broomCentral->choosed = false;
-        }
+            broomCentral->goNoFlow();
+    }
 
-        broomCentral->needSlided = workMode.centralBroomLeft;
-
-        // отвал
-        if (workMode.frontDumpLeft||workMode.frontDumpRight)
-        {
-            frontRail->setNeedState(FrontRail::FrontRailFlowed);
-            frontRail->choosed = true;
-        }
+    if (frontRail->getState() >= FrontRail::FrontRailFlowed){
+        if (workMode.frontDumpFlow)
+            frontRail->goFlow();
         else
-        {
-            frontRail->setNeedState(FrontRail::FrontRailOff);
-            frontRail->choosed = false;
-        }
+            frontRail->goNoFlow();
+    }
+}
 
-        frontRail->needSlided = workMode.frontDumpLeft;
+void  MainWindow::showCentralBroomLeft(){
+    // qDebug()<<"showBroomLeft";
 
-        // дулка
-        if (workMode.blowLeft||workMode.blowRight)
-        {
-            blower->setNeedState(Blower::BlowerRotated);
-            blower->choosed = true;
-        }
-        else
-        {
-            blower->setNeedState(Blower::BlowerOff);
-            blower->choosed = false;
-        }
+    if (startClean)    {
+        setBroomState();
+    }
 
-        // магнит
-        if (workMode.backMagnet)
-        {
-            backMagnet->setNeedState(BackMagnet::BackMagnetDowned);
-            backMagnet->choosed = true;
-        }
-        else
-        {
-            backMagnet->setNeedState(BackMagnet::BackMagnetOff);
-            backMagnet->choosed = false;
-        }
+    if ((startClean && ui->pushButton_centralBroomLeft->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_LEFT)
+    {// нажали кнопку
+        centralBroomLeftTimeCounter++;
+        if (startClean)
+            broomCentral->goLeft();
+    }
+    else
+    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+        if (startClean && centralBroomLeftTimeCounter > 0)
+            broomCentral->goNone();
 
-        // Применяем режимы к уже разложенным органам сразу при изменении workMode.
-        applyWorkModeToDeployedOrgans();
+        if (centralBroomLeftTimeCounter > 1)
+        {
+            // отработаем нажатие
+            if (!startClean)
+                on_pushButton_centralBroomLeft_clicked();
+            //            else
+            //                broomCentral->decreaseSpeed();
+        }
+        centralBroomLeftTimeCounter = 0;
+    }
+}
+
+void  MainWindow::showCentralBroomRight()
+{
+    if ((startClean && ui->pushButton_centralBroomRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_RIGHT)
+    {// нажали кнопку
+        centralBroomRightTimeCounter++;
+        if (startClean)
+            broomCentral->goRight();
+    }
+    else
+    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+        if (startClean && centralBroomRightTimeCounter > 0)
+            broomCentral->goNone();
+        if (centralBroomRightTimeCounter > 1)
+        {
+            // отработаем нажатие
+            if (!startClean)
+                on_pushButton_centralBroomRight_clicked();
+            //            else
+            //                broomCentral->increaseSpeed();
+        }
+        centralBroomRightTimeCounter = 0;
+    }
+}
+
+void MainWindow::showDumpLeft()
+{
+    if (startClean)    {
+        setDumpState();
+    }
+
+    if ((startClean && ui->pushButton_dumpLeft->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_LEFT)
+    {// нажали кнопку
+        frontDumpLeftTimeCounter++;
+        if (startClean)
+            frontRail->goLeft();
+    }
+    else
+    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+        if (startClean && frontDumpLeftTimeCounter > 0)
+            frontRail->goNone();
+        if (frontDumpLeftTimeCounter > 1)
+        {
+            // отработаем нажатие
+            if (!startClean)
+                on_pushButton_dumpLeft_clicked();
+        }
+        frontDumpLeftTimeCounter = 0;
+    }
+}
+
+void MainWindow::showDumpRight()
+{
+    if ((startClean && ui->pushButton_dumpRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT)
+    {// нажали кнопку
+        frontDumpRightTimeCounter++;
+        if (startClean)
+            frontRail->goRight();
+    }
+    else
+    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+        if (startClean && frontDumpRightTimeCounter > 0)
+            frontRail->goNone();
+        if (frontDumpRightTimeCounter > 1)
+        {
+            // отработаем нажатие
+            if (!startClean)
+                on_pushButton_dumpRight_clicked();
+        }
+        frontDumpRightTimeCounter = 0;
+    }
+}
+
+void MainWindow::showBlower()
+{
+    if (startClean){
+        setBlowerState();
+    }
+
+    if (1!=1)//(gp->GPIO[IN_CHANGE_DIRECT])
+    {// нажали кнопку
+        blowerTimeCounter++;
+    }
+    else
+    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+        if (blowerTimeCounter > 1)
+        {
+        // отработаем нажатие
+            if (!startClean)
+            {
+                if (!workMode.blowLeft && !workMode.blowRight)
+                {
+                    workMode.backMagnet = true;
+                    on_pushButton_blowerLeft_clicked();
+                }
+                else if (workMode.blowLeft)
+                {
+                    workMode.backMagnet = true;
+                    on_pushButton_blowerRight_clicked();
+                }
+                else
+                {
+                    workMode.backMagnet = false;
+                    on_pushButton_blowerRight_clicked();
+                }
+            }
+            else
+                on_pushButton_startstop_clicked();
+        }
+        blowerTimeCounter = 0;
+    }
+}
+
+void MainWindow::showPauseButton()
+{
+    if (gpioMatirx->keyPressed == GPIOInput::IN_PAUSE_HOME)
+    {
+        pauseCleanTimeCounter++;
+    }
+    else
+    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+        if (pauseCleanTimeCounter > 1 && startClean)
+        {
+            pauseActive = !pauseActive;
+            if (pauseActive)
+            {
+                addLog("Пауза включена", WarningStatus);
+                // поднимаем органы в промежуточное состояние
+                if (frontRail->choosed)
+                    frontRail->setNeedState(FrontRail::FrontRailBounced);
+                if (broomCentral->choosed)
+                    broomCentral->setNeedState(CentralBroom::BroomRotateIn);
+                if (backMagnet->choosed)
+                    backMagnet->setNeedState(BackMagnet::BackMagnetDownIn);
+                if (blower->choosed)
+                    blower->setNeedState(Blower::BlowerDownIn);
+            }
+            else
+            {
+                addLog("Пауза снята", InfoStatus);
+            }
+            showWorkMode();
+        }
+        if (pauseCleanTimeCounter > 1 && !startClean)
+            on_pushButton_homeState_clicked();
+        pauseCleanTimeCounter = 0;
+    }
+}
+
+//=============================================================
+//====================Buttons click handlers===================
+//=============================================================
+
+void MainWindow::on_pushButton_service_clicked()
+{
+    logger->addUserLogInfo(Logger::UF_SERVICE_PRESSED, 1);
+    diagAskPassword();
+}
+
+void MainWindow::on_pushButton_lightSweep_clicked(){
+    changeSweepMode(LightSweep);
+}
+
+void MainWindow::on_pushButton_mediumSweep_clicked(){
+    changeSweepMode(MediumSweep);
+}
+
+void MainWindow::on_pushButton_heavySweep_clicked(){
+    changeSweepMode(HeavySweep);// защита от поднятой щетки
+}
+
+void MainWindow::on_pushButton_leafSweep_clicked(){
+    changeSweepMode(LeafSweep);
+}
+
+void MainWindow::on_pushButton_settings_clicked(){
+    settingsAskPassword();
+}
+
+//------------------------------------------------------------------------
+void MainWindow::onRailReleased(){
+
+    if (startClean)    {
+        frontRail->goNone();
+        qDebug()<<"StopRail";
+    }
+}
+
+void MainWindow::on_pushButton_dumpUp_pressed(){
+    if (startClean)    {
+        frontRail->goUp();
+        qDebug()<<"LeftRailPressed";
+    }
+}
+void MainWindow::on_pushButton_dumpUp_released(){
+    onRailReleased();
+}
+void MainWindow::on_pushButton_dumpDown_pressed(){
+    if (startClean)    {
+        frontRail->goDown();
+        qDebug()<<"LeftRailPressed";
+    }
+}
+void MainWindow::on_pushButton_dumpDown_released(){
+    onRailReleased();
+}
+
+void MainWindow::on_pushButton_dumpLeft_clicked(){
+    if (!startClean)
+    {
+        workMode.frontDumpLeft = !workMode.frontDumpLeft;
+        workMode.frontDumpRight = false;
+        showWorkMode();
+    }
+}
+void MainWindow::on_pushButton_dumpLeft_pressed(){
+    if (startClean)    {
+        frontRail->goLeft();
+        qDebug()<<"LeftRailPressed";
+    }
+}
+void MainWindow::on_pushButton_dumpLeft_released(){
+    onRailReleased();
+}
+
+void MainWindow::on_pushButton_dumpRight_clicked(){
+    if (!startClean)
+    {
+        workMode.frontDumpRight = !workMode.frontDumpRight;
+        workMode.frontDumpLeft = false;
+        showWorkMode();
+    }
+}
+void MainWindow::on_pushButton_dumpRight_pressed(){
+    if (startClean)    {
+        frontRail->goRight();
+    }
+}
+void MainWindow::on_pushButton_dumpRight_released(){
+    onRailReleased();
+}
+
+void MainWindow::on_pushButton_dumpFlow_clicked(){
+    workMode.frontDumpFlow = !workMode.frontDumpFlow;
+    showWorkMode();
+}
+
+//------------------------------------------------------------------------
+void MainWindow::onBroomReleased(){
+    if (startClean){
+        broomCentral->goNone();
+        qDebug()<<"BroomReleased";
+    }
+}
+
+void MainWindow::on_pushButton_centralBroomLeft_clicked(){
+    if (!startClean)    {
+        workMode.centralBroomLeft = !workMode.centralBroomLeft;
+        workMode.centralBroomRight = false;
+        showWorkMode();
+    }
+}
+void MainWindow::on_pushButton_centralBroomLeft_pressed(){
+    if (startClean)    {
+        broomCentral->goLeft();
+    }
+}
+void MainWindow::on_pushButton_centralBroomLeft_released(){
+    onBroomReleased();
+}
+
+void MainWindow::on_pushButton_centralBroomRight_clicked(){
+    if (!startClean)    {
+        workMode.centralBroomRight = !workMode.centralBroomRight;
+        workMode.centralBroomLeft = false;
+        showWorkMode();
+    }
+}
+void MainWindow::on_pushButton_centralBroomRight_pressed(){
+    if(startClean){
+        broomCentral->goRight();
+    }
+}
+void MainWindow::on_pushButton_centralBroomRight_released(){
+    onBroomReleased();
+}
+
+void MainWindow::on_pushButton_centralBroomUp_pressed(){
+    if (startClean){
+        broomCentral->goUp();}
+}
+void MainWindow::on_pushButton_centralBroomUp_released(){
+    onBroomReleased();
+}
+
+void MainWindow::on_pushButton_centralBroomDown_pressed(){
+    if (startClean){
+        broomCentral->goDown();
+    }
+}
+void MainWindow::on_pushButton_centralBroomDown_released(){
+    onBroomReleased();
+}
+
+void MainWindow::on_pushButton_centralBroomFlow_clicked(){
+    workMode.centralBroomFlow = !workMode.centralBroomFlow;
+    showWorkMode();
+}
+void MainWindow::on_pushButton_centralBroomPress_clicked(){
+    workMode.centralBroomPress = !workMode.centralBroomPress;
+    showWorkMode();
+}
+//------------------------------------------------------------------------
+void MainWindow::onBlowerReleased(){
+    if(startClean){
+        blower->goNone();
+    }
+}
+
+void MainWindow::on_pushButton_blowerUp_pressed(){
+    if(startClean){
+        blower->goUp();
+    }
+}
+void MainWindow::on_pushButton_blowerUp_released(){
+    onBlowerReleased();
+}
+
+void MainWindow::on_pushButton_blowerDown_pressed(){
+    if(startClean){
+        blower->goDown();
+    }
+}
+void MainWindow::on_pushButton_blowerDown_released(){
+    onBlowerReleased();
+}
+
+void MainWindow::on_pushButton_blowerLeft_clicked(){
+    if (!startClean)    {
+        workMode.blowLeft = !workMode.blowLeft;
+        workMode.blowRight = false;
+        showWorkMode();
+    }
+}
+void MainWindow::on_pushButton_blowerLeft_pressed(){
+    if(startClean){
+        blower->goSlide(true);
+    }
+}
+void MainWindow::on_pushButton_blowerLeft_released(){
+    onBlowerReleased();
+}
+
+void MainWindow::on_pushButton_blowerRight_clicked(){
+    if (!startClean)    {
+        workMode.blowRight = !workMode.blowRight;
+        workMode.blowLeft = false;
+        showWorkMode();
+    }
+}
+void MainWindow::on_pushButton_blowerRight_pressed(){
+    if(startClean){
+        blower->goSlide(true);
+    }
+}
+void MainWindow::on_pushButton_blowerRight_released(){
+    onBlowerReleased();
+}
+//------------------------------------------------------------------------
+void MainWindow::on_pushButton_backMagnet_clicked(){
+    //if (!startClean)
+    {
+        workMode.backMagnet = !workMode.backMagnet;
+        showWorkMode();
+    }
+}
+
+void MainWindow::on_pushButton_frmKung_clicked(){
+    workMode.frmKung = !workMode.frmKung;
+    showWorkMode();
+}
+void MainWindow::on_pushButton_frmBroom_clicked(){
+    workMode.frmBroom = !workMode.frmBroom;
+    showWorkMode();
+}
+void MainWindow::on_pushButton_frmMagnet_clicked(){
+    workMode.frmMagnet = !workMode.frmMagnet;
+    showWorkMode();
+}
+
+void MainWindow::on_pushButton_homeState_clicked(){
+    addLog("Переход в домашнее состояние, ожидайте", MainWindow::WarningStatus);
+    // вынуждаем все органы убраться поновой. обманка
+    backMagnet->state = BackMagnet::BackMagnetDowned;
+    blower->state = Blower::BlowerRotated;
+    frontRail->state = FrontRail::FrontRailFlowed;
+    broomCentral->state = CentralBroom::BroomRotated;
+}
+
+//==============================CommonLogic==========================================
+void MainWindow::updateOrgansStates(){
+    // задаем режимы органам
+    // щетка
+    if (workMode.centralBroomLeft||workMode.centralBroomRight)
+    {
+        broomCentral->setNeedState(CentralBroom::BroomFlowed);
+        broomCentral->choosed = true;
+    }
+    else
+    {
+        broomCentral->setNeedState(CentralBroom::BroomOff);
+        broomCentral->choosed = false;
+    }
+
+    broomCentral->needSlided = workMode.centralBroomLeft;
+
+    // отвал
+    if (workMode.frontDumpLeft||workMode.frontDumpRight)
+    {
+        frontRail->setNeedState(FrontRail::FrontRailFlowed);
+        frontRail->choosed = true;
+    }
+    else
+    {
+        frontRail->setNeedState(FrontRail::FrontRailOff);
+        frontRail->choosed = false;
+    }
+
+    frontRail->needSlided = workMode.frontDumpLeft;
+
+    // дулка
+    if (workMode.blowLeft||workMode.blowRight)
+    {
+        blower->setNeedState(Blower::BlowerRotated);
+        blower->choosed = true;
+    }
+    else
+    {
+        blower->setNeedState(Blower::BlowerOff);
+        blower->choosed = false;
+    }
+
+    // магнит
+    if (workMode.backMagnet)
+    {
+        backMagnet->setNeedState(BackMagnet::BackMagnetDowned);
+        backMagnet->choosed = true;
+    }
+    else
+    {
+        backMagnet->setNeedState(BackMagnet::BackMagnetOff);
+        backMagnet->choosed = false;
+    }
+
+    // Применяем режимы к уже разложенным органам сразу при изменении workMode.
+    applyWorkModeToDeployedOrgans();
+}
+
+//==============================Sweep================================================
+
+void MainWindow:: changeSweepMode(quint8 mode){
+    if (workMode.sweepType != mode)
+    {
+        workMode.sweepType = mode;
+        showWorkMode();
+    }
+}
+
+//==============================Broom================================================
+
+void MainWindow::setBroomState(){
+    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_";
+
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_UP,
+                   ui->label_centralBroomUpDown, ui->pushButton_centralBroomUp,
+                   path + "up_on.png);", path + "off.png);",
+                   [this](){emit broomCentral->goUp();},
+                   [this](){emit broomCentral->goNone();});
+
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_DOWN,
+                   ui->label_centralBroomUpDown, ui->pushButton_centralBroomDown,
+                   path + "down_on.png);", path + "off.png);",
+                   [this](){emit broomCentral->goDown();},
+                   [this](){emit broomCentral->goNone();});
+
+
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
+
+    auto defaultIcon = workMode.centralBroomLeft? path + "left_on.png);":
+                           workMode.centralBroomRight?path + "right_on.png);":
+                           "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_off.png);";
+
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_LEFT,
+                   ui->label_centralBroom, ui->pushButton_centralBroomLeft,
+                   path + "left_on.png);",
+                   defaultIcon,//!!!
+                   [this](){broomCentral->goLeft();},
+                   [this](){broomCentral->goNone();});
+
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_RIGHT,
+                   ui->label_centralBroom, ui->pushButton_centralBroomRight,
+                   path + "right_on.png);",
+                   defaultIcon,//!!!
+                   [this](){broomCentral->goRight();},
+                   [this](){broomCentral->goNone();});
+}
+
+//==============================Dump=================================================
+
+void MainWindow::setDumpState(){
+    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_UP,
+                   ui->label_dumpUpDown, ui->pushButton_dumpUp,
+                   path + "up_off.png);", path + "off.png);",
+                   [this](){emit frontRail->goUp();},
+                   [this](){emit frontRail->goNone();});
+
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_DOWN,
+                ui->label_dumpUpDown, ui->pushButton_dumpDown,
+                path + "down_off.png);", path + "off.png);",
+                [this](){frontRail->goDown();},
+                [this](){frontRail->goNone();});
+
+
+    auto defaultIcon = workMode.frontDumpLeft? "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_left_on.png);":
+                           workMode.frontDumpRight?"background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_right_on.png);":
+
+                                                                                                                                                       "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_off.png);";
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_LEFT,
+                    ui->label_dump, ui->pushButton_dumpLeft,
+                   "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_left_on.png);",
+                   defaultIcon,//!!!
+                   [this](){frontRail->goLeft();},
+                   [this](){frontRail->goNone();});
+
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT,
+                   ui->label_dump, ui->pushButton_dumpRight,
+                   "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_right_on.png);",
+                   defaultIcon,//!!!
+                   [this](){frontRail->goRight();},
+                   [this](){frontRail->goNone();});
+}
+
+//==============================Blower===============================================
+
+void MainWindow::setBlowerState(){
+    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
+
+    if (ui->pushButton_blowerUp->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_UP){
+        setStyle(ui->label_blowerUpDown, path + "up_on.png);");
+        ui->pushButton_blowerUp->setProperty("wasDown", true);
+        blower->goUp();
+    }
+    else if (ui->pushButton_blowerUp->property("wasDown").toBool()){
+        setStyle(ui->label_blowerUpDown, path + "off.png);");
+        ui->pushButton_blowerUp->setProperty("wasDown", false);
+        blower->goOff();
+    }
+
+    if (ui->pushButton_blowerDown->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_DOWN){
+        setStyle(ui->label_blowerUpDown, path + "down_on.png);");
+        ui->pushButton_blowerDown->setProperty("wasDown", true);
+        blower->goDown();
+    }
+    else if (ui->pushButton_blowerDown->property("wasDown").toBool()){
+        setStyle(ui->label_blowerUpDown, path + "off.png);");
+        ui->pushButton_blowerDown->setProperty("wasDown", false);
+        blower->goOff();
     }
 
 
-    // проверим доступность кнопошков
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
+    auto defaultIcon = workMode.blowLeft ? path + "left_on.png);":
+                           workMode.blowRight? path + "right_on.png);":
+                           path + "off.png);";
+
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BLOW_LEFT,
+                   ui->label_blower, ui->pushButton_blowerLeft,
+                   path + "left_on.png);",
+                   defaultIcon,//!!!
+                   [this](){blower->goSlide(false);},
+                   [this](){blower->goNone();});
+
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BLOW_RIGHT,
+                   ui->label_blower, ui->pushButton_blowerRight,
+                   path + "right_on.png);",
+                   defaultIcon,//!!!
+                   [this](){blower->goSlide(true);},
+                   [this](){blower->goNone();});
+
+}
+
+//==============================Messages=============================================
+
+QString MainWindow::getFatalStatusMessage(){
+    if(!starterBlocked()){
+        return "Стартер не заблокирован";
+    }
+    if(starterLockedByRoll){
+        return "Стартер заблокирован: прокрутка";
+    }
+    if(starterLockedByTemperature){
+        return "Стартер заблокирован: требуется прогрев двигателя";
+    }
+    if(starterLockedByEmergency){
+        if(waterAlarm)
+            return "Стартер заблокирован: по датчику воды";
+        if(airAlarm)
+            return "Стартер заблокирован: по датчику воздуха";
+        if(oilAlarm)
+            return "Стартер заблокирован: по датчику масла";
+    }
+    if(starterNeedReboot){
+        return "Стартер заблокирован: требуется перезагрузка";
+    }
+    if(engine->waitOnStart){
+        return "Стартер заблокирован: ожидание на старте";
+    }
+}
+
+//==============================UI===================================================
+
+
+void MainWindow::updateButtonsActiveState(){
     if (startClean)
     {
         // домашнее сервис и настройки
@@ -2863,95 +3546,67 @@ void MainWindow::showWorkMode()
         }
     }
 
-    // меняем картиночки доступности кнопок после анализа
+}
+
+void MainWindow::updateButtonsIcons(){
+
+    QString path ="border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_";
+    setStyle(ui->pushButton_leafSweep, path + (workMode.sweepType == LeafSweep?"easy_on.png);":"easy_off.png);"));// смет листья
+    setStyle(ui->pushButton_lightSweep, path + (workMode.sweepType == LightSweep? "average_on.png);":"average_off.png);" ));// смет легкий
+    setStyle(ui->pushButton_mediumSweep, path + (workMode.sweepType == MediumSweep ? "hard_on.png);" : "hard_off.png);"));// смет средний
+    setStyle(ui->pushButton_heavySweep, path + (workMode.sweepType == HeavySweep ? "leafHarvesting_on.png);" : "leafHarvesting_off.png);"));// смет тяжелый
+
     // дулка
-    if (ui->pushButton_blowerDown->isEnabled())
-    {
-        if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);")
-            ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);");
-    }
-    else
-    {
-        if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_blocked.png);")
-            ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_blocked.png);");
-    }
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
+    setStyle(ui->label_blowerUpDown, path +(ui->pushButton_blowerDown->isEnabled()?"off.png);":"blocked.png);"));
 
     // щетка
-    if (ui->pushButton_centralBroomDown->isEnabled())
-    {
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_";
+    setStyle(ui->label_centralBroomUpDown, path + (ui->pushButton_centralBroomDown->isEnabled()? "off.png);":"blocked.png);"));
 
-        qDebug()<<"show work mode: true";
-        if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);")
-            ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);");
-    }
-    else
-    {
-
-        qDebug()<<"show work mode: false";
-        if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_blocked.png);")
-            ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_blocked.png);");
-    }
-    // отвал
-    if (ui->pushButton_dumpDown->isEnabled())
-    {
-        if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);")
-            ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);");
-    }
-    else
-    {
-        if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_blocked.png);")
-            ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_blocked.png);");
-    }
-
-    // смет листья
-    if (workMode.sweepType == LeafSweep && ui->pushButton_leafSweep->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_easy_on.png);")
-        ui->pushButton_leafSweep->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_easy_on.png);");
-    if (workMode.sweepType != LeafSweep && ui->pushButton_leafSweep->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_easy_off.png);")
-        ui->pushButton_leafSweep->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_easy_off.png);");
-    // смет легкий
-    if (workMode.sweepType == LightSweep && ui->pushButton_lightSweep->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_average_on.png);")
-        ui->pushButton_lightSweep->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_average_on.png);");
-    if (workMode.sweepType != LightSweep && ui->pushButton_lightSweep->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_average_off.png);")
-        ui->pushButton_lightSweep->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_average_off.png);");
-    // смет средний
-    if (workMode.sweepType == MediumSweep && ui->pushButton_mediumSweep->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_hard_on.png);")
-        ui->pushButton_mediumSweep->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_hard_on.png);");
-    if (workMode.sweepType != MediumSweep && ui->pushButton_mediumSweep->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_hard_off.png);")
-        ui->pushButton_mediumSweep->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_hard_off.png);");
-    // смет тяжелый
-    if (workMode.sweepType == HeavySweep && ui->pushButton_heavySweep->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_leafHarvesting_on.png);")
-        ui->pushButton_heavySweep->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_leafHarvesting_on.png);");
-    if (workMode.sweepType != HeavySweep && ui->pushButton_heavySweep->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_leafHarvesting_off.png);")
-        ui->pushButton_heavySweep->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/cleaningMode_button_leafHarvesting_off.png);");
 
     // задняя щетка
-    if (workMode.centralBroomLeft && !workMode.centralBroomRight && ui->label_centralBroom->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_left_on.png);")
-        ui->label_centralBroom->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_left_on.png);");
-    else if (!workMode.centralBroomLeft && workMode.centralBroomRight && ui->label_centralBroom->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_right_on.png);")
-        ui->label_centralBroom->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_right_on.png);");
-    else if (!workMode.centralBroomLeft && !workMode.centralBroomRight && ui->label_centralBroom->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_off.png);")
-        ui->label_centralBroom->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_off.png);");
-    if (workMode.centralBroomFlow && workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_on.png);")
-        ui->label_centralBroomFloatPress->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_variable_on.png);");
-    else if (workMode.centralBroomFlow && !workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_on.png);")
-        ui->label_centralBroomFloatPress->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_on.png);");
-    else if (!workMode.centralBroomFlow && workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_down_on.png);")
-        ui->label_centralBroomFloatPress->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_variable_down_on.png);");
-    else if (!workMode.centralBroomFlow && !workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_off.png);")
-        ui->label_centralBroomFloatPress->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_variable_off.png);");
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
 
+    if (workMode.centralBroomLeft){
+        setStyle(ui->label_centralBroom, path + "left_on.png);");
+    }
+    else{
+        if (workMode.centralBroomRight)
+            setStyle(ui->label_centralBroom, path + "right_on.png);");
+        else
+            setStyle(ui->label_centralBroom, "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_off.png);");
 
-    // передний отвыал
-    if (workMode.frontDumpLeft && !workMode.frontDumpRight && ui->label_dump->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_left_on.png);")
-        ui->label_dump->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_left_on.png);");
-    else if (!workMode.frontDumpLeft && workMode.frontDumpRight && ui->label_dump->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_right_on.png);")
-        ui->label_dump->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_right_on.png);");
-    else if (!workMode.frontDumpLeft && !workMode.frontDumpRight && ui->label_dump->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_off.png);")
-        ui->label_dump->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_off.png);");
-    if (workMode.frontDumpFlow && ui->label_dumpFloatPress->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_on_down_blocked.png);")
-        ui->label_dumpFloatPress->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_on_down_blocked.png);");
-    else if (!workMode.frontDumpFlow && ui->label_dumpFloatPress->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_off_down_blocked.png);")
-        ui->label_dumpFloatPress->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_off_down_blocked.png);");
+    }
+
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
+    if (workMode.centralBroomFlow && workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != path + "on.png);")
+        ui->label_centralBroomFloatPress->setStyleSheet(path + "on.png);");
+    else if (workMode.centralBroomFlow && !workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != path + "up_on.png);")
+        ui->label_centralBroomFloatPress->setStyleSheet(path + "up_on.png);");
+    else if (!workMode.centralBroomFlow && workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != path + "down_on.png);")
+        ui->label_centralBroomFloatPress->setStyleSheet(path + "down_on.png);");
+    else if (!workMode.centralBroomFlow && !workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != path + "off.png);")
+        ui->label_centralBroomFloatPress->setStyleSheet(path + "off.png);");
+
+    // отвал
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
+    setStyle(ui->label_dumpUpDown, path + (ui->pushButton_dumpDown->isEnabled()? "off.png);": "blocked.png);"));
+
+    // передний отвал
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_";
+    if (workMode.frontDumpLeft && !workMode.frontDumpRight)
+        setStyle(ui->label_dump, path + "left_on.png);");
+    else if (!workMode.frontDumpLeft && workMode.frontDumpRight )
+        setStyle(ui->label_dump, path + "right_on.png);");
+    else if (!workMode.frontDumpLeft && !workMode.frontDumpRight )
+        setStyle(ui->label_dump, path + "off.png);");
+
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_";
+    if (workMode.frontDumpFlow)
+        setStyle(ui->label_dumpFloatPress, path + "on_down_blocked.png);");
+    else if (!workMode.frontDumpFlow )
+        setStyle(ui->label_dumpFloatPress, path + "off_down_blocked.png);");
 
     // магнит
     if (workMode.backMagnet && ui->label_backMagnet->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_magnet_on.png);")
@@ -2960,12 +3615,13 @@ void MainWindow::showWorkMode()
         ui->label_backMagnet->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_magnet_off.png);");
 
     // дулка
-    if (workMode.blowLeft && !workMode.blowRight && ui->label_blower->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_left_on.png);")
-        ui->label_blower->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_left_on.png);");
-    else if (!workMode.blowLeft && workMode.blowRight && ui->label_blower->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_right_on.png);")
-        ui->label_blower->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_right_on.png);");
-    else if (!workMode.blowLeft && !workMode.blowRight && ui->label_blower->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_off.png);")
-        ui->label_blower->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_off.png);");
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
+    if (workMode.blowLeft && !workMode.blowRight )
+        setStyle(ui->label_blower, path + "left_on.png);");
+    else if (!workMode.blowLeft && workMode.blowRight)
+        setStyle(ui->label_blower, path + "right_on.png);");
+    else if (!workMode.blowLeft && !workMode.blowRight)
+                setStyle(ui->label_blower, path + "off.png);");
 
     // старт стоп
     if (startClean && ui->pushButton_startstop->styleSheet() != "outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_on.png);")
@@ -2974,583 +3630,82 @@ void MainWindow::showWorkMode()
         ui->pushButton_startstop->setStyleSheet("outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_off.png);");
 }
 
-bool MainWindow::canStart()
-{
-    return true;
+void MainWindow::setBtnState(QWidget *widget, QString path, std::function<void()> handler){
+    setStyle(widget, path);
+    handler();
 }
 
-float MainWindow::hydraulicPressureValue(int index) const
-{
-    static const DeviceStates pressureStates[4] = {
-        StateHydraulicDistibutorPressure,
-        StateHydraulicBroomPressure,
-        StateHydraulicFanPressure,
-        StateHydraulicBroomPressPressure
-    };
+void MainWindow::selectBtnState(bool gpioPressed, QLabel *lbl, QPushButton *btn, QString onPath, QString offPath,
+                                std::function<void()> onPressHandler,
+                                std::function<void()> onReleaseHandler){
 
-    if (index < 0 || index >= 4)
-        return 0.0f;
-
-    return hydraulicPressureK[index] * can0->getState(pressureStates[index]).toFloat() + hydraulicPressureB[index];
-}
-
-void MainWindow::toggleAllFrm()
-{
-    const bool enable = !(workMode.frmKung && workMode.frmBroom && workMode.frmMagnet);
-    workMode.frmKung = enable;
-    workMode.frmBroom = enable;
-    workMode.frmMagnet = enable;
-    showWorkMode();
-}
-
-bool MainWindow::isIdleMode()
-{
-    // проверяекм надо ли затенять кнопки переключения режимов
-    if (blower->getState() != Blower::BlowerOff
-            || broomCentral->getState() != CentralBroom::BroomOff
-            || frontRail->getState() != FrontRail::FrontRailOff
-            || backMagnet->getState() != BackMagnet::BackMagnetOff
-            || startClean)
-    {
-        return false;
+    bool wasDown = btn->property("wasDown").toBool();
+    if (btn->isDown() || gpioPressed){
+        if(!wasDown){
+            qDebug()<<"*pressed"<<btn->objectName();
+            btn->setProperty("wasDown", true);
+            setBtnState(lbl, onPath, onPressHandler);}
     }
-    return true;
-}
-
-bool MainWindow::isOrgansTransitioning()
-{
-    // органы в процессе перехода - ручное управление заблокировано
-    // при движении к работе цель ограничивается ableState, при выключении всегда идём к Off
-
-    CentralBroom::BroomStates broomTarget = broomCentral->needState;
-    if (broomCentral->needState != CentralBroom::BroomOff && broomCentral->ableState < broomCentral->needState)
-        broomTarget = broomCentral->ableState;
-    if (broomCentral->state != broomTarget)
-        return true;
-
-    FrontRail::FrontRailStates railTarget = frontRail->needState;
-    if (frontRail->needState != FrontRail::FrontRailOff && frontRail->ableState < frontRail->needState)
-        railTarget = frontRail->ableState;
-    if (frontRail->state != railTarget)
-        return true;
-
-    BackMagnet::BackMagnetStates magnetTarget = backMagnet->needState;
-    if (backMagnet->needState != BackMagnet::BackMagnetOff && backMagnet->ableState < backMagnet->needState)
-        magnetTarget = backMagnet->ableState;
-    if (backMagnet->state != magnetTarget)
-        return true;
-
-    Blower::BlowerStates blowerTarget = blower->needState;
-    if (blower->needState != Blower::BlowerOff && blower->ableState < blower->needState)
-        blowerTarget = blower->ableState;
-    if (blower->state != blowerTarget)
-        return true;
-
-    return false;
-}
-
-void MainWindow::applyWorkModeToDeployedOrgans()
-{
-    // При отключенном прижиме сбрасываем поджим сразу, чтобы не оставались активные клапаны.
-    if (!workMode.centralBroomPress)
-        broomCentral->goPressNone();
-
-    if (startClean && broomCentral->getState() >= CentralBroom::BroomFlowed)
-    {
-        if (workMode.centralBroomFlow)
-            broomCentral->goFlow();
-        else
-            broomCentral->goNoFlow();
-    }
-
-    if (startClean && frontRail->getState() >= FrontRail::FrontRailFlowed)
-    {
-        if (workMode.frontDumpFlow)
-            frontRail->goFlow();
-        else
-            frontRail->goNoFlow();
+    else if (wasDown){
+        qDebug()<<"*released"<<btn->objectName();
+        btn->setProperty("wasDown", false);
+        setBtnState(lbl, offPath, onReleaseHandler);
     }
 }
 
 
-void  MainWindow::showCentralBroomLeft()
-{
-    if (startClean)
-    {
-        if (ui->pushButton_centralBroomUp->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_UP)
-        {
-            if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_up_on.png);")
-                ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_up_on.png);");
+void MainWindow::selectBtnState(bool gpioPressed, QPushButton *btn, QString onPath, QString offPath,
+                                std::function<void()> onPressHandler,
+                                std::function<void()> onReleaseHandler){
 
-            ui->pushButton_centralBroomUp->setProperty("wasDown", true);
-            if (workMode.centralBroomPress)
-                broomCentral->goPressUp();
-            else
-                broomCentral->goUp();
-        }
-        else if (ui->pushButton_centralBroomUp->property("wasDown").toBool())
-        {
-            if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);")
-                ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);");
-
-            ui->pushButton_centralBroomUp->setProperty("wasDown", false);
-            if (workMode.centralBroomPress)
-                broomCentral->goPressNone();
-            else
-                broomCentral->goNone();
-        }
-        if (ui->pushButton_centralBroomDown->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_DOWN)
-        {
-            if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_down_on.png);")
-                ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_down_on.png);");
-
-            ui->pushButton_centralBroomDown->setProperty("wasDown", true);
-            if (workMode.centralBroomPress)
-                broomCentral->goPressDown();
-            else
-                broomCentral->goDown();
-
-        }
-        else if (ui->pushButton_centralBroomDown->property("wasDown").toBool())
-        {
-            if (ui->label_centralBroomUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);")
-                ui->label_centralBroomUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_off.png);");
-
-            ui->pushButton_centralBroomDown->setProperty("wasDown", false);
-            if (workMode.centralBroomPress)
-                broomCentral->goPressNone();
-            else
-                broomCentral->goNone();
+    bool wasDown = btn->property("wasDown").toBool();
+    if (btn->isDown() || gpioPressed){
+        if(!wasDown){
+            qDebug()<<"*pressed"<<btn->objectName();
+            btn->setProperty("wasDown", true);
+            setBtnState(btn, onPath, onPressHandler);
         }
     }
-
-    if ((startClean && ui->pushButton_centralBroomLeft->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_LEFT)
-    {// нажали кнопку
-        centralBroomLeftTimeCounter++;
-        if (startClean)
-            broomCentral->goLeft();
-    }
-    else
-    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
-        if (startClean && centralBroomLeftTimeCounter > 0)
-            broomCentral->goNone();
-        if (centralBroomLeftTimeCounter > 1)
-        {
-        // отработаем нажатие
-            if (!startClean)
-                on_pushButton_centralBroomLeft_clicked();
-//            else
-//                broomCentral->decreaseSpeed();
-        }
-        centralBroomLeftTimeCounter = 0;
+    else if (wasDown){
+        qDebug()<<"*released"<<btn->objectName();
+        btn->setProperty("wasDown", false);
+        setBtnState(btn, offPath, onReleaseHandler);
     }
 }
 
-void  MainWindow::showCentralBroomRight()
-{
-    if ((startClean && ui->pushButton_centralBroomRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_RIGHT)
-    {// нажали кнопку
-        centralBroomRightTimeCounter++;
-        if (startClean)
-            broomCentral->goRight();
-    }
-    else
-    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
-        if (startClean && centralBroomRightTimeCounter > 0)
-            broomCentral->goNone();
-        if (centralBroomRightTimeCounter > 1)
-        {
-            // отработаем нажатие
-            if (!startClean)
-                on_pushButton_centralBroomRight_clicked();
-//            else
-//                broomCentral->increaseSpeed();
-        }
-        centralBroomRightTimeCounter = 0;
-    }
+void MainWindow::setStyle(QWidget *widget, QString path){
+    if (widget->styleSheet() != path)
+        widget->setStyleSheet(path);
 }
 
-void MainWindow::showDumpLeft()
-{
-    if (startClean)
-    {
-        if (ui->pushButton_dumpUp->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_UP)
-        {
-            if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_up_off.png);")
-                ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_up_off.png);");
+void MainWindow::showStatus(QLabel *label, bool check) {
+    showStatus(label, check, "", false);
+}
 
-            ui->pushButton_dumpUp->setProperty("wasDown", true);
-            frontRail->goUp();
-        }
-        else if (ui->pushButton_dumpUp->property("wasDown").toBool())
-        {
-            if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);")
-                ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);");
-
-            ui->pushButton_dumpUp->setProperty("wasDown", false);
-            frontRail->goNone();
-        }
-        if (ui->pushButton_dumpDown->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_DOWN)
-        {
-            if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_down_off.png);")
-                ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_down_off.png);");
-
-            ui->pushButton_dumpDown->setProperty("wasDown", true);
-            frontRail->goDown();
-        }
-        else if (ui->pushButton_dumpDown->property("wasDown").toBool())
-        {
-            if (ui->label_dumpUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);")
-                ui->label_dumpUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_off.png);");
-
-            ui->pushButton_dumpDown->setProperty("wasDown", false);
-            frontRail->goNone();
-        }
+void MainWindow::showStatus(QLabel *label, bool check, QString message, bool showMsg) {
+    if(check == label->isVisible()){
+        return;
     }
+    if(check){
+        if(showMsg) addLog(message, MainWindow::WarningStatus);
 
-    if ((startClean && ui->pushButton_dumpLeft->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_LEFT)
-    {// нажали кнопку
-        frontDumpLeftTimeCounter++;
-        if (startClean)
-            frontRail->goLeft();
+        label->show();
     }
-    else
-    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
-        if (startClean && frontDumpLeftTimeCounter > 0)
-            frontRail->goNone();
-        if (frontDumpLeftTimeCounter > 1)
-        {
-        // отработаем нажатие
-            if (!startClean)
-                on_pushButton_dumpLeft_clicked();
-        }
-        frontDumpLeftTimeCounter = 0;
+    else{
+        label->hide();
     }
 }
 
-void MainWindow::showDumpRight()
-{
-    if ((startClean && ui->pushButton_dumpRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT)
-    {// нажали кнопку
-        frontDumpRightTimeCounter++;
-        if (startClean)
-            frontRail->goRight();
+void MainWindow::showStatus(QLabel *label, bool check, QString messageOn, QString messageOff) {
+    if(check == label->isVisible()){
+        return;
     }
-    else
-    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
-        if (startClean && frontDumpRightTimeCounter > 0)
-            frontRail->goNone();
-        if (frontDumpRightTimeCounter > 1)
-        {
-        // отработаем нажатие
-            if (!startClean)
-                on_pushButton_dumpRight_clicked();
-        }
-        frontDumpRightTimeCounter = 0;
+    if(check){
+        addLog(messageOn, MainWindow::WarningStatus);
+        label->show();
     }
-}
-
-void MainWindow::showBlower()
-{
-    if (startClean)
-    {
-        if (ui->pushButton_blowerUp->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_UP)
-        {
-            if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_up_on.png);")
-                ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_up_on.png);");
-
-            ui->pushButton_blowerUp->setProperty("wasDown", true);
-            blower->goUp();
-        }
-        else if (ui->pushButton_blowerUp->property("wasDown").toBool())
-        {
-            if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);")
-                ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);");
-
-            ui->pushButton_blowerUp->setProperty("wasDown", false);
-            blower->goOff();
-        }
-        if (ui->pushButton_blowerDown->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_DOWN)
-        {
-            if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_down_on.png);")
-                ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_down_on.png);");
-
-            ui->pushButton_blowerDown->setProperty("wasDown", true);
-            blower->goDown();
-        }
-        else if (ui->pushButton_blowerDown->property("wasDown").toBool())
-        {
-            if (ui->label_blowerUpDown->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);")
-                ui->label_blowerUpDown->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_off.png);");
-
-            ui->pushButton_blowerDown->setProperty("wasDown", false);
-            blower->goOff();
-        }
+    else{
+        label->hide();
+        addLog(messageOff, MainWindow::InfoStatus);
     }
-
-    if (1!=1)//(gp->GPIO[IN_CHANGE_DIRECT])
-    {// нажали кнопку
-        blowerTimeCounter++;
-    }
-    else
-    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
-        if (blowerTimeCounter > 1)
-        {
-        // отработаем нажатие
-            if (!startClean)
-            {
-                if (!workMode.blowLeft && !workMode.blowRight)
-                {
-                    workMode.backMagnet = true;
-                    on_pushButton_blowerLeft_clicked();
-                }
-                else if (workMode.blowLeft)
-                {
-                    workMode.backMagnet = true;
-                    on_pushButton_blowerRight_clicked();
-                }
-                else
-                {
-                    workMode.backMagnet = false;
-                    on_pushButton_blowerRight_clicked();
-                }
-            }
-            else
-                on_pushButton_startstop_clicked();
-        }
-        blowerTimeCounter = 0;
-    }
-}
-
-void MainWindow::showPauseButton()
-{
-    if (gpioMatirx->keyPressed == GPIOInput::IN_PAUSE_HOME)
-    {
-        pauseCleanTimeCounter++;
-    }
-    else
-    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
-        if (pauseCleanTimeCounter > 1 && startClean)
-        {
-            pauseActive = !pauseActive;
-            if (pauseActive)
-            {
-                addLog("Пауза включена", WarningStatus);
-                // поднимаем органы в промежуточное состояние
-                if (frontRail->choosed)
-                    frontRail->setNeedState(FrontRail::FrontRailBounced);
-                if (broomCentral->choosed)
-                    broomCentral->setNeedState(CentralBroom::BroomRotateIn);
-                if (backMagnet->choosed)
-                    backMagnet->setNeedState(BackMagnet::BackMagnetDownIn);
-                if (blower->choosed)
-                    blower->setNeedState(Blower::BlowerDownIn);
-            }
-            else
-            {
-                addLog("Пауза снята", InfoStatus);
-            }
-            showWorkMode();
-        }
-        if (pauseCleanTimeCounter > 1 && !startClean)
-            on_pushButton_homeState_clicked();
-        pauseCleanTimeCounter = 0;
-    }
-}
-
-
-//=============================================================
-//====================Buttons click handlers===================
-//=============================================================
-
-void MainWindow::on_pushButton_service_clicked()
-{
-    logger->addUserLogInfo(Logger::UF_SERVICE_PRESSED, 1);
-    diagAskPassword();
-}
-
-void MainWindow::on_pushButton_lightSweep_clicked()
-{
-    if (workMode.sweepType != LightSweep)
-    {
-        workMode.sweepType = LightSweep;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_mediumSweep_clicked()
-{
-    if (workMode.sweepType != MediumSweep)
-    {
-        workMode.sweepType = MediumSweep;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_heavySweep_clicked()
-{
-    if (workMode.sweepType != HeavySweep)
-    {// защита от поднятой щетки
-        workMode.sweepType = HeavySweep;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_leafSweep_clicked()
-{
-    if (workMode.sweepType != LeafSweep)
-    {
-        workMode.sweepType = LeafSweep;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_settings_clicked()
-{
-    settingsAskPassword();
-}
-
-void MainWindow::on_pushButton_dumpUp_clicked()
-{
-
-}
-
-void MainWindow::on_pushButton_dumpDown_clicked()
-{
-
-}
-
-void MainWindow::on_pushButton_dumpLeft_clicked()
-{
-    //if (!startClean)
-    {
-        workMode.frontDumpLeft = !workMode.frontDumpLeft;
-        workMode.frontDumpRight = false;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_dumpRight_clicked()
-{
-    //if (!startClean)
-    {
-        workMode.frontDumpRight = !workMode.frontDumpRight;
-        workMode.frontDumpLeft = false;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_dumpFlow_clicked()
-{
-    workMode.frontDumpFlow = !workMode.frontDumpFlow;
-    showWorkMode();
-}
-
-void MainWindow::on_pushButton_centralBroomLeft_clicked()
-{
-    //if (!startClean)
-    {
-        workMode.centralBroomLeft = !workMode.centralBroomLeft;
-        workMode.centralBroomRight = false;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_centralBroomRight_clicked()
-{
-    //if (!startClean)
-    {
-        workMode.centralBroomRight = !workMode.centralBroomRight;
-        workMode.centralBroomLeft = false;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_centralBroomUp_clicked()
-{
-
-}
-
-void MainWindow::on_pushButton_centralBroomDown_clicked()
-{
-
-}
-
-void MainWindow::on_pushButton_centralBroomFlow_clicked()
-{
-    workMode.centralBroomFlow = !workMode.centralBroomFlow;
-    showWorkMode();
-}
-
-void MainWindow::on_pushButton_centralBroomPress_clicked()
-{
-    workMode.centralBroomPress = !workMode.centralBroomPress;
-    showWorkMode();
-}
-
-void MainWindow::on_pushButton_blowerUp_clicked()
-{
-
-}
-
-void MainWindow::on_pushButton_blowerDown_clicked()
-{
-
-}
-
-void MainWindow::on_pushButton_blowerLeft_clicked()
-{
-    if (!startClean)
-    {
-        workMode.blowLeft = !workMode.blowLeft;
-        workMode.blowRight = false;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_blowerRight_clicked()
-{
-    if (!startClean)
-    {
-        workMode.blowRight = !workMode.blowRight;
-        workMode.blowLeft = false;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_backMagnet_clicked()
-{
-    //if (!startClean)
-    {
-        workMode.backMagnet = !workMode.backMagnet;
-        showWorkMode();
-    }
-}
-
-void MainWindow::on_pushButton_frmKung_clicked()
-{
-    workMode.frmKung = !workMode.frmKung;
-    showWorkMode();
-}
-
-void MainWindow::on_pushButton_frmBroom_clicked()
-{
-    workMode.frmBroom = !workMode.frmBroom;
-    showWorkMode();
-}
-
-void MainWindow::on_pushButton_frmMagnet_clicked()
-{
-    workMode.frmMagnet = !workMode.frmMagnet;
-    showWorkMode();
-}
-
-void MainWindow::on_pushButton_homeState_clicked()
-{
-    addLog("Переход в домашнее состояние, ожидайте", MainWindow::WarningStatus);
-    // вынуждаем все органы убраться поновой. обманка
-    backMagnet->state = BackMagnet::BackMagnetDowned;
-    blower->state = Blower::BlowerRotated;
-    frontRail->state = FrontRail::FrontRailFlowed;
-    broomCentral->state = CentralBroom::BroomRotated;
 }
