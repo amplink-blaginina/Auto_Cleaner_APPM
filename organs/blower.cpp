@@ -148,6 +148,7 @@ void Blower::goOff()
     myCan->setState(StateValveE3, false);
     myCan->setState(StateValveE1, false);
     myCan->setState(StateValveE5, false);
+    myCan->setState(StateValveA1, false);
 }
 
 void Blower::goRotate(quint8 speed)

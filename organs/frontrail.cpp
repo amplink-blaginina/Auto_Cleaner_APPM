@@ -198,6 +198,7 @@ void FrontRail::goNone()
     myCan->setState(StateValveF12, false);
     myCan->setState(StateValveF1, false);
     myCan->setState(StateValveF7, false);
+    myCan->setState(StateValveA1, false);
 }
 
 void FrontRail::goDown()

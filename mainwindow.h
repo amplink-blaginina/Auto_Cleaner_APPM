@@ -223,7 +223,7 @@ public:
     void showStatus(QLabel *label, bool check, QString message, bool showMsg = true);
     void showStatus(QLabel *label, bool check, QString messageOn, QString messageOff);
     void showPultOffIgnition();
-    void showFRM();
+    void updateFRM();
     void showStarter();
     void showStartClean();
     void showModeButton();
@@ -457,6 +457,7 @@ private:
     QTimer repaintTimer;
     QTimer oneSecondTimer;
     QTimer goHomeTimer;
+    QFont font;
     //std::unordered_map<std::pair<CleanConfiguration, Direction>, double> dict;
 
     void stopStarterOutput();
@@ -506,6 +507,12 @@ private:
     //void setBtnState(QWidget *widget, QPushButton *btn, QString path, std::function<void ()> handler);
     void selectBtnState(bool gpioPressed, QLabel *lbl, QPushButton *btn, QString onPath, QString offPath, std::function<void ()> onPress, std::function<void ()> onRelease);
     void selectBtnState(bool gpioPressed, QPushButton *btn, QString onPath, QString offPath, std::function<void ()> onPressHandler, std::function<void ()> onReleaseHandler);
+    void loadAndSetFonts();
+    void setDefaultWorkMode();
+    void setDefaultSettings();
+    QString getMovementText(Direction direction);
+    QString getOrganText(Organ organ);
+    void printOrganStatus(Organ organ, Direction direction, bool state);
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);

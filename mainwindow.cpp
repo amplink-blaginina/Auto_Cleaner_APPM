@@ -90,23 +90,337 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     ui->label_version->setText("Версия: " + programmVersionString);
 
-    workMode.centralBroomLeft = false;
-    workMode.centralBroomRight = false;
-    workMode.centralBroomFlow = false;
-    workMode.centralBroomPress = false;
-    workMode.blowLeft = false;
-    workMode.blowRight = false;
-    workMode.frontDumpLeft = false;
-    workMode.frontDumpRight = false;
-    workMode.frontDumpFlow = false;
-    workMode.backMagnet = false;
-    workMode.frmBroom = false;
-    workMode.frmMagnet = false;
-    workMode.frmKung = false;
-    workMode.sweepType = LightSweep;
+    setDefaultWorkMode();
     qRegisterMetaType<struct can_frame>();
 
-    // загружаем сторонние шрифты
+    
+    loadAndSetFonts();// загружаем сторонние шрифты
+
+    bool need_to_reconf = false;
+    // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
+    removeBadSettings();
+
+    if (need_to_reconf)
+        QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini");
+    settings = new QSettings(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini", QSettings::IniFormat);
+    
+    setDefaultSettings();//дефолтные настройки
+
+
+    addElement(StateValveA1, "Силовой клапан A1", 1, 0, OUT_MODE_NORMAL);
+    addElement(StateValveF1, "(F1)Подъем отвала", 1, 1, OUT_MODE_NORMAL);
+    addElement(StateValveF2, "(F2)Отжим щетки", 1, 2, OUT_MODE_NORMAL);
+    addElement(StateValveF3, "(F3)Поворот щетки вправо", 1, 3, OUT_MODE_NORMAL);
+    addElement(StateValveF4, "(F4)Опускание щетки", 1, 4, OUT_MODE_NORMAL);
+    addElement(StateValveF6, "(F6)Поворот отвала вправо", 1, 5, OUT_MODE_NORMAL);
+    addElement(StateValveF7, "(F7)Опускание отвала", 1, 6, OUT_MODE_NORMAL);
+    addElement(StateValveF8, "(F8)Прижим щетки", 1, 7, OUT_MODE_NORMAL);
+    addElement(StateValveF9, "(F9)Поворот щетки влево", 1, 8, OUT_MODE_NORMAL);
+    addElement(StateValveF10, "(F10)Подъем щетки", 1, 9, OUT_MODE_NORMAL);
+    addElement(StateValveF12, "(F12)Поворот отвала влево", 1, 10, OUT_MODE_NORMAL);
+    addElement(StateValveE1, "(E1)Подъем воздуходувки", 1, 11, OUT_MODE_NORMAL);
+
+    addElement(StateValveE2, "(E2)Подъем магнитной плиты", 2, 0, OUT_MODE_NORMAL);
+    addElement(StateValveE3, "(E3)Направление воздуха влево", 2, 1, OUT_MODE_NORMAL);
+    addElement(StateValveE5, "(E5)Опускание воздуходувки", 2, 2, OUT_MODE_NORMAL);
+    addElement(StateValveE6, "(E6)Опускание магнитной плиты", 2, 3, OUT_MODE_NORMAL);
+    addElement(StateValveE7, "(E7)Направление воздуха вправо", 2, 4, OUT_MODE_NORMAL);
+    addElement(StateValveC1, "(C1)Плавающий режим щетка", 2, 5, OUT_MODE_NORMAL);
+    addElement(StateValveC2, "(C2)Плавающий режим щетка", 2, 6, OUT_MODE_NORMAL);
+    addElement(StateValveC3, "(C3)Плавающий режим отвал", 2, 7, OUT_MODE_NORMAL);
+    addElement(StateValveC4, "(C4)Плавающий режим отвал", 2, 8, OUT_MODE_NORMAL);
+    addElement(StateValveD1, "(D1)Вращение щетки", 2, 9, OUT_MODE_PFM, 0, 0, 50, 150, 10);
+    addElement(StateValveD2, "(D2)Вращение щетки в обратную сторону", 2, 10, OUT_MODE_PFM, 0, 0, 50, 150, 10);
+    addElement(StateValveD3, "(D3)Вращение вентилятора", 2, 11, OUT_MODE_PFM, 0, 0, 50, 150, fanAccelRate);
+
+    addElement(StateDrainFilterD28, "Датчик сливного фильтра", 3, 0, IN_MODE_NORMAL);
+    addElement(StatePressureFilter1, "Датчик напорного фильтра1", 3, 1, IN_MODE_NORMAL);
+    addElement(StatePressureFilter2, "Датчик напорного фильтра2", 3, 2, IN_MODE_NORMAL);
+    addElement(StateHydroTankLevelD27, "Датчик уровня гидробака", 3, 3, IN_MODE_NORMAL);
+    addElement(StateHydraulicDistibutorPressure, "Давление гидросистемы распределителя 1", 3, 4, IN_MODE_ANALOG_8);
+    addElement(StateHydraulicBroomPressure, "Давление гидросистемы контур вращения щетки", 3, 5, IN_MODE_ANALOG_8);
+    addElement(StateHydraulicFanPressure, "Давление гидросистемы контур вращения вентилятора", 3, 6, IN_MODE_ANALOG_8);
+    addElement(StateHydraulicBroomPressPressure, "Давление гидросистемы контура поджатия щетки", 3, 7, IN_MODE_ANALOG_8);
+    addElement(StateHydraulicOilTemperature, "Датчик температуры гидросистемы", 3, 8, IN_MODE_ANALOG_8);
+    addElement(StateDKPBackMagnetUp, "Датчик ДКП магнит верх", 3, 9, IN_MODE_NORMAL);
+//    addElement(StateEngineReady, "Датчик готовности ДВС", 3, 10, IN_MODE_NORMAL);
+    addElement(StateDKPBlowerUp1, "Датчик ДКП продувка верх 1", 3, 10, IN_MODE_NORMAL);
+    addElement(StateDKPBlowerUp2, "Датчик ДКП продувка верх 2", 3, 11, IN_MODE_NORMAL);
+
+    addElement(StateStarterAllow, "Разрешение стартер", 5, 0, OUT_MODE_NORMAL);
+    addElement(StateStarterRoll, "Стартер прокрутка", 5, 1, OUT_MODE_NORMAL);
+    addElement(State24Volt, "+24", 5, 2, OUT_MODE_NORMAL);
+
+    addElement(StateWaterSensor, "Датчик воды", 6, 0, IN_MODE_NORMAL);
+    addElement(StateRollIn, "Прокрутка вх.", 6, 1, IN_MODE_NORMAL);
+    addElement(StateAirFilterBad, "Засор ВФ", 6, 2, IN_MODE_NORMAL);
+    addElement(StateOilFilterBad, "Засор МФ", 6, 3, IN_MODE_NORMAL);
+    addElement(StateOilRele, "Реле масла", 6, 4, IN_MODE_NORMAL);
+    addElement(StateHeatRele, "Теплореле", 6, 5, IN_MODE_NORMAL);
+
+    addElement(StateFRMBroomL1, "Свет щетка", 7, 0, OUT_MODE_NORMAL);
+    addElement(StateFRMBackL2, "Свет зад", 7, 1, OUT_MODE_NORMAL);
+    addElement(StateKungL5, "Свет кунг", 7, 2, OUT_MODE_NORMAL);
+    addElement(StateSensorsPower, "Питание датчиков", 7, 3, OUT_MODE_NORMAL);
+    addElement(StateHydraulicFan, "Вентилятор охлаждения гидросистемы ", 7, 4, OUT_MODE_NORMAL);
+
+    addElement(StatePressureFilter3, "Датчик напорного фильтра3", 8, 0, IN_MODE_NORMAL);
+    addElement(StateDKPDumpLeft, "Датчик ДКП отвал лево", 8, 4, IN_MODE_NORMAL);
+    addElement(StateDKPDumpRight, "Датчик ДКП отвал право", 8, 5, IN_MODE_NORMAL);
+    addElement(StateDKPDumpUp, "Датчик ДКП отвал верх", 8, 6, IN_MODE_NORMAL);
+    addElement(StateDKPBroomLeft, "Датчик ДКП щетка лево", 8, 7, IN_MODE_NORMAL);
+    addElement(StateDKPBroomRight, "Датчик ДКП щетка право", 8, 8, IN_MODE_NORMAL);
+    addElement(StateDKPBroomUp, "Датчик ДКП щетка верх", 8, 9, IN_MODE_NORMAL);
+
+    readSystemConfigure();
+
+    // верхний лог со скролом
+    messageList = new MessageList(this);
+    messageList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    messageList->verticalScrollBar()->setStyleSheet("QScrollBar {width:0px;}");
+    messageList->setStyleSheet("QListView {background: transparent;}");
+    messageList->setFixedWidth(519);
+    messageList->setFixedHeight(115);
+    //WARNING
+    QScroller::grabGesture(messageList->viewport(), QScroller::LeftMouseButtonGesture);
+    connect(messageList, SIGNAL(entered(QModelIndex)), this, SLOT(messageListPressed()));
+    connect(messageList, SIGNAL(viewportEntered()), this, SLOT(messageListPressed()));
+
+
+    ui->logLayout->addWidget(messageList);
+
+    QString can_device = readSettingsValue("Global/canDeivce").toString();
+    QString j1939_device = readSettingsValue("Global/j1939Deivce").toString();
+    restartIgnitionDelay = readSettingsValue("Global/restartIgnitionDelay").toInt();
+    qDebug()<<"ignitionDelay: "<<restartIgnitionDelay;
+    readSettingsValue("Global/password").toInt();
+    readSettingsValue("Global/secretPassword").toInt();
+    readSettingsValue("Global/passwordDiag").toInt();
+    readSettingsValue("Global/secretPasswordDiag").toInt();
+
+    qDebug() << "can " << can_device << " " << j1939_device;
+
+    ui->label_date->setFont(QFont("Mont",15));
+    ui->label_time->setFont(QFont("Mont",20));
+
+    // режим опасной диагностики
+    superDiagMode = false;
+
+    // инит логгера (черный ящик)
+    logger = new Logger(NULL);
+
+    //Инит CAN и GPIO
+    can0 = new MyCan(can_device, logger, true, NULL);//can0
+    canForEngine = new MyCanEngine(j1939_device, logger, false, NULL);
+    canForEngine->setEngineAddr(enigneAddr);
+    canj1939 = new MyCanJ1939(j1939_device, logger, true, NULL);
+    canj1939Main = new MyCanJ1939(can_device, logger, false, NULL);// камазовкий кан незя рестартить потому как он на таком же интерфейсе как и ПО ГО. А это опасно
+    //gp = new gpio_class();
+    gpio = new GPIOWorker();
+    gpioMatirx = new GPIOMatrix();
+
+    // закидываем настрокий конфигурацции для кана
+    can0->fillSystemConfigure(&systemConfigure, &systemElements);
+    logger->fillSystemConfigure(&can0->systemConfigure, &can0->systemElements);// тырим ее у кана потому что он расставляет важные параметры
+
+    menuMode = SweepMode;
+    startClean = false;
+    starterStarted = false;
+    starterStartedTime = QDateTime::currentDateTime();
+    //starter = false;
+    starterStartedAlarmed = false;
+    starterBroomAlarmed = false;
+    starterBunkerAlarmed = false;
+    chooseFrm = false;
+//    pultUp = false;
+//    pultUpCounter = 0;
+    backGearCounter = 0;
+    backControl = false;
+    backIdleCounter = 0;
+    backLight = false;
+    backBlockCounter = 0;
+    backLightTimeCounter = 0;
+    ignitionOffTimer = 0;
+    engineStartedOk = false;
+    Password_accepted = false;
+    engineTempCrit = false;
+    engineTempWarn = false;
+    hydroTempCrit = false;
+    hydroTempWarn = false;
+    chooseGabaritCount = 0;
+    startCleanTimeCounter = 0;
+    centralBroomLeftTimeCounter = 0;
+    centralBroomRightTimeCounter = 0;
+    frontDumpLeftTimeCounter = 0;
+    frontDumpRightTimeCounter = 0;
+    blowerTimeCounter = 0;
+    frmTimeCounter = 0;
+    leftModeTimeCounter = 0;
+    rightModeTimeCounter = 0;
+
+    KVControl = false;
+    currentKV = 0;
+
+    serviceSetingsName = new QLabel(this);
+    serviceSetingsName->setStyleSheet("color: white");
+    font.setFamily("Mont");
+    font.setPointSize(16);
+    serviceSetingsName->setFont(font);
+    serviceSetingsName->setGeometry(12 ,4 ,359 ,43);
+    serviceSetingsName->hide();
+
+    serviceGPIOServiceIntervalLeftForm = new ServiceGPIOServiceIntervalLeftForm(this);
+    serviceGPIOServiceIntervalLeftForm->hide();
+
+    serviceOtherEngineLeftForm = new ServiceOtherEngineLeftForm(this);
+    serviceOtherEngineLeftForm->hide();
+
+    serviceOtherLightLeftForm = new ServiceOtherLightLeftForm(this);
+    serviceOtherLightLeftForm->hide();
+
+    serviceDevicesHydraulicsLeftForm = new ServiceDevicesHydraulicsLeftForm(this);
+    serviceDevicesHydraulicsLeftForm->hide();
+
+    serviceDevicesDKPLeftForm = new ServiceDevicesDKPLeftForm(this);
+    serviceDevicesDKPLeftForm->hide();
+
+    serviceGlobalDateTimeLeftForm = new ServiceGlobalDateTimeLeftForm(this);
+    serviceGlobalDateTimeLeftForm->hide();
+
+    serviceGeneralPasswordLeftForm = new ServiceGeneralPasswordLeftForm(this);
+    serviceGeneralPasswordLeftForm->hide();
+
+    serviceMainRightForm = new ServiceMainRightForm(this);
+    serviceMainRightForm->hide();
+
+    settingsSettingsConfigurationLeftForm = new SettingsSettingsConfigurationLeftForm(this);
+    settingsSettingsConfigurationLeftForm->hide();
+
+    settingsWifiLeftForm = new SettingsWifiLeftForm(this);
+    settingsWifiLeftForm->hide();
+
+    settingsForm = new SettingsForm(settings, this);
+    //settingsForm->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
+    settingsForm->hide();
+    settingsForm->fillElements();
+    connect(settingsForm, SIGNAL(closedAndSave()), this, SLOT(settingsClosed()));
+
+    settingsMainRightForm = new SettingsMainRightForm(this);
+    settingsMainRightForm->hide();
+
+    // создаем таймер для обслуживания общих узлов
+    createTimers();
+
+    connect (&goHomeTimer, SIGNAL(timeout()), this, SLOT(resetDevices()));
+
+    blockScreen = new BlockForm(this);
+    blockScreen->hide();
+
+    // создаем виджет двигателя
+    engine = new Engine(canj1939, this);
+    // создаем виджеты щеток и прочих модулей
+    broomCentral = new CentralBroom(can0, NULL, settings, this);
+    frontRail = new FrontRail(can0, NULL, settings, this);
+    backMagnet = new BackMagnet(can0, NULL, settings, this);
+    blower = new Blower(can0, NULL, settings, this);
+
+    resetDevices();
+    //can0->setState(StateBoardsPowerOut, true);
+    showWorkMode();
+
+    startIgnition();
+
+    connect(can0, SIGNAL(canPOError()), this, SLOT(canPOError()));
+    connect(can0, SIGNAL(canDataReady(struct can_frame)), this, SLOT(incomeData(struct can_frame)));
+    connect(canj1939, SIGNAL(canError()), this, SLOT(canJ1939Error()));
+    connect(canj1939, SIGNAL(canDataReadyJ1939(quint32, quint8, QByteArray)), this, SLOT(incomeDataJ1939(quint32, quint8, QByteArray)));
+    connect(canj1939Main, SIGNAL(canError()), this, SLOT(canJ1939MainError()));
+    connect(canj1939Main, SIGNAL(canDataReadyJ1939(quint32, quint8, QByteArray)), this, SLOT(incomeDataJ1939Main(quint32, quint8, QByteArray)));
+
+    engineCoolantTemp = -40;
+    vehicleSpeed = 0;
+    vehicleVoltage = 0;
+
+    stopInProgress = false;
+    waitOnStartAlarmed = false;
+    cleanWrongSpeedAlarmed = false;
+    addLog("ПВИ запущен", WarningStatus);
+
+    buttonsLightLevel = 0;
+
+    hydroTempCounterToShow = 0;
+    pauseCleanTimeCounter = 0;
+    pauseActive = false;
+
+    starterMaxWorkSec = 15;
+    starterPauseSec = 60;
+    starterMaxAttempts = 3;
+    rollMaxWorkSec = 15;
+    rollPauseSec = 60;
+    rollMaxAttempts = 3;
+    requireRollAfterDays = 5;
+    lowTempRequireWarm = -10;
+    waterSensorRedHours = 2;
+    airFilterRedHours = 20;
+    waterSensorEmergencyMode = true;
+    airFilterEmergencyMode = true;
+    disableRollRequirement = false;
+    disableTemperatureBlock = false;
+    ignoreAllEmergency = false;
+
+    engineRunStatePrev = false;
+    starterLockedByRoll = false;
+    starterLockedByTemperature = false;
+    starterLockedByEmergency = false;
+    rollLockedByTemperature = false;
+    rollLockedByEmergency = false;
+    needRollProcedure = false;
+    rollCompleted = false;
+    waterAlarm = false;
+    airAlarm = false;
+    oilAlarm = false;
+
+    starterPauseActive = false;
+    starterAttemptsUsed = 0;
+    starterNeedReboot = false;
+    starterPressedPrev = false;
+    starterPauseWarned = false;
+
+    prerollButtonPrev = false;
+    prerollStarterButtonPrev = false;
+    rollInputPrev = false;
+    prerollSequenceActive = false;
+    prerollSequenceStep = 0;
+    prerollStarterUnlocked = false;
+    rollRunActive = false;
+    rollPauseActive = false;
+    rollAttemptsUsed = 0;
+    rollNeedReboot = false;
+    rollPauseWarned = false;
+    serviceIgnitionAutoRestoreBlocked = false;
+
+    logNeedRollShown = false;
+    logNeedWarmShown = false;
+    waterSensorActivePrev = false;
+    airFilterActivePrev = false;
+    oilFilterActivePrev = false;
+    heatRelayActivePrev = false;
+    waterSensorTimeStarted = false;
+    airFilterTimeStarted = false;
+    waterSensorStartedAt = 0;
+    airFilterStartedAt = 0;
+
+    ui->label_engineLowTemperature->hide();
+    ui->label_waterInFuel->hide();
+    ui->label_airFilter->hide();
+    ui->label_oilFilter->hide();
+
+    can0->setState(StateStarterAllow, false);
+    can0->setState(StateStarterRoll, false);
+    createButtons();
+}
+
+void MainWindow::loadAndSetFonts(){
     QFontDatabase fontDB;
     fontDB.addApplicationFont(":/Images/Fonts/Montserrat.ttf");
     fontDB.addApplicationFont(":/Images/Fonts/ArialBlack.ttf");
@@ -127,21 +441,31 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     QApplication::setFont(regular);
 
     // назначаем шрифты на экзотические места
-    QFont font;
     font.setFamily("Mont");
     font.setPointSize(13);
 
     font.setFamily("CentSchbkCyrill BT");
     font.setPointSize(31);
+}
 
-    bool need_to_reconf = false;
-    // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
-    removeBadSettings();
+void MainWindow::setDefaultWorkMode(){
+    workMode.centralBroomLeft = false;
+    workMode.centralBroomRight = false;
+    workMode.centralBroomFlow = false;
+    workMode.centralBroomPress = false;
+    workMode.blowLeft = false;
+    workMode.blowRight = false;
+    workMode.frontDumpLeft = false;
+    workMode.frontDumpRight = false;
+    workMode.frontDumpFlow = false;
+    workMode.backMagnet = false;
+    workMode.frmBroom = false;
+    workMode.frmMagnet = false;
+    workMode.frmKung = false;
+    workMode.sweepType = LightSweep;
+}
 
-    if (need_to_reconf)
-        QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini");
-    settings = new QSettings(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini", QSettings::IniFormat);
-    //дефолтные настройки
+void MainWindow::setDefaultSettings(){
     defaultValues.insert("Global/canDeivce", "can1");
     defaultValues.insert("Global/j1939Deivce", "can0");
     defaultValues.insert("Global/password", "1234");
@@ -508,320 +832,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     systemConfigure.channelsType[8][9] = IN_MODE_NORMAL;
     systemConfigure.channelsType[8][10] = IN_MODE_NORMAL;
     systemConfigure.channelsType[8][11] = IN_MODE_NORMAL;
-
-
-
-    addElement(StateValveA1, "Силовой клапан A1", 1, 0, OUT_MODE_NORMAL);
-    addElement(StateValveF1, "(F1)Подъем отвала", 1, 1, OUT_MODE_NORMAL);
-    addElement(StateValveF2, "(F2)Отжим щетки", 1, 2, OUT_MODE_NORMAL);
-    addElement(StateValveF3, "(F3)Поворот щетки вправо", 1, 3, OUT_MODE_NORMAL);
-    addElement(StateValveF4, "(F4)Опускание щетки", 1, 4, OUT_MODE_NORMAL);
-    addElement(StateValveF6, "(F6)Поворот отвала вправо", 1, 5, OUT_MODE_NORMAL);
-    addElement(StateValveF7, "(F7)Опускание отвала", 1, 6, OUT_MODE_NORMAL);
-    addElement(StateValveF8, "(F8)Прижим щетки", 1, 7, OUT_MODE_NORMAL);
-    addElement(StateValveF9, "(F9)Поворот щетки влево", 1, 8, OUT_MODE_NORMAL);
-    addElement(StateValveF10, "(F10)Подъем щетки", 1, 9, OUT_MODE_NORMAL);
-    addElement(StateValveF12, "(F12)Поворот отвала влево", 1, 10, OUT_MODE_NORMAL);
-    addElement(StateValveE1, "(E1)Подъем воздуходувки", 1, 11, OUT_MODE_NORMAL);
-
-    addElement(StateValveE2, "(E2)Подъем магнитной плиты", 2, 0, OUT_MODE_NORMAL);
-    addElement(StateValveE3, "(E3)Направление воздуха влево", 2, 1, OUT_MODE_NORMAL);
-    addElement(StateValveE5, "(E5)Опускание воздуходувки", 2, 2, OUT_MODE_NORMAL);
-    addElement(StateValveE6, "(E6)Опускание магнитной плиты", 2, 3, OUT_MODE_NORMAL);
-    addElement(StateValveE7, "(E7)Направление воздуха вправо", 2, 4, OUT_MODE_NORMAL);
-    addElement(StateValveC1, "(C1)Плавающий режим щетка", 2, 5, OUT_MODE_NORMAL);
-    addElement(StateValveC2, "(C2)Плавающий режим щетка", 2, 6, OUT_MODE_NORMAL);
-    addElement(StateValveC3, "(C3)Плавающий режим отвал", 2, 7, OUT_MODE_NORMAL);
-    addElement(StateValveC4, "(C4)Плавающий режим отвал", 2, 8, OUT_MODE_NORMAL);
-    addElement(StateValveD1, "(D1)Вращение щетки", 2, 9, OUT_MODE_PFM, 0, 0, 50, 150, 10);
-    addElement(StateValveD2, "(D2)Вращение щетки в обратную сторону", 2, 10, OUT_MODE_PFM, 0, 0, 50, 150, 10);
-    addElement(StateValveD3, "(D3)Вращение вентилятора", 2, 11, OUT_MODE_PFM, 0, 0, 50, 150, fanAccelRate);
-
-    addElement(StateDrainFilterD28, "Датчик сливного фильтра", 3, 0, IN_MODE_NORMAL);
-    addElement(StatePressureFilter1, "Датчик напорного фильтра1", 3, 1, IN_MODE_NORMAL);
-    addElement(StatePressureFilter2, "Датчик напорного фильтра2", 3, 2, IN_MODE_NORMAL);
-    addElement(StateHydroTankLevelD27, "Датчик уровня гидробака", 3, 3, IN_MODE_NORMAL);
-    addElement(StateHydraulicDistibutorPressure, "Давление гидросистемы распределителя 1", 3, 4, IN_MODE_ANALOG_8);
-    addElement(StateHydraulicBroomPressure, "Давление гидросистемы контур вращения щетки", 3, 5, IN_MODE_ANALOG_8);
-    addElement(StateHydraulicFanPressure, "Давление гидросистемы контур вращения вентилятора", 3, 6, IN_MODE_ANALOG_8);
-    addElement(StateHydraulicBroomPressPressure, "Давление гидросистемы контура поджатия щетки", 3, 7, IN_MODE_ANALOG_8);
-    addElement(StateHydraulicOilTemperature, "Датчик температуры гидросистемы", 3, 8, IN_MODE_ANALOG_8);
-    addElement(StateDKPBackMagnetUp, "Датчик ДКП магнит верх", 3, 9, IN_MODE_NORMAL);
-//    addElement(StateEngineReady, "Датчик готовности ДВС", 3, 10, IN_MODE_NORMAL);
-    addElement(StateDKPBlowerUp1, "Датчик ДКП продувка верх 1", 3, 10, IN_MODE_NORMAL);
-    addElement(StateDKPBlowerUp2, "Датчик ДКП продувка верх 2", 3, 11, IN_MODE_NORMAL);
-
-    addElement(StateStarterAllow, "Разрешение стартер", 5, 0, OUT_MODE_NORMAL);
-    addElement(StateStarterRoll, "Стартер прокрутка", 5, 1, OUT_MODE_NORMAL);
-    addElement(State24Volt, "+24", 5, 2, OUT_MODE_NORMAL);
-
-    addElement(StateWaterSensor, "Датчик воды", 6, 0, IN_MODE_NORMAL);
-    addElement(StateRollIn, "Прокрутка вх.", 6, 1, IN_MODE_NORMAL);
-    addElement(StateAirFilterBad, "Засор ВФ", 6, 2, IN_MODE_NORMAL);
-    addElement(StateOilFilterBad, "Засор МФ", 6, 3, IN_MODE_NORMAL);
-    addElement(StateOilRele, "Реле масла", 6, 4, IN_MODE_NORMAL);
-    addElement(StateHeatRele, "Теплореле", 6, 5, IN_MODE_NORMAL);
-
-    addElement(StateFRMBroomL1, "Свет щетка", 7, 0, OUT_MODE_NORMAL);
-    addElement(StateFRMBackL2, "Свет зад", 7, 1, OUT_MODE_NORMAL);
-    addElement(StateKungL5, "Свет кунг", 7, 2, OUT_MODE_NORMAL);
-    addElement(StateSensorsPower, "Питание датчиков", 7, 3, OUT_MODE_NORMAL);
-    addElement(StateHydraulicFan, "Вентилятор охлаждения гидросистемы ", 7, 4, OUT_MODE_NORMAL);
-
-    addElement(StatePressureFilter3, "Датчик напорного фильтра3", 8, 0, IN_MODE_NORMAL);
-    addElement(StateDKPDumpLeft, "Датчик ДКП отвал лево", 8, 4, IN_MODE_NORMAL);
-    addElement(StateDKPDumpRight, "Датчик ДКП отвал право", 8, 5, IN_MODE_NORMAL);
-    addElement(StateDKPDumpUp, "Датчик ДКП отвал верх", 8, 6, IN_MODE_NORMAL);
-    addElement(StateDKPBroomLeft, "Датчик ДКП щетка лево", 8, 7, IN_MODE_NORMAL);
-    addElement(StateDKPBroomRight, "Датчик ДКП щетка право", 8, 8, IN_MODE_NORMAL);
-    addElement(StateDKPBroomUp, "Датчик ДКП щетка верх", 8, 9, IN_MODE_NORMAL);
-
-    readSystemConfigure();
-
-    // верхний лог со скролом
-    messageList = new MessageList(this);
-    messageList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    messageList->verticalScrollBar()->setStyleSheet("QScrollBar {width:0px;}");
-    messageList->setStyleSheet("QListView {background: transparent;}");
-    messageList->setFixedWidth(519);
-    messageList->setFixedHeight(115);
-    //WARNING
-    QScroller::grabGesture(messageList->viewport(), QScroller::LeftMouseButtonGesture);
-    connect(messageList, SIGNAL(entered(QModelIndex)), this, SLOT(messageListPressed()));
-    connect(messageList, SIGNAL(viewportEntered()), this, SLOT(messageListPressed()));
-
-
-    ui->logLayout->addWidget(messageList);
-
-    QString can_device = readSettingsValue("Global/canDeivce").toString();
-    QString j1939_device = readSettingsValue("Global/j1939Deivce").toString();
-    restartIgnitionDelay = readSettingsValue("Global/restartIgnitionDelay").toInt();
-    qDebug()<<"ignitionDelay: "<<restartIgnitionDelay;
-    readSettingsValue("Global/password").toInt();
-    readSettingsValue("Global/secretPassword").toInt();
-    readSettingsValue("Global/passwordDiag").toInt();
-    readSettingsValue("Global/secretPasswordDiag").toInt();
-
-    qDebug() << "can " << can_device << " " << j1939_device;
-
-    ui->label_date->setFont(QFont("Mont",15));
-    ui->label_time->setFont(QFont("Mont",20));
-
-    // режим опасной диагностики
-    superDiagMode = false;
-
-    // инит логгера (черный ящик)
-    logger = new Logger(NULL);
-
-    //Инит CAN и GPIO
-    can0 = new MyCan(can_device, logger, true, NULL);//can0
-    canForEngine = new MyCanEngine(j1939_device, logger, false, NULL);
-    canForEngine->setEngineAddr(enigneAddr);
-    canj1939 = new MyCanJ1939(j1939_device, logger, true, NULL);
-    canj1939Main = new MyCanJ1939(can_device, logger, false, NULL);// камазовкий кан незя рестартить потому как он на таком же интерфейсе как и ПО ГО. А это опасно
-    //gp = new gpio_class();
-    gpio = new GPIOWorker();
-    gpioMatirx = new GPIOMatrix();
-
-    // закидываем настрокий конфигурацции для кана
-    can0->fillSystemConfigure(&systemConfigure, &systemElements);
-    logger->fillSystemConfigure(&can0->systemConfigure, &can0->systemElements);// тырим ее у кана потому что он расставляет важные параметры
-
-    menuMode = SweepMode;
-    startClean = false;
-    starterStarted = false;
-    starterStartedTime = QDateTime::currentDateTime();
-    //starter = false;
-    starterStartedAlarmed = false;
-    starterBroomAlarmed = false;
-    starterBunkerAlarmed = false;
-    chooseFrm = false;
-//    pultUp = false;
-//    pultUpCounter = 0;
-    backGearCounter = 0;
-    backControl = false;
-    backIdleCounter = 0;
-    backLight = false;
-    backBlockCounter = 0;
-    backLightTimeCounter = 0;
-    ignitionOffTimer = 0;
-    engineStartedOk = false;
-    Password_accepted = false;
-    engineTempCrit = false;
-    engineTempWarn = false;
-    hydroTempCrit = false;
-    hydroTempWarn = false;
-    chooseGabaritCount = 0;
-    startCleanTimeCounter = 0;
-    centralBroomLeftTimeCounter = 0;
-    centralBroomRightTimeCounter = 0;
-    frontDumpLeftTimeCounter = 0;
-    frontDumpRightTimeCounter = 0;
-    blowerTimeCounter = 0;
-    frmTimeCounter = 0;
-    leftModeTimeCounter = 0;
-    rightModeTimeCounter = 0;
-
-    KVControl = false;
-    currentKV = 0;
-
-    serviceSetingsName = new QLabel(this);
-    serviceSetingsName->setStyleSheet("color: white");
-    font.setFamily("Mont");
-    font.setPointSize(16);
-    serviceSetingsName->setFont(font);
-    serviceSetingsName->setGeometry(12 ,4 ,359 ,43);
-    serviceSetingsName->hide();
-
-    serviceGPIOServiceIntervalLeftForm = new ServiceGPIOServiceIntervalLeftForm(this);
-    serviceGPIOServiceIntervalLeftForm->hide();
-
-    serviceOtherEngineLeftForm = new ServiceOtherEngineLeftForm(this);
-    serviceOtherEngineLeftForm->hide();
-
-    serviceOtherLightLeftForm = new ServiceOtherLightLeftForm(this);
-    serviceOtherLightLeftForm->hide();
-
-    serviceDevicesHydraulicsLeftForm = new ServiceDevicesHydraulicsLeftForm(this);
-    serviceDevicesHydraulicsLeftForm->hide();
-
-    serviceDevicesDKPLeftForm = new ServiceDevicesDKPLeftForm(this);
-    serviceDevicesDKPLeftForm->hide();
-
-    serviceGlobalDateTimeLeftForm = new ServiceGlobalDateTimeLeftForm(this);
-    serviceGlobalDateTimeLeftForm->hide();
-
-    serviceGeneralPasswordLeftForm = new ServiceGeneralPasswordLeftForm(this);
-    serviceGeneralPasswordLeftForm->hide();
-
-    serviceMainRightForm = new ServiceMainRightForm(this);
-    serviceMainRightForm->hide();
-
-    settingsSettingsConfigurationLeftForm = new SettingsSettingsConfigurationLeftForm(this);
-    settingsSettingsConfigurationLeftForm->hide();
-
-    settingsWifiLeftForm = new SettingsWifiLeftForm(this);
-    settingsWifiLeftForm->hide();
-
-    settingsForm = new SettingsForm(settings, this);
-    //settingsForm->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
-    settingsForm->hide();
-    settingsForm->fillElements();
-    connect(settingsForm, SIGNAL(closedAndSave()), this, SLOT(settingsClosed()));
-
-    settingsMainRightForm = new SettingsMainRightForm(this);
-    settingsMainRightForm->hide();
-
-    // создаем таймер для обслуживания общих узлов
-    createTimers();
-
-    connect (&goHomeTimer, SIGNAL(timeout()), this, SLOT(resetDevices()));
-
-    blockScreen = new BlockForm(this);
-    blockScreen->hide();
-
-    // создаем виджет двигателя
-    engine = new Engine(canj1939, this);
-    // создаем виджеты щеток и прочих модулей
-    broomCentral = new CentralBroom(can0, NULL, settings, this);
-    frontRail = new FrontRail(can0, NULL, settings, this);
-    backMagnet = new BackMagnet(can0, NULL, settings, this);
-    blower = new Blower(can0, NULL, settings, this);
-
-    resetDevices();
-    //can0->setState(StateBoardsPowerOut, true);
-    showWorkMode();
-
-    startIgnition();
-
-    connect(can0, SIGNAL(canPOError()), this, SLOT(canPOError()));
-    connect(can0, SIGNAL(canDataReady(struct can_frame)), this, SLOT(incomeData(struct can_frame)));
-    connect(canj1939, SIGNAL(canError()), this, SLOT(canJ1939Error()));
-    connect(canj1939, SIGNAL(canDataReadyJ1939(quint32, quint8, QByteArray)), this, SLOT(incomeDataJ1939(quint32, quint8, QByteArray)));
-    connect(canj1939Main, SIGNAL(canError()), this, SLOT(canJ1939MainError()));
-    connect(canj1939Main, SIGNAL(canDataReadyJ1939(quint32, quint8, QByteArray)), this, SLOT(incomeDataJ1939Main(quint32, quint8, QByteArray)));
-
-    engineCoolantTemp = -40;
-    vehicleSpeed = 0;
-    vehicleVoltage = 0;
-
-    stopInProgress = false;
-    waitOnStartAlarmed = false;
-    cleanWrongSpeedAlarmed = false;
-    addLog("ПВИ запущен", WarningStatus);
-
-    buttonsLightLevel = 0;
-
-    hydroTempCounterToShow = 0;
-    pauseCleanTimeCounter = 0;
-    pauseActive = false;
-
-    starterMaxWorkSec = 15;
-    starterPauseSec = 60;
-    starterMaxAttempts = 3;
-    rollMaxWorkSec = 15;
-    rollPauseSec = 60;
-    rollMaxAttempts = 3;
-    requireRollAfterDays = 5;
-    lowTempRequireWarm = -10;
-    waterSensorRedHours = 2;
-    airFilterRedHours = 20;
-    waterSensorEmergencyMode = true;
-    airFilterEmergencyMode = true;
-    disableRollRequirement = false;
-    disableTemperatureBlock = false;
-    ignoreAllEmergency = false;
-
-    engineRunStatePrev = false;
-    starterLockedByRoll = false;
-    starterLockedByTemperature = false;
-    starterLockedByEmergency = false;
-    rollLockedByTemperature = false;
-    rollLockedByEmergency = false;
-    needRollProcedure = false;
-    rollCompleted = false;
-    waterAlarm = false;
-    airAlarm = false;
-    oilAlarm = false;
-
-    starterPauseActive = false;
-    starterAttemptsUsed = 0;
-    starterNeedReboot = false;
-    starterPressedPrev = false;
-    starterPauseWarned = false;
-
-    prerollButtonPrev = false;
-    prerollStarterButtonPrev = false;
-    rollInputPrev = false;
-    prerollSequenceActive = false;
-    prerollSequenceStep = 0;
-    prerollStarterUnlocked = false;
-    rollRunActive = false;
-    rollPauseActive = false;
-    rollAttemptsUsed = 0;
-    rollNeedReboot = false;
-    rollPauseWarned = false;
-    serviceIgnitionAutoRestoreBlocked = false;
-
-    logNeedRollShown = false;
-    logNeedWarmShown = false;
-    waterSensorActivePrev = false;
-    airFilterActivePrev = false;
-    oilFilterActivePrev = false;
-    heatRelayActivePrev = false;
-    waterSensorTimeStarted = false;
-    airFilterTimeStarted = false;
-    waterSensorStartedAt = 0;
-    airFilterStartedAt = 0;
-
-    ui->label_engineLowTemperature->hide();
-    ui->label_waterInFuel->hide();
-    ui->label_airFilter->hide();
-    ui->label_oilFilter->hide();
-
-    can0->setState(StateStarterAllow, false);
-    can0->setState(StateStarterRoll, false);
-    createButtons();
 }
 
 void MainWindow::createButtons(){
@@ -1716,7 +1726,7 @@ void MainWindow::mainProgress(){
     // работа со стартером
     showStarter();
     // свет
-    showFRM();
+    updateFRM();
 
     // отображаем и отрабатываем нажатие кнопок на экране во время работ
     bool transitioning = isOrgansTransitioning();
@@ -2324,37 +2334,19 @@ void MainWindow::showPultOffIgnition()
     }
 }
 
-void MainWindow::showFRM()
-{
+void MainWindow::updateFRM(){
+    QString path = "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_";
     // frm кунг
-    if (workMode.frmKung && ui->pushButton_frmKung->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_k_on.png);")
-        ui->pushButton_frmKung->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_k_on.png);");
-    else if (!workMode.frmKung && ui->pushButton_frmKung->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);")
-        ui->pushButton_frmKung->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_k_off.png);");
-    if (workMode.frmKung)
-        can0->setState(StateKungL5, true);
-    else
-        can0->setState(StateKungL5, false);
+    setStyle(ui->pushButton_frmKung, path + (workMode.frmKung? "k_on.png);": "k_off.png);"));
+    can0->setState(StateKungL5, workMode.frmKung);
 
     // frm щетка
-    if (workMode.frmBroom && ui->pushButton_frmBroom->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_h_on.png);")
-        ui->pushButton_frmBroom->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_h_on.png);");
-    else if (!workMode.frmBroom && ui->pushButton_frmBroom->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_h_off.png);")
-        ui->pushButton_frmBroom->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_h_off.png);");
-    if (workMode.frmBroom)
-        can0->setState(StateFRMBroomL1, true);
-    else
-        can0->setState(StateFRMBroomL1, false);
+    setStyle(ui->pushButton_frmBroom, path + (workMode.frmBroom? "h_on.png);":"h_off.png);"));
+    can0->setState(StateFRMBroomL1, workMode.frmBroom);
 
     // frm магнит
-    if (workMode.frmMagnet && ui->pushButton_frmMagnet->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_m_on.png);")
-        ui->pushButton_frmMagnet->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_m_on.png);");
-    else if (!workMode.frmMagnet && ui->pushButton_frmMagnet->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_m_off.png);")
-        ui->pushButton_frmMagnet->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_m_off.png);");
-    if (workMode.frmMagnet)
-        can0->setState(StateFRMBackL2, true);
-    else
-        can0->setState(StateFRMBackL2, false);
+    setStyle(ui->pushButton_frmMagnet, path + (workMode.frmMagnet? "m_on.png);":"m_off.png);"));
+    can0->setState(StateFRMBackL2, workMode.frmMagnet);
 }
 
 void MainWindow::showStarter()
@@ -2632,7 +2624,7 @@ void MainWindow::diagAskPassword()
     {
         Password_Form *Password_window = new Password_Form (this, true, false);
         Password_window->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
-        Password_window->setAttribute(Qt::WA_DeleteOnClose,true);
+        Password_window->setAttribute(Qt::WA_DeleteOnClose, true);
 
         connect(this,SIGNAL(Pass_close()),Password_window,SLOT(close()));
         connect(this,SIGNAL(Send_Pass_2_pass_form(int)),Password_window,SLOT(Recieve_pass_name(int)));
@@ -2655,8 +2647,7 @@ void MainWindow::diagAskPassword()
     }
 }
 
-void MainWindow::passwordDiagOk(int pass)
-{
+void MainWindow::passwordDiagOk(int pass){
     if (pass == readSettingsValue("Global/secretPasswordDiag").toString().toInt())
     {// сбросим одноразовы пароль
         if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
@@ -2720,8 +2711,7 @@ bool MainWindow::canStart()
     return true;
 }
 
-float MainWindow::hydraulicPressureValue(int index) const
-{
+float MainWindow::hydraulicPressureValue(int index) const{
     static const DeviceStates pressureStates[4] = {
         StateHydraulicDistibutorPressure,
         StateHydraulicBroomPressure,
@@ -2744,8 +2734,7 @@ void MainWindow::toggleAllFrm()
     showWorkMode();
 }
 
-bool MainWindow::isIdleMode()
-{
+bool MainWindow::isIdleMode(){
     // проверяекм надо ли затенять кнопки переключения режимов
     if (blower->getState() != Blower::BlowerOff
         || broomCentral->getState() != CentralBroom::BroomOff
@@ -2843,20 +2832,16 @@ void  MainWindow::showCentralBroomLeft(){
     }
 }
 
-void  MainWindow::showCentralBroomRight()
-{
-    if ((startClean && ui->pushButton_centralBroomRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_RIGHT)
-    {// нажали кнопку
+void  MainWindow::showCentralBroomRight(){
+    if ((startClean && ui->pushButton_centralBroomRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_RIGHT)    {// нажали кнопку
         centralBroomRightTimeCounter++;
         if (startClean)
             broomCentral->goRight();
     }
-    else
-    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+    else    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
         if (startClean && centralBroomRightTimeCounter > 0)
             broomCentral->goNone();
-        if (centralBroomRightTimeCounter > 1)
-        {
+        if (centralBroomRightTimeCounter > 1)        {
             // отработаем нажатие
             if (!startClean)
                 on_pushButton_centralBroomRight_clicked();
@@ -2873,14 +2858,12 @@ void MainWindow::showDumpLeft()
         setDumpState();
     }
 
-    if ((startClean && ui->pushButton_dumpLeft->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_LEFT)
-    {// нажали кнопку
+    if ((startClean && ui->pushButton_dumpLeft->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_LEFT)    {// нажали кнопку
         frontDumpLeftTimeCounter++;
         if (startClean)
             frontRail->goLeft();
     }
-    else
-    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+    else    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
         if (startClean && frontDumpLeftTimeCounter > 0)
             frontRail->goNone();
         if (frontDumpLeftTimeCounter > 1)
@@ -2893,20 +2876,16 @@ void MainWindow::showDumpLeft()
     }
 }
 
-void MainWindow::showDumpRight()
-{
-    if ((startClean && ui->pushButton_dumpRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT)
-    {// нажали кнопку
+void MainWindow::showDumpRight(){
+    if ((startClean && ui->pushButton_dumpRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT)    {// нажали кнопку
         frontDumpRightTimeCounter++;
         if (startClean)
             frontRail->goRight();
     }
-    else
-    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+    else    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
         if (startClean && frontDumpRightTimeCounter > 0)
             frontRail->goNone();
-        if (frontDumpRightTimeCounter > 1)
-        {
+        if (frontDumpRightTimeCounter > 1)        {
             // отработаем нажатие
             if (!startClean)
                 on_pushButton_dumpRight_clicked();
@@ -2915,8 +2894,7 @@ void MainWindow::showDumpRight()
     }
 }
 
-void MainWindow::showBlower()
-{
+void MainWindow::showBlower(){
     if (startClean){
         setBlowerState();
     }
@@ -2925,25 +2903,19 @@ void MainWindow::showBlower()
     {// нажали кнопку
         blowerTimeCounter++;
     }
-    else
-    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
-        if (blowerTimeCounter > 1)
-        {
+    else    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+        if (blowerTimeCounter > 1){
         // отработаем нажатие
-            if (!startClean)
-            {
-                if (!workMode.blowLeft && !workMode.blowRight)
-                {
+            if (!startClean){
+                if (!workMode.blowLeft && !workMode.blowRight){
                     workMode.backMagnet = true;
                     on_pushButton_blowerLeft_clicked();
                 }
-                else if (workMode.blowLeft)
-                {
+                else if (workMode.blowLeft){
                     workMode.backMagnet = true;
                     on_pushButton_blowerRight_clicked();
                 }
-                else
-                {
+                else{
                     workMode.backMagnet = false;
                     on_pushButton_blowerRight_clicked();
                 }
@@ -2955,19 +2927,14 @@ void MainWindow::showBlower()
     }
 }
 
-void MainWindow::showPauseButton()
-{
-    if (gpioMatirx->keyPressed == GPIOInput::IN_PAUSE_HOME)
-    {
+void MainWindow::showPauseButton(){
+    if (gpioMatirx->keyPressed == GPIOInput::IN_PAUSE_HOME)    {
         pauseCleanTimeCounter++;
     }
-    else
-    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
-        if (pauseCleanTimeCounter > 1 && startClean)
-        {
+    else{// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+        if (pauseCleanTimeCounter > 1 && startClean){
             pauseActive = !pauseActive;
-            if (pauseActive)
-            {
+            if (pauseActive){
                 addLog("Пауза включена", WarningStatus);
                 // поднимаем органы в промежуточное состояние
                 if (frontRail->choosed)
@@ -2979,8 +2946,7 @@ void MainWindow::showPauseButton()
                 if (blower->choosed)
                     blower->setNeedState(Blower::BlowerDownIn);
             }
-            else
-            {
+            else{
                 addLog("Пауза снята", InfoStatus);
             }
             showWorkMode();
@@ -2995,8 +2961,7 @@ void MainWindow::showPauseButton()
 //====================Buttons click handlers===================
 //=============================================================
 
-void MainWindow::on_pushButton_service_clicked()
-{
+void MainWindow::on_pushButton_service_clicked(){
     logger->addUserLogInfo(Logger::UF_SERVICE_PRESSED, 1);
     diagAskPassword();
 }
@@ -3023,15 +2988,14 @@ void MainWindow::on_pushButton_settings_clicked(){
 
 //------------------------------------------------------------------------
 void MainWindow::onRailReleased(){
-
-    if (startClean)    {
+    if (startClean){
         frontRail->goNone();
         qDebug()<<"StopRail";
     }
 }
 
 void MainWindow::on_pushButton_dumpUp_pressed(){
-    if (startClean)    {
+    if (startClean){
         frontRail->goUp();
         qDebug()<<"LeftRailPressed";
     }
@@ -3040,7 +3004,7 @@ void MainWindow::on_pushButton_dumpUp_released(){
     onRailReleased();
 }
 void MainWindow::on_pushButton_dumpDown_pressed(){
-    if (startClean)    {
+    if (startClean){
         frontRail->goDown();
         qDebug()<<"LeftRailPressed";
     }
@@ -3050,15 +3014,14 @@ void MainWindow::on_pushButton_dumpDown_released(){
 }
 
 void MainWindow::on_pushButton_dumpLeft_clicked(){
-    if (!startClean)
-    {
+    if (!startClean){
         workMode.frontDumpLeft = !workMode.frontDumpLeft;
         workMode.frontDumpRight = false;
         showWorkMode();
     }
 }
 void MainWindow::on_pushButton_dumpLeft_pressed(){
-    if (startClean)    {
+    if (startClean){
         frontRail->goLeft();
         qDebug()<<"LeftRailPressed";
     }
@@ -3068,15 +3031,14 @@ void MainWindow::on_pushButton_dumpLeft_released(){
 }
 
 void MainWindow::on_pushButton_dumpRight_clicked(){
-    if (!startClean)
-    {
+    if (!startClean){
         workMode.frontDumpRight = !workMode.frontDumpRight;
         workMode.frontDumpLeft = false;
         showWorkMode();
     }
 }
 void MainWindow::on_pushButton_dumpRight_pressed(){
-    if (startClean)    {
+    if (startClean){
         frontRail->goRight();
     }
 }
@@ -3098,14 +3060,14 @@ void MainWindow::onBroomReleased(){
 }
 
 void MainWindow::on_pushButton_centralBroomLeft_clicked(){
-    if (!startClean)    {
+    if (!startClean){
         workMode.centralBroomLeft = !workMode.centralBroomLeft;
         workMode.centralBroomRight = false;
         showWorkMode();
     }
 }
 void MainWindow::on_pushButton_centralBroomLeft_pressed(){
-    if (startClean)    {
+    if (startClean){
         broomCentral->goLeft();
     }
 }
@@ -3114,7 +3076,7 @@ void MainWindow::on_pushButton_centralBroomLeft_released(){
 }
 
 void MainWindow::on_pushButton_centralBroomRight_clicked(){
-    if (!startClean)    {
+    if (!startClean){
         workMode.centralBroomRight = !workMode.centralBroomRight;
         workMode.centralBroomLeft = false;
         showWorkMode();
@@ -3245,13 +3207,11 @@ void MainWindow::on_pushButton_homeState_clicked(){
 void MainWindow::updateOrgansStates(){
     // задаем режимы органам
     // щетка
-    if (workMode.centralBroomLeft||workMode.centralBroomRight)
-    {
+    if (workMode.centralBroomLeft||workMode.centralBroomRight){
         broomCentral->setNeedState(CentralBroom::BroomFlowed);
         broomCentral->choosed = true;
     }
-    else
-    {
+    else{
         broomCentral->setNeedState(CentralBroom::BroomOff);
         broomCentral->choosed = false;
     }
@@ -3259,13 +3219,11 @@ void MainWindow::updateOrgansStates(){
     broomCentral->needSlided = workMode.centralBroomLeft;
 
     // отвал
-    if (workMode.frontDumpLeft||workMode.frontDumpRight)
-    {
+    if (workMode.frontDumpLeft||workMode.frontDumpRight){
         frontRail->setNeedState(FrontRail::FrontRailFlowed);
         frontRail->choosed = true;
     }
-    else
-    {
+    else{
         frontRail->setNeedState(FrontRail::FrontRailOff);
         frontRail->choosed = false;
     }
@@ -3273,25 +3231,21 @@ void MainWindow::updateOrgansStates(){
     frontRail->needSlided = workMode.frontDumpLeft;
 
     // дулка
-    if (workMode.blowLeft||workMode.blowRight)
-    {
+    if (workMode.blowLeft||workMode.blowRight){
         blower->setNeedState(Blower::BlowerRotated);
         blower->choosed = true;
     }
-    else
-    {
+    else{
         blower->setNeedState(Blower::BlowerOff);
         blower->choosed = false;
     }
 
     // магнит
-    if (workMode.backMagnet)
-    {
+    if (workMode.backMagnet){
         backMagnet->setNeedState(BackMagnet::BackMagnetDowned);
         backMagnet->choosed = true;
     }
-    else
-    {
+    else{
         backMagnet->setNeedState(BackMagnet::BackMagnetOff);
         backMagnet->choosed = false;
     }
@@ -3303,8 +3257,7 @@ void MainWindow::updateOrgansStates(){
 //==============================Sweep================================================
 
 void MainWindow:: changeSweepMode(quint8 mode){
-    if (workMode.sweepType != mode)
-    {
+    if (workMode.sweepType != mode){
         workMode.sweepType = mode;
         showWorkMode();
     }
@@ -3318,14 +3271,22 @@ void MainWindow::setBroomState(){
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_UP,
                    ui->label_centralBroomUpDown, ui->pushButton_centralBroomUp,
                    path + "up_on.png);", path + "off.png);",
-                   [this](){emit broomCentral->goUp();},
-                   [this](){emit broomCentral->goNone();});
+                   [this](){
+                        broomCentral->goUp();
+                        printOrganStatus(BroomOrgan, Up, true);},
+                   [this](){
+                        broomCentral->goNone();
+                        printOrganStatus(BroomOrgan, Up, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_DOWN,
                    ui->label_centralBroomUpDown, ui->pushButton_centralBroomDown,
                    path + "down_on.png);", path + "off.png);",
-                   [this](){emit broomCentral->goDown();},
-                   [this](){emit broomCentral->goNone();});
+                   [this](){
+                        broomCentral->goDown();
+                        printOrganStatus(BroomOrgan, Down, true);},
+                   [this](){
+                        broomCentral->goNone();
+                        printOrganStatus(BroomOrgan, Down, false);});
 
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
@@ -3338,15 +3299,27 @@ void MainWindow::setBroomState(){
                    ui->label_centralBroom, ui->pushButton_centralBroomLeft,
                    path + "left_on.png);",
                    defaultIcon,//!!!
-                   [this](){broomCentral->goLeft();},
-                   [this](){broomCentral->goNone();});
+                   [this](){
+                       broomCentral->goLeft();
+                       printOrganStatus(BroomOrgan, Left, true);
+                   },
+                   [this](){
+                       broomCentral->goNone();
+                       printOrganStatus(BroomOrgan, Left, false);
+                   });
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_RIGHT,
                    ui->label_centralBroom, ui->pushButton_centralBroomRight,
                    path + "right_on.png);",
                    defaultIcon,//!!!
-                   [this](){broomCentral->goRight();},
-                   [this](){broomCentral->goNone();});
+                   [this](){
+                       broomCentral->goRight();
+                       printOrganStatus(BroomOrgan, Right, true);
+                   },
+                   [this](){
+                       broomCentral->goNone();
+                       printOrganStatus(BroomOrgan, Right, false);
+                   });
 }
 
 //==============================Dump=================================================
@@ -3356,14 +3329,25 @@ void MainWindow::setDumpState(){
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_UP,
                    ui->label_dumpUpDown, ui->pushButton_dumpUp,
                    path + "up_off.png);", path + "off.png);",
-                   [this](){emit frontRail->goUp();},
-                   [this](){emit frontRail->goNone();});
+                   [this](){
+                        frontRail->goUp();
+                        printOrganStatus(DumpOrgan, Up, true);
+    },
+                   [this](){
+                        frontRail->goNone();
+                        printOrganStatus(DumpOrgan, Up, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_DOWN,
                 ui->label_dumpUpDown, ui->pushButton_dumpDown,
                 path + "down_off.png);", path + "off.png);",
-                [this](){frontRail->goDown();},
-                [this](){frontRail->goNone();});
+                [this](){
+                       frontRail->goDown();
+                       printOrganStatus(DumpOrgan, Down, true);
+    },
+                [this](){
+                       frontRail->goNone();
+                       printOrganStatus(DumpOrgan, Down, false);
+    });
 
 
     auto defaultIcon = workMode.frontDumpLeft? "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_left_on.png);":
@@ -3374,15 +3358,26 @@ void MainWindow::setDumpState(){
                     ui->label_dump, ui->pushButton_dumpLeft,
                    "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_left_on.png);",
                    defaultIcon,//!!!
-                   [this](){frontRail->goLeft();},
-                   [this](){frontRail->goNone();});
+                   [this](){
+                       frontRail->goLeft();
+                       printOrganStatus(DumpOrgan, Left, true);
+                   },
+                   [this](){
+                       frontRail->goNone();
+                       printOrganStatus(DumpOrgan, Left, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT,
                    ui->label_dump, ui->pushButton_dumpRight,
                    "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_right_on.png);",
                    defaultIcon,//!!!
-                   [this](){frontRail->goRight();},
-                   [this](){frontRail->goNone();});
+                   [this](){
+                        frontRail->goRight();
+                        printOrganStatus(DumpOrgan, Right, true);
+
+                   },
+                   [this](){
+                        frontRail->goNone();
+                        printOrganStatus(DumpOrgan, Right, false);});
 }
 
 //==============================Blower===============================================
@@ -3390,27 +3385,49 @@ void MainWindow::setDumpState(){
 void MainWindow::setBlowerState(){
     QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
 
-    if (ui->pushButton_blowerUp->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_UP){
-        setStyle(ui->label_blowerUpDown, path + "up_on.png);");
-        ui->pushButton_blowerUp->setProperty("wasDown", true);
-        blower->goUp();
-    }
-    else if (ui->pushButton_blowerUp->property("wasDown").toBool()){
-        setStyle(ui->label_blowerUpDown, path + "off.png);");
-        ui->pushButton_blowerUp->setProperty("wasDown", false);
-        blower->goOff();
-    }
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BLOW_UP,
+                   ui->label_blowerUpDown, ui->pushButton_blowerUp,
+                   path + "up_on.png);",
+                   path + "off.png);",
+                   [this](){
+                        blower->goUp();
+                        printOrganStatus(BlowerOrgan, Up, true);},
+                   [this](){
+                        blower->goOff();
+                        printOrganStatus(BlowerOrgan, Up, false);});
 
-    if (ui->pushButton_blowerDown->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_DOWN){
-        setStyle(ui->label_blowerUpDown, path + "down_on.png);");
-        ui->pushButton_blowerDown->setProperty("wasDown", true);
-        blower->goDown();
-    }
-    else if (ui->pushButton_blowerDown->property("wasDown").toBool()){
-        setStyle(ui->label_blowerUpDown, path + "off.png);");
-        ui->pushButton_blowerDown->setProperty("wasDown", false);
-        blower->goOff();
-    }
+    // if (ui->pushButton_blowerUp->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_UP){
+    //     setStyle(ui->label_blowerUpDown, path + "up_on.png);");
+    //     ui->pushButton_blowerUp->setProperty("wasDown", true);
+    //     blower->goUp();
+    // }
+    // else if (ui->pushButton_blowerUp->property("wasDown").toBool()){
+    //     setStyle(ui->label_blowerUpDown, path + "off.png);");
+    //     ui->pushButton_blowerUp->setProperty("wasDown", false);
+    //     blower->goOff();
+    // }
+
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BLOW_DOWN,
+                   ui->label_blowerUpDown, ui->pushButton_blowerDown,
+                   path + "down_on.png);",
+                   path + "off.png);",
+                   [this](){
+                       blower->goUp();
+                       printOrganStatus(BlowerOrgan, Down, true);},
+                   [this](){
+                       blower->goOff();
+                       printOrganStatus(BlowerOrgan, Down, false);});
+
+    // if (ui->pushButton_blowerDown->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_DOWN){
+    //     setStyle(ui->label_blowerUpDown, path + "down_on.png);");
+    //     ui->pushButton_blowerDown->setProperty("wasDown", true);
+    //     blower->goDown();
+    // }
+    // else if (ui->pushButton_blowerDown->property("wasDown").toBool()){
+    //     setStyle(ui->label_blowerUpDown, path + "off.png);");
+    //     ui->pushButton_blowerDown->setProperty("wasDown", false);
+    //     blower->goOff();
+    // }
 
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
@@ -3422,19 +3439,50 @@ void MainWindow::setBlowerState(){
                    ui->label_blower, ui->pushButton_blowerLeft,
                    path + "left_on.png);",
                    defaultIcon,//!!!
-                   [this](){blower->goSlide(false);},
-                   [this](){blower->goNone();});
+                   [this](){blower->goSlide(false);printOrganStatus(BlowerOrgan, Left, true);},
+                   [this](){blower->goNone();printOrganStatus(BlowerOrgan, Left, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BLOW_RIGHT,
                    ui->label_blower, ui->pushButton_blowerRight,
                    path + "right_on.png);",
                    defaultIcon,//!!!
-                   [this](){blower->goSlide(true);},
-                   [this](){blower->goNone();});
+                   [this](){blower->goSlide(true);printOrganStatus(BlowerOrgan, Right, true);},
+                   [this](){blower->goNone();printOrganStatus(BlowerOrgan, Right, false);});
 
 }
 
 //==============================Messages=============================================
+void MainWindow::printOrganStatus(Organ organ, Direction direction, bool state){
+    addLog(getOrganText(organ)+": "+getMovementText(direction)+ (state? "":" завершено"), MainWindow::InfoStatus);
+}
+
+QString MainWindow:: getMovementText(Direction direction){
+    switch (direction) {
+    case Up:
+        return "Движение вверх";
+    case Down:
+        return "Движение вниз";
+    case Left:
+        return "Движение влево" ;
+    case Right:
+        return "Движение вправо" ;
+    default:
+        return "Error";
+    }
+}
+
+QString MainWindow:: getOrganText(Organ organ){
+    switch (organ) {
+    case BlowerOrgan:
+        return "Обдув";
+    case BroomOrgan:
+        return "Щетка";
+    case DumpOrgan:
+        return "Отвал" ;
+    default:
+        return "Error";
+    }
+}
 
 QString MainWindow::getFatalStatusMessage(){
     if(!starterBlocked()){
@@ -3466,34 +3514,29 @@ QString MainWindow::getFatalStatusMessage(){
 
 
 void MainWindow::updateButtonsActiveState(){
-    if (startClean)
-    {
+    if (startClean){
         // домашнее сервис и настройки
-        if (ui->pushButton_homeState->isEnabled())
-        {
+        if (ui->pushButton_homeState->isEnabled()){
             ui->pushButton_homeState->setEnabled(false);
             ui->pushButton_settings->setEnabled(false);
             ui->pushButton_service->setEnabled(false);
         }
 
         // дулка
-        if (!ui->pushButton_blowerDown->isEnabled())
-        {
+        if (!ui->pushButton_blowerDown->isEnabled()){
             ui->pushButton_blowerDown->setEnabled(true);
             ui->pushButton_blowerUp->setEnabled(true);
         }
 
         // щетка
-        if (!ui->pushButton_centralBroomDown->isEnabled())
-        {
+        if (!ui->pushButton_centralBroomDown->isEnabled()){
             qDebug()<<"show work mode: true";
             ui->pushButton_centralBroomDown->setEnabled(true);
             ui->pushButton_centralBroomUp->setEnabled(true);
         }
 
         // отвал
-        if (!ui->pushButton_dumpDown->isEnabled())
-        {
+        if (!ui->pushButton_dumpDown->isEnabled()){
             ui->pushButton_dumpDown->setEnabled(true);
             ui->pushButton_dumpUp->setEnabled(true);
         }
@@ -3501,46 +3544,39 @@ void MainWindow::updateButtonsActiveState(){
     else
     {
         // домашнее сервис и настройки
-        if (!ui->pushButton_homeState->isEnabled())
-        {
+        if (!ui->pushButton_homeState->isEnabled()){
             ui->pushButton_homeState->setEnabled(true);
             ui->pushButton_settings->setEnabled(true);
             ui->pushButton_service->setEnabled(true);
         }
 
         // дулка
-        if (ui->pushButton_blowerDown->isEnabled())
-        {
+        if (ui->pushButton_blowerDown->isEnabled()){
             ui->pushButton_blowerDown->setEnabled(false);
             ui->pushButton_blowerUp->setEnabled(false);
         }
-        if (!ui->pushButton_blowerLeft->isEnabled())
-        {
+        if (!ui->pushButton_blowerLeft->isEnabled()){
             ui->pushButton_blowerLeft->setEnabled(true);
             ui->pushButton_blowerRight->setEnabled(true);
         }
 
         // щетка
-        if (ui->pushButton_centralBroomDown->isEnabled())
-        {
+        if (ui->pushButton_centralBroomDown->isEnabled()){
 
             qDebug()<<"show work mode: false";
             ui->pushButton_centralBroomDown->setEnabled(false);
             ui->pushButton_centralBroomUp->setEnabled(false);
         }
-        if (!ui->pushButton_centralBroomLeft->isEnabled())
-        {
+        if (!ui->pushButton_centralBroomLeft->isEnabled()){
             ui->pushButton_centralBroomLeft->setEnabled(true);
             ui->pushButton_centralBroomRight->setEnabled(true);
         }
         // отвал
-        if (ui->pushButton_dumpDown->isEnabled())
-        {
+        if (ui->pushButton_dumpDown->isEnabled()){
             ui->pushButton_dumpDown->setEnabled(false);
             ui->pushButton_dumpUp->setEnabled(false);
         }
-        if (!ui->pushButton_dumpLeft->isEnabled())
-        {
+        if (!ui->pushButton_dumpLeft->isEnabled()){
             ui->pushButton_dumpLeft->setEnabled(true);
             ui->pushButton_dumpRight->setEnabled(true);
         }
@@ -3580,14 +3616,12 @@ void MainWindow::updateButtonsIcons(){
     }
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
-    if (workMode.centralBroomFlow && workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != path + "on.png);")
-        ui->label_centralBroomFloatPress->setStyleSheet(path + "on.png);");
-    else if (workMode.centralBroomFlow && !workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != path + "up_on.png);")
-        ui->label_centralBroomFloatPress->setStyleSheet(path + "up_on.png);");
-    else if (!workMode.centralBroomFlow && workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != path + "down_on.png);")
-        ui->label_centralBroomFloatPress->setStyleSheet(path + "down_on.png);");
-    else if (!workMode.centralBroomFlow && !workMode.centralBroomPress && ui->label_centralBroomFloatPress->styleSheet() != path + "off.png);")
-        ui->label_centralBroomFloatPress->setStyleSheet(path + "off.png);");
+    if(workMode.centralBroomFlow){
+        setStyle(ui->label_centralBroomFloatPress, path + (workMode.centralBroomPress? "on.png);": "up_on.png);"));
+    }
+    else{
+        setStyle(ui->label_centralBroomFloatPress, path + ( workMode.centralBroomPress? "down_on.png);": "off.png);"));
+    }
 
     // отвал
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
@@ -3603,16 +3637,12 @@ void MainWindow::updateButtonsIcons(){
         setStyle(ui->label_dump, path + "off.png);");
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_";
-    if (workMode.frontDumpFlow)
-        setStyle(ui->label_dumpFloatPress, path + "on_down_blocked.png);");
-    else if (!workMode.frontDumpFlow )
-        setStyle(ui->label_dumpFloatPress, path + "off_down_blocked.png);");
+    setStyle(ui->label_dumpFloatPress, path + (workMode.frontDumpFlow? "on_down_blocked.png);": "off_down_blocked.png);"));
+
 
     // магнит
-    if (workMode.backMagnet && ui->label_backMagnet->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_magnet_on.png);")
-        ui->label_backMagnet->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_magnet_on.png);");
-    else if (!workMode.backMagnet && ui->label_backMagnet->styleSheet() != "background-image: url(:/Images/Images/main/buttons/configuration_button_magnet_off.png);")
-        ui->label_backMagnet->setStyleSheet("background-image: url(:/Images/Images/main/buttons/configuration_button_magnet_off.png);");
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_magnet_";
+    setStyle(ui->label_backMagnet, path + (workMode.backMagnet? "on.png);": "off.png);"));
 
     // дулка
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
@@ -3624,10 +3654,8 @@ void MainWindow::updateButtonsIcons(){
                 setStyle(ui->label_blower, path + "off.png);");
 
     // старт стоп
-    if (startClean && ui->pushButton_startstop->styleSheet() != "outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_on.png);")
-        ui->pushButton_startstop->setStyleSheet("outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_on.png);");
-    else if (!startClean && ui->pushButton_startstop->styleSheet() != "outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_off.png);")
-        ui->pushButton_startstop->setStyleSheet("outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_off.png);");
+    path = "outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_";
+    setStyle(ui->pushButton_startstop, path + (startClean? "on.png);": "off.png);"));
 }
 
 void MainWindow::setBtnState(QWidget *widget, QString path, std::function<void()> handler){

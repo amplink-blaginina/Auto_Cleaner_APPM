@@ -233,6 +233,7 @@ void CentralBroom::goNone()
     myCan->setState(StateValveF3, false);
     myCan->setState(StateValveF4, false);
     myCan->setState(StateValveF10, false);
+    myCan->setState(StateValveA1, false);
     goPressNone();
 }
 

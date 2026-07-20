@@ -192,9 +192,11 @@ void SettingsWifiLeftForm::on_pushButton_install_clicked()
     if (index.isValid())
     {
         QString version_to_work = index.data(Qt::UserRole).toString();
+        QString dir = "/home/knight/nextcloud_update/Update/APPM/" + version_to_work;
+
         QProcess p;
-        p.setWorkingDirectory("/home/knight/nextcloud_update/Update/APPM/" + version_to_work);
-        p.start("./updater.sh");
+        p.setWorkingDirectory(dir);
+        p.start("/bin/bash", QStringList() << "./updater.sh");
         p.waitForFinished(1000 * 120);
         //p.start("umount /home/knight/nextcloud_update");
         //p.waitForFinished();
