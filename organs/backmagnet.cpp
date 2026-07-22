@@ -6,11 +6,12 @@
 #include <QTimer>
 #include <QThread>
 
-BackMagnet::BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, QObject *parent_) : QObject(parent_)
+BackMagnet::BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ScreenLog *logger_, QObject *parent_) : QObject(parent_)
 {
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
     parent = parent_;
+    logger = logger_;
     setState(BackMagnetOff);
     setNeedState(BackMagnetOff);
     settings = settings_;
@@ -60,23 +61,24 @@ void BackMagnet::setState(BackMagnetStates state_)
     if (state == BackMagnet::BackMagnetOff)
     {// выключили
         goOff();
-        ((MainWindow*)parent)->addLog("Магнит поднят", MainWindow::InfoStatus);
+        logger->printLog("Магнит поднят");
+       //((MainWindow*)parent)->addLog("Магнит поднят", MainWindow::InfoStatus);
         //myCan->setState(StateValveC5, false);
         //myCan->setState(StateFRMBackL2, false);
     }
     if (state == BackMagnet::BackMagnetDownIn)
     {// поднимаем
         startActionTime = QDateTime::currentDateTime();
-
-        ((MainWindow*)parent)->addLog("Поднимаем магнит", MainWindow::InfoStatus);
+        logger->printLog("Поднимаем магнит");
+        //((MainWindow*)parent)->addLog("Поднимаем магнит", MainWindow::InfoStatus);
         goUp();
         //myCan->setState(StateValveC5, true);
     }
     if (state == BackMagnet::BackMagnetDownOut)
     {// опускаем
         startActionTime = QDateTime::currentDateTime();
-
-        ((MainWindow*)parent)->addLog("Опускаем магнит", MainWindow::InfoStatus);
+        logger->printLog("Опускаем магнит");
+        //((MainWindow*)parent)->addLog("Опускаем магнит", MainWindow::InfoStatus);
         goDown();
         //myCan->setState(StateFRMBackL2, true);
         //myCan->setState(StateValveC5, true);
@@ -84,8 +86,8 @@ void BackMagnet::setState(BackMagnetStates state_)
     if (state == BackMagnet::BackMagnetDowned)
     {// опустили
         startActionTime = QDateTime::currentDateTime();
-
-        ((MainWindow*)parent)->addLog("Магнит опущен", MainWindow::InfoStatus);
+        logger->printLog("Магнит опущен");
+        //((MainWindow*)parent)->addLog("Магнит опущен", MainWindow::InfoStatus);
         goOff();
         //myCan->setState(StateValveC5, true);
     }
@@ -177,16 +179,14 @@ bool BackMagnet::testStateTimer()
         const bool sensorReached = myCan->getState(StateDKPBackMagnetUp).toBool();
         if (timeTest && !sensorReached)
         {
-            if (!magnetAlarmed)
-            {
-                ((MainWindow*)parent)->addLog("Магнит: достигнут тайм-аут", MainWindow::InfoStatus);
+            if (!magnetAlarmed){
+                logger->printLog("Магнит: достигнут тайм-аут");
                 goOff();
             }
             magnetAlarmed = true;
         }
-        else if (sensorReached)
-        {
-            ((MainWindow*)parent)->addLog("Магнит: достигнут датчик", MainWindow::InfoStatus);
+        else if (sensorReached){
+            logger->printLog("Магнит: достигнут датчик");
         }
         if (timeTest || sensorReached)
             dkpAndPositionTest = true;// не ждем таймера и разрешаем завершить процесс

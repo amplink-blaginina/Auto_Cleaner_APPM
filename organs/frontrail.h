@@ -1,6 +1,7 @@
 #ifndef FRONTRAIL_H
 #define FRONTRAIL_H
 
+#include "screenlog.h"
 #include <QObject>
 #include <QWidget>
 #include <QDateTime>
@@ -31,8 +32,9 @@ public:
         FrontRailFlowed     = 11
     };
 
-    explicit FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, QObject *parent_);
+    explicit FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ScreenLog *logger, QObject *parent_);
     QObject * parent;
+    ScreenLog *logger;
     MyCan *myCan;
     MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;

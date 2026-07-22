@@ -37,9 +37,12 @@ SOURCES += \
     fogotform.cpp \
     gpio/gpio_matrix.cpp \
     gpio/gpio_worker.cpp \
+    interface_button/custombutton.cpp \
+    interface_button/custombuttonsgroup.cpp \
     interface_button/interfacebutton.cpp \
     log/Delegate.cpp \
     log/MessageList.cpp \
+    log/screenlog.cpp \
     logger.cpp \
     mainwindow.cpp \
     can/mycan.cpp \
@@ -49,6 +52,7 @@ SOURCES += \
     organs/centralbroom.cpp \
     organs/blower.cpp \
     organs/frontrail.cpp \
+    organs/organsenums.cpp \
     password_form.cpp \
     pdf/pdfscroller.cpp \
     service/devices/dkp/servicedevicesdkpleftform.cpp \
@@ -77,10 +81,13 @@ HEADERS += \
     gpio/gpio_matrix.hpp \
     gpio/gpio_types.hpp \
     gpio/gpio_worker.hpp \
+    interface_button/custombutton.h \
+    interface_button/custombuttonsgroup.h \
     interface_button/interfacebutton.h \
     log/Delegate.h \
     log/Delegate_p.h \
     log/MessageList.h \
+    log/screenlog.h \
     logger.h \
     mainwindow.h \
     can/mycan.h \
@@ -89,6 +96,7 @@ HEADERS += \
     organs/blower.h \
     organs/centralbroom.h \
     organs/frontrail.h \
+    organs/organsenums.h \
     password_form.h \
     pdf/pdfscroller.h \
     service/devices/dkp/servicedevicesdkpleftform.h \

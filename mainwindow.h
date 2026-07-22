@@ -39,6 +39,7 @@
 #include "organs/centralbroom.h"
 #include "organs/blower.h"
 #include "organs/frontrail.h"
+#include "organs/organsenums.h"
 
 // диагностика
 #include <service/servicemainrightform.h>
@@ -56,6 +57,7 @@
 #include "settings/settingsform.h"
 
 #include "blockform.h"
+#include "screenlog.h"
 
 //логгер (черный ящик)
 #include "logger.h"
@@ -156,20 +158,6 @@ public:
         SettingsMode   = 4
     };
 
-    enum Direction {
-        None = 0,
-        Up = 1,
-        Down = 2,
-        Left = 3,
-        Right = 4,
-    };
-
-    enum Organ{
-        BroomOrgan,
-        BlowerOrgan,
-        DumpOrgan
-    };
-
     MainWindow(int argc, char *argv[], QWidget *parent = nullptr);
     ~MainWindow();
 
@@ -209,7 +197,6 @@ public:
     void applyWorkModeToDeployedOrgans();
     bool organsWereTransitioning;
 
-    void addLog(QString text, LogStatus logStatus);
     MessageList* messageList;
     bool waitOnStartAlarmed;
     bool cleanWrongSpeedAlarmed;
@@ -256,6 +243,7 @@ public:
     bool starterStarted;
     QDateTime starterStartedTime;
 
+    ScreenLog *screenLog;
     Engine *engine;
     CentralBroom *broomCentral;
     Blower *blower;
@@ -460,6 +448,7 @@ private:
     QFont font;
     //std::unordered_map<std::pair<CleanConfiguration, Direction>, double> dict;
 
+    void addLog(QString text, LogStatus logStatus);
     void stopStarterOutput();
     void stopRollOutput();
     void updateEngineAndRollLocks();
@@ -488,7 +477,7 @@ private:
     void tryMoveBroomUp();
     void tryMoveBroomLeft();
     void tryMoveBroomRight();
-    void broomSingleMovement(Direction dir);
+    void broomSingleMovement(organsEnums::Direction dir);
     bool isDisabled();
     void createTimers();
 
@@ -510,14 +499,16 @@ private:
     void loadAndSetFonts();
     void setDefaultWorkMode();
     void setDefaultSettings();
-    QString getMovementText(Direction direction);
-    QString getOrganText(Organ organ);
-    void printOrganStatus(Organ organ, Direction direction, bool state);
+    QString getOrganText(organsEnums::Organ organ);
+    void printOrganStatus(organsEnums::Organ organ, organsEnums::Direction direction, bool state);
+    MessageList *createMessageList();
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
     void Send_SecretPass_2_pass_form(int);
     void Pass_close();
+public :
+    QString getMovementText(organsEnums::Direction direction);
 public slots:
     void messageListPressed();
     void settingsAskPassword();

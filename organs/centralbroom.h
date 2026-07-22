@@ -1,11 +1,14 @@
 #ifndef CENTRALBROOM_H
 #define CENTRALBROOM_H
 
+#include "organsenums.h"
+
 #include <QObject>
 #include <QWidget>
 #include <QDateTime>
 #include <QMap>
 #include <QSettings>
+#include <screenlog.h>
 
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
@@ -36,8 +39,9 @@ public:
     };
 
     Q_ENUM(BroomStates);
-    explicit CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, QObject *parent_);
+    explicit CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ScreenLog *logger, QObject *parent_);
     QObject * parent;
+    ScreenLog *logger;
     MyCan *myCan;
     MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;
@@ -74,11 +78,15 @@ public:
     QString toString(BroomStates s);
 
     void goLeft();
+    void goLeft(bool state);
     void goRight();
+    void goRight(bool state);
     void goNone();
     void goPressNone();
     void goUp();
+    void goUp(bool state);
     void goDown();
+    void goDown(bool state);
     void goFlow();
     void goNoFlow();
     void goRotate(int speed_);
@@ -99,6 +107,11 @@ public slots:
     void progressLoop();
 signals:
 
+private:
+    void goSlide(bool toLeft);
+    bool isTimeoutReached();
+    bool wereBusyAndTimeoutReached(bool timeoutReached, BroomStates state);
+    bool checkMovementAndStopOnTimeout(bool timeoutReached, bool isSensorReached, organsEnums::Direction dir);
 };
 
 #endif // CENTRALBROOM_H

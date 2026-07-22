@@ -6,6 +6,7 @@
 #include <QDateTime>
 #include <QMap>
 #include <QSettings>
+#include <screenlog.h>
 
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
@@ -29,8 +30,9 @@ public:
         BlowerRotated     = 9
     };
 
-    explicit Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, QObject *parent_);
+    explicit Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ScreenLog *logger, QObject *parent_);
     QObject * parent;
+    ScreenLog *logger;
     MyCan *myCan;
     MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;

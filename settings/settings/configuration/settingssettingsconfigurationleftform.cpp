@@ -24,12 +24,13 @@ void SettingsSettingsConfigurationLeftForm::updateVisual()
 
 void SettingsSettingsConfigurationLeftForm::checkButton(DeviceStates dev, InterfaceButton* btn)
 {
-    if (((MainWindow*)parent)->can0->getState(dev).toBool() && btn->state != InterfaceButton::On)
+    bool btnState = ((MainWindow*)parent)->can0->getState(dev).toBool();
+    if ( btnState && btn->state != InterfaceButton::On)
     {
         btn->state = InterfaceButton::On;
         btn->updateVisual();
     }
-    if (!((MainWindow*)parent)->can0->getState(dev).toBool() && btn->state != InterfaceButton::Off)
+    if (!btnState && btn->state != InterfaceButton::Off)
     {
         btn->state = InterfaceButton::Off;
         btn->updateVisual();

@@ -13,6 +13,7 @@
 #include <QPushButton>
 #include <custombutton.h>
 #include <custombuttonsgroup.h>
+#include <screenlog.h>
 
 // pwm
 #include <sys/socket.h>
@@ -175,18 +176,11 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     readSystemConfigure();
 
     // верхний лог со скролом
-    messageList = new MessageList(this);
-    messageList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    messageList->verticalScrollBar()->setStyleSheet("QScrollBar {width:0px;}");
-    messageList->setStyleSheet("QListView {background: transparent;}");
-    messageList->setFixedWidth(519);
-    messageList->setFixedHeight(115);
+    messageList = createMessageList();
     //WARNING
     QScroller::grabGesture(messageList->viewport(), QScroller::LeftMouseButtonGesture);
     connect(messageList, SIGNAL(entered(QModelIndex)), this, SLOT(messageListPressed()));
     connect(messageList, SIGNAL(viewportEntered()), this, SLOT(messageListPressed()));
-
-
     ui->logLayout->addWidget(messageList);
 
     QString can_device = readSettingsValue("Global/canDeivce").toString();
@@ -203,11 +197,9 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     ui->label_date->setFont(QFont("Mont",15));
     ui->label_time->setFont(QFont("Mont",20));
 
-    // режим опасной диагностики
-    superDiagMode = false;
 
-    // инит логгера (черный ящик)
-    logger = new Logger(NULL);
+    superDiagMode = false;// режим опасной диагностики
+    logger = new Logger(NULL);// инит логгера (черный ящик)
 
     //Инит CAN и GPIO
     can0 = new MyCan(can_device, logger, true, NULL);//can0
@@ -257,7 +249,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     frmTimeCounter = 0;
     leftModeTimeCounter = 0;
     rightModeTimeCounter = 0;
-
     KVControl = false;
     currentKV = 0;
 
@@ -308,21 +299,28 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     settingsMainRightForm = new SettingsMainRightForm(this);
     settingsMainRightForm->hide();
 
-    // создаем таймер для обслуживания общих узлов
-    createTimers();
 
+    createTimers();// создаем таймер для обслуживания общих узлов
     connect (&goHomeTimer, SIGNAL(timeout()), this, SLOT(resetDevices()));
 
     blockScreen = new BlockForm(this);
     blockScreen->hide();
 
-    // создаем виджет двигателя
-    engine = new Engine(canj1939, this);
+    engine = new Engine(canj1939, this);// создаем виджет двигателя
+
+    screenLog = new ScreenLog();
+    connect(screenLog, &ScreenLog::logSignal,
+            this, [this](const QString& msg){ addLog(msg, MainWindow::InfoStatus); });
+    connect(screenLog, &ScreenLog::warningSignal,
+            this, [this](const QString& msg){ addLog(msg, MainWindow::WarningStatus); });
+    connect(screenLog, &ScreenLog::errorSignal,
+            this, [this](const QString& msg){ addLog(msg, MainWindow::FatalStatus); });
+
     // создаем виджеты щеток и прочих модулей
-    broomCentral = new CentralBroom(can0, NULL, settings, this);
-    frontRail = new FrontRail(can0, NULL, settings, this);
-    backMagnet = new BackMagnet(can0, NULL, settings, this);
-    blower = new Blower(can0, NULL, settings, this);
+    broomCentral = new CentralBroom(can0, NULL, settings, screenLog, this);
+    frontRail = new FrontRail(can0, NULL, settings, screenLog, this);
+    backMagnet = new BackMagnet(can0, NULL, settings, screenLog, this);
+    blower = new Blower(can0, NULL, settings, screenLog, this);
 
     resetDevices();
     //can0->setState(StateBoardsPowerOut, true);
@@ -344,8 +342,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     stopInProgress = false;
     waitOnStartAlarmed = false;
     cleanWrongSpeedAlarmed = false;
-    addLog("ПВИ запущен", WarningStatus);
-
+    screenLog->printWarning("ПВИ запущен");
     buttonsLightLevel = 0;
 
     hydroTempCounterToShow = 0;
@@ -418,6 +415,20 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     can0->setState(StateStarterAllow, false);
     can0->setState(StateStarterRoll, false);
     createButtons();
+}
+
+MainWindow::~MainWindow(){
+    delete ui;
+}
+
+MessageList* MainWindow::createMessageList(){
+    MessageList* messageList = new MessageList(this);
+    messageList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    messageList->verticalScrollBar()->setStyleSheet("QScrollBar {width:0px;}");
+    messageList->setStyleSheet("QListView {background: transparent;}");
+    messageList->setFixedWidth(519);
+    messageList->setFixedHeight(115);
+    return messageList;
 }
 
 void MainWindow::loadAndSetFonts(){
@@ -859,14 +870,7 @@ void MainWindow::buttonsLightCheck()
     //PWMSend();
 }
 
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-void MainWindow::addElement(int element_, QString name_, int board_, int channel_, quint8 type_, quint8 median_type_, quint8 pwm_type_, quint8 pfm_low_type_, quint8 pfm_high_type_, quint8 value_change_speed_)
-{
+void MainWindow::addElement(int element_, QString name_, int board_, int channel_, quint8 type_, quint8 median_type_, quint8 pwm_type_, quint8 pfm_low_type_, quint8 pfm_high_type_, quint8 value_change_speed_){
     systemElements.insert(element_, new SystemElement(name_, board_, channel_));
     systemConfigure.id[board_][channel_] = element_;
     systemConfigure.channelsType[board_][channel_] = type_;
@@ -877,23 +881,19 @@ void MainWindow::addElement(int element_, QString name_, int board_, int channel
     systemConfigure.channelsValueChangeSpeed[board_][channel_] = value_change_speed_;
 }
 
-void MainWindow::getSystemConfigure(SystemConfigure* dst)
-{
+void MainWindow::getSystemConfigure(SystemConfigure* dst){
     //QMutexLocker l(&configureMutex);
     systemConfigure.copy(dst);
 }
 
-void MainWindow::getElements(QMap<int, SystemElement*>* dst)
-{
+void MainWindow::getElements(QMap<int, SystemElement*>* dst){
     //QMutexLocker l(&configureMutex);
-    foreach (int key, systemElements.keys())
-    {
+    foreach (int key, systemElements.keys()){
         dst->insert(key, new SystemElement(systemElements.value(key)));
     }
 }
 
-void MainWindow::readSystemConfigure()
-{
+void MainWindow::readSystemConfigure(){
     saveSystemConfigure();
 
     // проверяем есть ли настройки в конфиге
@@ -954,15 +954,13 @@ void MainWindow::readSystemConfigure()
     // }
 }
 
-void MainWindow::removeBadSettings()
-{
+void MainWindow::removeBadSettings(){
     QDir dir(QCoreApplication::applicationDirPath(), {"settingsAutoCleaner.ini.*"});
     for(const QString & filename: dir.entryList())
         dir.remove(filename);
 }
 
-void MainWindow::saveSystemConfigure()
-{
+void MainWindow::saveSystemConfigure(){
     // почтистим все конфиговое
     if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
         QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
@@ -1128,9 +1126,8 @@ void MainWindow::resetDevices()
         goHomeTimer.setInterval(1000);
         goHomeTimer.start();
         // выключаем режим автоматики
-        if (startClean)
-        {
-            addLog("Связь с блоками потеряна - остановка уборки", WarningStatus);
+        if (startClean){
+            screenLog->printWarning("Связь с блоками потеряна - остановка уборки");
             on_pushButton_startstop_clicked();
         }
         return;
@@ -1183,35 +1180,28 @@ void MainWindow::incomeData(struct can_frame frame)
 {
     if (frame.can_id == 0x00000AC0)// && (centralBroom->getState() == CentralBroom::BroomRotated || serviceForm->isVisible()))
     {// КВ
-        if (frame.data[3] & 0x10 && (frame.data[3] & ~(0x10)) && workMode.centralBroomPress)
-        {// назад
+        if (frame.data[3] & 0x10 && (frame.data[3] & ~(0x10)) && workMode.centralBroomPress){// назад
             broomCentral->goPressUp();
             KVControl = true;
 
             currentKV = 0;
         }
-        else if ((frame.data[3] & 0x10) == 0 && frame.data[3] && workMode.centralBroomPress)
-        {// вперед
+        else if ((frame.data[3] & 0x10) == 0 && frame.data[3] && workMode.centralBroomPress){// вперед
             broomCentral->goPressDown();
             KVControl = true;
         }
-        else if (KVControl)
-        {
+        else if (KVControl){
             broomCentral->goPressNone();
             KVControl = false;
         }
     }
 }
-qint8 MainWindow::getFilteredTemp()
-{
+qint8 MainWindow::getFilteredTemp(){
     hydroTempBuffer.removeFirst();
     QList<qint8> sortBuffer = hydroTempBuffer;
-    for (int i = 0; i < hydroTempBuffer.size(); i++)
-    {
-        for (int j = i; j < hydroTempBuffer.size() - 1; j++)
-        {
-            if (sortBuffer[j] > sortBuffer[j + 1])
-            {
+    for (int i = 0; i < hydroTempBuffer.size(); i++){
+        for (int j = i; j < hydroTempBuffer.size() - 1; j++){
+            if (sortBuffer[j] > sortBuffer[j + 1]){
                 qint8 tmp_val = sortBuffer[j];
                 sortBuffer[j] = sortBuffer[j + 1];
                 sortBuffer[j + 1] = tmp_val;
@@ -1220,8 +1210,7 @@ qint8 MainWindow::getFilteredTemp()
     }
     hydroTempMedianBuffer.append(sortBuffer[5]);
     qint16 ret = 0;
-    if (hydroTempMedianBuffer.size() > 10)
-    {
+    if (hydroTempMedianBuffer.size() > 10){
         hydroTempMedianBuffer.removeFirst();
         for (int i = 0; i < hydroTempMedianBuffer.size(); i ++)
             ret += hydroTempMedianBuffer[i];
@@ -1231,8 +1220,7 @@ qint8 MainWindow::getFilteredTemp()
         ret = sortBuffer[5];
     return ret;
 }
-void MainWindow::canJ1939Error()
-{
+void MainWindow::canJ1939Error(){
     if (!ui->J1939Status->isVisible())
         ui->J1939Status->show();
     // сбрасываем значения
@@ -1241,8 +1229,7 @@ void MainWindow::canJ1939Error()
     engine->coolantTempEverReceived = false;
 }
 
-void MainWindow::canJ1939MainError()
-{
+void MainWindow::canJ1939MainError(){
     if (!ui->J1939MainStatus->isVisible())
         ui->J1939MainStatus->show();
 
@@ -1253,14 +1240,13 @@ void MainWindow::canJ1939MainError()
 //    qDebug() << "J1939MainError";
 // //    resetDevices();//сбросить все команды и состояния
 }
-void MainWindow::incomeDataJ1939(quint32 pgn, quint8 sa, QByteArray data)
-{
+void MainWindow::incomeDataJ1939(quint32 pgn, quint8 sa, QByteArray data){
 //    qDebug() << pgn;
     if (ui->J1939Status->isVisible())
         ui->J1939Status->hide();
 }
-void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data)
-{// данные от переднего двигателя
+
+void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data){// данные от переднего двигателя
     //    qDebug() << pgn;
     if (pgn == 0xF004) //eec1
     {//обороты переднего двигателя
@@ -1270,8 +1256,7 @@ void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data)
     }
     // лучше брать FEF1 (похоже на круиз) или ETC1(F002) (частота вала) или FEBF - скорее всего abs (FE6C это скорость от тахографа а у нас ее нет похоже)
 
-    if (pgn == 0xFEBF)
-    {// скорость по ABS
+    if (pgn == 0xFEBF){// скорость по ABS
         QString temp = "%1";
         if ((uint8_t)data[1] < 200)
         {
@@ -1288,23 +1273,20 @@ void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data)
         engineCoolantTemp = data[0] - 40;
     }
 
-    if (pgn == 0xF002)
-    {// скорость выходного вала трансмиссии
+    if (pgn == 0xF002){// скорость выходного вала трансмиссии
         quint16 speed_ = data[1] + (data[2] << 8);
         //        qDebug() << "speed 1 " << ((float)speed_ * 0.126092385);
         //        QString temp = "%1";
         //        temp = temp.arg((int)((float)speed_ * 0.126092385), 2, 10, QChar('0'));
         //        ui->label_speed->setText(temp);
     }
-    if (pgn == 0xFEF1)
-    {// скорость по круизу
+    if (pgn == 0xFEF1){// скорость по круизу
         //        qDebug() << "speed 2 " << (data[2]);
         //        QString temp = "%1";
         //        temp = temp.arg(data[2], 2, 10, QChar('0'));
         //        ui->label_speed->setText(temp);
     }
-    if (pgn == 0xFE6C)
-    {// скорость по тахографу
+    if (pgn == 0xFE6C){// скорость по тахографу
         quint16 speed_ = data[6] + (data[7] << 8);
         //        qDebug() << "speed 3 " << (speed_ / 256);
         //        QString temp = "%1";
@@ -1314,8 +1296,7 @@ void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data)
     }
 
 
-    if (pgn == 0xFEF7)
-    {// напряжение АКБ
+    if (pgn == 0xFEF7){// напряжение АКБ
         quint16 volt_ = data[4] + (data[5] << 8);
         //        qDebug() << "volt " << (volt_ / 20);
         QString temp = "%1";
@@ -1338,8 +1319,7 @@ void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data)
 //     settings->sync();
 // }
 
-void MainWindow::oneSecond()
-{// универсальный таймер для всяких нужд (раз в сек)
+void MainWindow::oneSecond(){// универсальный таймер для всяких нужд (раз в сек)
     can0->setState(State24Volt, true);
 
     QDateTime DateAndTime=QDateTime::currentDateTime().addMonths(0);
@@ -1371,8 +1351,7 @@ void MainWindow::oneSecond()
         TOCurValues["System"]++;
 
     const bool engineRunningNow = engine->getRpm() > 700;
-    if (engineRunningNow && !engineRunStatePrev)
-    {
+    if (engineRunningNow && !engineRunStatePrev){
         lastEngineStartDate = QDate::currentDate();
         settings->setValue("Engine/lastStartDate", lastEngineStartDate);
         settings->sync();
@@ -1452,7 +1431,7 @@ void MainWindow::oneSecond()
             if (TOAlarmValues[key] != 1)
             {
                 TOAlarmValues[key] = 1;
-                addLog(TONameValues[key] + " требует ТО", WarningStatus);
+                screenLog->printWarning(TONameValues[key] + " требует ТО");
             }
         }
         else
@@ -1534,9 +1513,9 @@ void MainWindow::mainProgress(){
         {
             stopInProgress = true;
             if (!can0->getState(Board0IN1).toBool())
-                addLog("Ключ зажигания повернут. Начинается выключение ПВИ", WarningStatus);
+                screenLog->printWarning("Ключ зажигания повернут. Начинается выключение ПВИ");
             else
-                addLog("Нажали кнопку выключения ПВИ. Начинается выключение ПВИ ( удерживайте кнопку )", WarningStatus);
+                screenLog->printWarning("Нажали кнопку выключения ПВИ. Начинается выключение ПВИ ( удерживайте кнопку )");
             logger->setStop(true);
             //сохраним важные параметры
             if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
@@ -1555,7 +1534,7 @@ void MainWindow::mainProgress(){
     else
     {
         if (stopInProgress)
-            addLog("Выключение ПВИ отменено", WarningStatus);
+            screenLog->printWarning("Выключение ПВИ отменено");
         stopInProgress = false;
     }
 
@@ -1735,9 +1714,9 @@ void MainWindow::mainProgress(){
         if (organsWereTransitioning && !pauseActive)
         {
             if (startClean)
-                addLog("Органы разложены — управление разблокировано", InfoStatus);
+                screenLog->printLog("Органы разложены — управление разблокировано");
             else
-                addLog("Органы сложены — можно начинать движение", InfoStatus);
+                screenLog->printLog("Органы сложены — можно начинать движение");
         }
         // алиасы
         // щетки  - при неактивной программе выбирают левую правую щетку. при активной программе меняют обороты щетки
@@ -1757,7 +1736,7 @@ void MainWindow::mainProgress(){
     if ((can0->getState(StateAlarmIn).toBool()) && startClean)
     {
         if (can0->getState(StateAlarmIn).toBool())
-            addLog("Нажата аварийная кнока", WarningStatus);
+            screenLog->printWarning("Нажата аварийная кнока");
         if (startClean)
             on_pushButton_startstop_clicked();
         can0->setState(StateIgnitionOut, false);
@@ -1768,7 +1747,7 @@ void MainWindow::mainProgress(){
     if (vehicleSpeed > disableCleanSpeed && vehicleSpeed != 199 && vehicleSpeed < 200 && startClean)
     {
         on_pushButton_startstop_clicked();
-        addLog("Превышена скорость уборки. Останавливаем уборку", WarningStatus);
+        screenLog->printWarning("Превышена скорость уборки. Останавливаем уборку");
     }
 }
 
@@ -1921,23 +1900,19 @@ void MainWindow::updateEngineAndRollLocks()
     starterLockedByEmergency = !ignoreAllEmergency && (waterAlarm || airAlarm || oilAlarm);
     rollLockedByEmergency = !ignoreAllEmergency && (waterAlarm || airAlarm || oilAlarm);
 
-    if (needRollProcedure && !logNeedRollShown)
-    {
-        addLog("Требуется прокрутка вспомогательного ДВС", WarningStatus);
+    if (needRollProcedure && !logNeedRollShown){
+        screenLog->printWarning("Требуется прокрутка вспомогательного ДВС");
         logNeedRollShown = true;
     }
-    if (!needRollProcedure)
-    {
+    if (!needRollProcedure){
         logNeedRollShown = false;
     }
 
-    if (starterLockedByTemperature && !logNeedWarmShown)
-    {
-        addLog("Требуется прогрев вспомогательного ДВС", WarningStatus);
+    if (starterLockedByTemperature && !logNeedWarmShown){
+        screenLog->printWarning("Требуется прогрев вспомогательного ДВС");
         logNeedWarmShown = true;
     }
-    if (!starterLockedByTemperature)
-    {
+    if (!starterLockedByTemperature){
         logNeedWarmShown = false;
     }
 }
@@ -1991,12 +1966,10 @@ void MainWindow::processPrerollInService()
         else
             statusText = "";
 
-        if (rollBlocked() && !statusText.isEmpty())
-        {
+        if (rollBlocked() && !statusText.isEmpty()){
             setStyle(statusLabel,"color: red;");
         }
-        else
-        {
+        else{
             setStyle(statusLabel,"color: yellow;");
         }
 
@@ -2013,25 +1986,21 @@ void MainWindow::processPrerollInService()
     const bool rollInputPressed = can0->getState(StateRollIn).toBool();
     const bool rollInputPressedEdge = rollInputPressed && !rollInputPrev;
 
-    if (prerollPressedEdge)
-    {
-        if (prerollSequenceActive || prerollStarterUnlocked)
-        {
+    if (prerollPressedEdge){
+        if (prerollSequenceActive || prerollStarterUnlocked){
             // ОТМЕНА: выходим из режима прокрутки, восстанавливаем зажигание
             prerollSequenceActive = false;
             prerollStarterUnlocked = false;
             stopRollOutput();
             can0->setState(StateStarterAllow, false);
             restoreIgnitionAfterRoll();
-            addLog("Режим прокрутки отменён оператором", InfoStatus);
+            screenLog->printLog("Режим прокрутки отменён оператором");
         }
-        else if (rollBlocked())
-        {
-            addLog("Прокрутка заблокирована", WarningStatus);
+        else if (rollBlocked()){
+            screenLog->printWarning("Прокрутка заблокирована");
         }
-        else
-        {
-            addLog("Запуск алгоритма прокрутки", WarningStatus);
+        else{
+            screenLog->printWarning("Запуск алгоритма прокрутки");
             prerollSequenceActive = true;
             prerollSequenceStep = 1;
             prerollStepStartedAt = QDateTime::currentDateTime();
@@ -2043,86 +2012,71 @@ void MainWindow::processPrerollInService()
         }
     }
 
-    if (prerollSequenceActive)
-    {
+    if (prerollSequenceActive){
         const int elapsed = qAbs(prerollStepStartedAt.secsTo(QDateTime::currentDateTime()));
-        if (prerollSequenceStep == 1 && elapsed >= 2)
-        {
+        if (prerollSequenceStep == 1 && elapsed >= 2){
             can0->setState(StateStarterAllow, true);
             prerollSequenceStep = 2;
             prerollStepStartedAt = QDateTime::currentDateTime();
         }
-        else if (prerollSequenceStep == 2 && elapsed >= 1)
-        {
+        else if (prerollSequenceStep == 2 && elapsed >= 1){
             prerollStarterUnlocked = true;
             prerollSequenceActive = false;
-            addLog("Прокрутка подготовлена", InfoStatus);
+            screenLog->printLog("Прокрутка подготовлена");
         }
     }
 
-    if (rollPauseActive && !inRollPause())
-    {
+    if (rollPauseActive && !inRollPause()){
         rollPauseActive = false;
         rollPauseWarned = false;
     }
 
     const bool rollStartRequest = prerollStarterPressedEdge || rollInputPressedEdge;
-    if (rollStartRequest && !rollRunActive)
-    {
-        if (rollBlocked())
-        {
-            addLog("Прокрутка заблокирована", WarningStatus);
+    if (rollStartRequest && !rollRunActive){
+        if (rollBlocked()){
+            screenLog->printWarning("Прокрутка заблокирована");
         }
-        else if (inRollPause())
-        {
-            addLog("Пауза между пусками " + QString::number(rollPauseSecondsLeft()) + " секунды осталось", WarningStatus);
+        else if (inRollPause()){
+            screenLog->printWarning("Пауза между пусками " + QString::number(rollPauseSecondsLeft()) + " секунды осталось");
             rollPauseWarned = true;
         }
-        else if (!prerollStarterUnlocked && !rollInputPressedEdge)
-        {
-            addLog("Сначала выполните подготовку прокрутки", WarningStatus);
+        else if (!prerollStarterUnlocked && !rollInputPressedEdge){
+            screenLog->printWarning("Сначала выполните подготовку прокрутки");
         }
-        else
-        {
+        else{
             rollRunActive = true;
             rollRunStartedAt = QDateTime::currentDateTime();
             rollAttemptsUsed++;
             stopStarterOutput();
             can0->setState(StateStarterRoll, true);
-            addLog("Стартер прокрутка включен", WarningStatus);
+            screenLog->printWarning("Стартер прокрутка включен");
         }
     }
 
-    if (rollRunActive)
-    {
+    if (rollRunActive){
         const bool rollButtonStillPressed = prerollStarterPressed || rollInputPressed;
-        if (rollRunActive)
-        {
+        if (rollRunActive){
             // АВАРИЙНАЯ ОСТАНОВКА: зажигание включилось во время прокрутки
-            if (can0->getState(StateIgnitionOut).toBool())
-            {
+            if (can0->getState(StateIgnitionOut).toBool()){
                 stopRollOutput();
                 rollRunActive = false;
                 prerollStarterUnlocked = false;
                 can0->setState(StateStarterAllow, false);
                 restoreIgnitionAfterRoll();   // уже есть из проблемы 3
-                addLog("Прокрутка прервана: обнаружено включение зажигания", WarningStatus);
+                screenLog->printWarning("Прокрутка прервана: обнаружено включение зажигания");
             }
             // Прокрутка работает только пока оператор удерживает кнопку/вход
-            else if (!rollButtonStillPressed)
-            {
+            else if (!rollButtonStillPressed){
                 stopRollOutput();
                 rollRunActive = false;
-                addLog("Прокрутка остановлена оператором", InfoStatus);
+                screenLog->printLog("Прокрутка остановлена оператором");
                 restoreIgnitionAfterRoll();
                 // Добровольная остановка — не считаем за неудачу, паузу не запускаем
             }
-            else
-            {
+            else{
                 const bool oilRele = !can0->getState(StateOilRele).toBool();
                 const int elapsedRoll = qAbs(rollRunStartedAt.secsTo(QDateTime::currentDateTime()));
-                if (oilRele)
-                {
+                if (oilRele){
                     stopRollOutput();
                     rollRunActive = false;
                     rollPauseActive = false;
@@ -2138,29 +2092,24 @@ void MainWindow::processPrerollInService()
                     settings->sync();
                     // ВОССТАНАВЛИВАЕМ ЗАЖИГАНИЕ после успешной прокрутки
                     restoreIgnitionAfterRoll();
-
-
-                    addLog("Прокрутка завершена по реле масла", InfoStatus);
+                    screenLog->printLog("Прокрутка завершена по реле масла");
                 }
-                else if (elapsedRoll >= rollMaxWorkSec)
-                {
+                else if (elapsedRoll >= rollMaxWorkSec){
                     stopRollOutput();
                     rollRunActive = false;
                     rollPauseActive = true;
                     rollPauseStartedAt = QDateTime::currentDateTime();
                     restoreIgnitionAfterRoll();
-                    addLog("Долгая работа стартера", FatalStatus);
-                    if (rollAttemptsUsed >= rollMaxAttempts)
-                    {
+                    screenLog->printError("Долгая работа стартера");
+                    if (rollAttemptsUsed >= rollMaxAttempts){
                         rollNeedReboot = true;
-                        addLog("Достигнут лимит попыток прокрутки, требуется перезагрузка пульта", FatalStatus);
+                        screenLog->printError("Достигнут лимит попыток прокрутки, требуется перезагрузка пульта");
                     }
                 }
             }
         }
     }
-    if (rollNeedReboot)
-    {
+    if (rollNeedReboot){
         prerollStarterUnlocked = false;
         can0->setState(StateStarterAllow, false);
     }
@@ -2173,104 +2122,87 @@ void MainWindow::processPrerollInService()
     rollInputPrev = rollInputPressed;
 
     // Обновляем состояние кнопки ПРОКРУТКА
-    if (prerollButton != NULL)
-    {
+    if (prerollButton != NULL){
         bool rollModeActive = prerollSequenceActive || prerollStarterUnlocked || rollRunActive;
         prerollButton->setChecked(rollModeActive);
     }
 }
 
-void MainWindow::restoreIgnitionAfterRoll()
-{
+void MainWindow::restoreIgnitionAfterRoll(){
     // Восстанавливаем зажигание немедленно
     can0->setState(StateIgnitionOut, true);
     ignitionOffTimer = 0;
 
     // Если сервисный экран закрыт — разрешаем авто-восстановление работать штатно
     // Если открыт — оно всё равно заблокировано, но зажигание уже включено
-    addLog("Зажигание восстановлено после прокрутки", InfoStatus);
+    screenLog->printLog("Зажигание восстановлено после прокрутки");
 }
 
-void MainWindow::updateSensorAndWarningIndicators()
-{
+void MainWindow::updateSensorAndWarningIndicators(){
     const bool waterSensor = can0->getState(StateWaterSensor).toBool();
     const bool airFilter = can0->getState(StateAirFilterBad).toBool();
     const bool oilFilter = can0->getState(StateOilFilterBad).toBool();
     const bool heatRelay = !can0->getState(StateHeatRele).toBool();
     const bool lowTemperature = engine->online <= ENGINE_ONLINE_EDGE * 10 && engine->engineCoolantTemp < lowTempRequireWarm;
 
-    if (waterSensor && !waterSensorActivePrev)
-    {
-        addLog("Вода в топливе текущие", WarningStatus);
+    if (waterSensor && !waterSensorActivePrev){
+        screenLog->printWarning("Вода в топливе текущие");
         waterSensorStartedAt = TOCurValues["Engine"];
         waterSensorTimeStarted = true;
     }
-    else if (!waterSensor)
-    {
+    else if (!waterSensor){
         waterSensorTimeStarted = false;
     }
     const bool waterRed = waterSensor && waterSensorTimeStarted
             && (TOCurValues["Engine"] - waterSensorStartedAt >= (quint32)(waterSensorRedHours * 3600));
-    if (waterSensor)
-    {
+    if (waterSensor){
         updateIndicatorPixmap(ui->label_waterInFuel, waterRed ? "red" : "yellow", "water_in_fuel");
         ui->label_waterInFuel->show();
     }
-    else
-    {
+    else{
         ui->label_waterInFuel->hide();
     }
 
-    if (airFilter && !airFilterActivePrev)
-    {
-        addLog("Засорение воздушного фильтра", WarningStatus);
+    if (airFilter && !airFilterActivePrev){
+        screenLog->printWarning("Засорение воздушного фильтра");
         airFilterStartedAt = TOCurValues["Engine"];
         airFilterTimeStarted = true;
     }
-    else if (!airFilter)
-    {
+    else if (!airFilter){
         airFilterTimeStarted = false;
     }
     const bool airRed = airFilter && airFilterTimeStarted
             && (TOCurValues["Engine"] - airFilterStartedAt >= (quint32)(airFilterRedHours * 3600));
-    if (airFilter)
-    {
+    if (airFilter){
         updateIndicatorPixmap(ui->label_airFilter, airRed ? "red" : "yellow", "air_filter");
         ui->label_airFilter->show();
     }
-    else
-    {
+    else{
         ui->label_airFilter->hide();
     }
 
-    if (oilFilter && !oilFilterActivePrev)
-    {
-        addLog("Засорение масляного фильтра", FatalStatus);
+    if (oilFilter && !oilFilterActivePrev){
+        screenLog->printError("Засорение масляного фильтра");
     }
-    if (oilFilter)
-    {
+    if (oilFilter){
         updateIndicatorPixmap(ui->label_oilFilter, "red", "oil_filter");
         ui->label_oilFilter->show();
         can0->setState(StateIgnitionOut, false);
         ignitionOffTimer = 0;
     }
-    else
-    {
+    else{
         ui->label_oilFilter->hide();
     }
 
-    if (heatRelay && !heatRelayActivePrev)
-    {
-        addLog("Требуется прогрев вспомогательного ДВС", WarningStatus);
+    if (heatRelay && !heatRelayActivePrev){
+        screenLog->printWarning("Требуется прогрев вспомогательного ДВС");
     }
 
-    if (heatRelay || lowTemperature)
-    {
+    if (heatRelay || lowTemperature){
         updateIndicatorPixmap(ui->label_engineLowTemperature, "yellow", "engine_low_temperature");
         ui->label_engineLowTemperature->show();
     }
-    else
-    {
+    else{
         ui->label_engineLowTemperature->hide();
     }
 
@@ -2280,8 +2212,7 @@ void MainWindow::updateSensorAndWarningIndicators()
     heatRelayActivePrev = heatRelay;
 }
 
-void MainWindow::showStatus()
-{
+void MainWindow::showStatus(){
     updateEngineAndRollLocks();
 
     // wait_on_start
@@ -2293,8 +2224,8 @@ void MainWindow::showStatus()
     // повлеждекние двигателя
     if ((engine->damage == 2 || engine->damage == 1) && !ui->label_engine_damage->isVisible() && showCheckEngine)
     {
-        addLog("Двигателю требуется обслуживание", MainWindow::FatalStatus);
-        addLog("Код ошибки SPM=" + QString::number(engine->DM01SPNValue) + " FMI=" + QString::number(engine->DM01FMIValue), MainWindow::FatalStatus);
+        screenLog->printError("Двигателю требуется обслуживание");
+        screenLog->printError("Код ошибки SPM=" + QString::number(engine->DM01SPNValue) + " FMI=" + QString::number(engine->DM01FMIValue));
         ui->label_engine_damage->show();
     }
     else if ((engine->damage == 0 || !showCheckEngine) && ui->label_engine_damage->isVisible())
@@ -2361,7 +2292,7 @@ void MainWindow::showStarter()
     }
 
     if (rpm < 500 && engineStartedOk)
-        addLog("Двигатель заглох!!!", FatalStatus);
+        screenLog->printError("Двигатель заглох");
 
     if (!inStarterPause())
     {
@@ -2394,7 +2325,7 @@ void MainWindow::showStarter()
         engineStartedOk = false;
         starterPauseActive = true;
         starterPauseStartedAt = QDateTime::currentDateTime();
-        addLog("Повторное нажатие старт/стоп: выключаем зажигание", WarningStatus);
+        screenLog->printWarning("Повторное нажатие старт/стоп: выключаем зажигание");
     }
     else if (starterPressed)// либо двигатель не запущен, либо нажали на кнопку стартера не только что, но всё ещё держим
     {
@@ -2405,7 +2336,7 @@ void MainWindow::showStarter()
         if (!engineRunning){//если двигатель не запущен
             if (starterNeedReboot){
                 if (starterPressedEdge)
-                    addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
+                    screenLog->printError("Достигнут лимит попыток запуска, требуется перезагрузка пульта");
                 stopStarterOutput();
                 starterStarted = false;
             }
@@ -2414,18 +2345,18 @@ void MainWindow::showStarter()
                 if (starterPressedEdge)
                 {
                     if (starterLockedByRoll)
-                        addLog("Требуется прокрутка вспомогательного ДВС", WarningStatus);
+                        screenLog->printWarning("Требуется прокрутка вспомогательного ДВС");
                     else if (starterLockedByTemperature || engine->waitOnStart)
-                        addLog("Требуется прогрев вспомогательного ДВС", WarningStatus);
+                        screenLog->printWarning("Требуется прогрев вспомогательного ДВС");
                     else
-                        addLog(getFatalStatusMessage(), FatalStatus);
+                        screenLog->printError(getFatalStatusMessage());
                 }
                 stopStarterOutput();
                 starterStarted = false;
             }
             else if (inStarterPause())            {
-                if (starterPressedEdge || !starterPauseWarned)                {
-                    addLog("Пауза между пусками " + QString::number(starterPauseSecondsLeft()) + " секунды осталось", WarningStatus);
+                if (starterPressedEdge || !starterPauseWarned){
+                    screenLog->printWarning("Пауза между пусками " + QString::number(starterPauseSecondsLeft()) + " секунды осталось");
                     starterPauseWarned = true;
                 }
                 stopStarterOutput();
@@ -2436,7 +2367,7 @@ void MainWindow::showStarter()
                     starterStarted = true;
                     starterStartedTime = QDateTime::currentDateTime();
                     starterAttemptsUsed++;
-                    addLog("Стартер включен", WarningStatus);
+                    screenLog->printWarning("Стартер включен");
                     gpio->setOutput(GPIOOutput::OUT_STARTER, true);
                     gpio->setOutput(GPIOOutput::OUT_STARTER_LIGHT, true);
                 }
@@ -2448,17 +2379,17 @@ void MainWindow::showStarter()
                     starterPauseActive = false;
                     starterNeedReboot = false;
                     starterAttemptsUsed = 0;
-                    addLog("Двигатель набрал обороты", WarningStatus);
+                    screenLog->printWarning("Двигатель набрал обороты");
                 }
                 else if (starterRunTime >= starterMaxWorkSec){
                     stopStarterOutput();
                     starterStarted = false;
                     starterPauseActive = true;
                     starterPauseStartedAt = QDateTime::currentDateTime();
-                    addLog("Долгая работа стартера", FatalStatus);
+                    screenLog->printError("Долгая работа стартера");
                     if (starterAttemptsUsed >= starterMaxAttempts){
                         starterNeedReboot = true;
-                        addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
+                        screenLog->printError("Достигнут лимит попыток запуска, требуется перезагрузка пульта");
                     }
                 }
             }
@@ -2474,7 +2405,7 @@ void MainWindow::showStarter()
                 starterPauseStartedAt = QDateTime::currentDateTime();
                 if (starterAttemptsUsed >= starterMaxAttempts){
                     starterNeedReboot = true;
-                    addLog("Достигнут лимит попыток запуска, требуется перезагрузка пульта", FatalStatus);
+                    screenLog->printError("Достигнут лимит попыток запуска, требуется перезагрузка пульта");
                 }
             }
         }
@@ -2559,23 +2490,19 @@ void MainWindow::showMatrixFRMButton()
 }
 
 // нажали пуск - запускаем все выбранные устройства
-void MainWindow::on_pushButton_startstop_clicked()
-{
-    if (startClean)
-    {// или отжали или был выбран режим защиты от неприятностей
-        if (pauseActive)
-        {// снимаем паузу, уборка продолжается
+void MainWindow::on_pushButton_startstop_clicked(){
+    if (startClean){// или отжали или был выбран режим защиты от неприятностей
+        if (pauseActive){// снимаем паузу, уборка продолжается
             pauseActive = false;
-            addLog("Пауза снята", InfoStatus);
+            screenLog->printLog("Пауза снята");
             showWorkMode();
             return;
         }
-        addLog("Уборка окончена", WarningStatus);
+        screenLog->printWarning("Уборка окончена");
         startClean = false;
     }
-    else
-    {
-        addLog("Уборка начата", WarningStatus);
+    else{
+        screenLog->printWarning("Уборка начата");
         startClean = true;
     }
     showWorkMode();
@@ -2778,30 +2705,6 @@ bool MainWindow::isOrgansTransitioning(){
     return false;
 }
 
-void MainWindow::applyWorkModeToDeployedOrgans(){
-    // При отключенном прижиме сбрасываем поджим сразу, чтобы не оставались активные клапаны.
-    if (!workMode.centralBroomPress)
-        broomCentral->goPressNone();
-
-    if(!startClean){
-        return;
-    }
-
-    if (broomCentral->getState() >= CentralBroom::BroomFlowed){
-        if (workMode.centralBroomFlow)
-            broomCentral->goFlow();
-        else
-            broomCentral->goNoFlow();
-    }
-
-    if (frontRail->getState() >= FrontRail::FrontRailFlowed){
-        if (workMode.frontDumpFlow)
-            frontRail->goFlow();
-        else
-            frontRail->goNoFlow();
-    }
-}
-
 void  MainWindow::showCentralBroomLeft(){
     // qDebug()<<"showBroomLeft";
 
@@ -2935,7 +2838,7 @@ void MainWindow::showPauseButton(){
         if (pauseCleanTimeCounter > 1 && startClean){
             pauseActive = !pauseActive;
             if (pauseActive){
-                addLog("Пауза включена", WarningStatus);
+                screenLog->printWarning("Пауза включена");
                 // поднимаем органы в промежуточное состояние
                 if (frontRail->choosed)
                     frontRail->setNeedState(FrontRail::FrontRailBounced);
@@ -2947,7 +2850,7 @@ void MainWindow::showPauseButton(){
                     blower->setNeedState(Blower::BlowerDownIn);
             }
             else{
-                addLog("Пауза снята", InfoStatus);
+                screenLog->printLog("Пауза снята");
             }
             showWorkMode();
         }
@@ -3195,7 +3098,7 @@ void MainWindow::on_pushButton_frmMagnet_clicked(){
 }
 
 void MainWindow::on_pushButton_homeState_clicked(){
-    addLog("Переход в домашнее состояние, ожидайте", MainWindow::WarningStatus);
+    screenLog->printWarning("Переход в домашнее состояние, ожидайте");
     // вынуждаем все органы убраться поновой. обманка
     backMagnet->state = BackMagnet::BackMagnetDowned;
     blower->state = Blower::BlowerRotated;
@@ -3207,51 +3110,58 @@ void MainWindow::on_pushButton_homeState_clicked(){
 void MainWindow::updateOrgansStates(){
     // задаем режимы органам
     // щетка
-    if (workMode.centralBroomLeft||workMode.centralBroomRight){
-        broomCentral->setNeedState(CentralBroom::BroomFlowed);
-        broomCentral->choosed = true;
-    }
-    else{
-        broomCentral->setNeedState(CentralBroom::BroomOff);
-        broomCentral->choosed = false;
-    }
-
+    bool isBroomActive = workMode.centralBroomLeft||workMode.centralBroomRight;
+    broomCentral->setNeedState(isBroomActive? CentralBroom::BroomFlowed: CentralBroom::BroomOff);
+    broomCentral->choosed = isBroomActive;
     broomCentral->needSlided = workMode.centralBroomLeft;
 
     // отвал
-    if (workMode.frontDumpLeft||workMode.frontDumpRight){
-        frontRail->setNeedState(FrontRail::FrontRailFlowed);
-        frontRail->choosed = true;
-    }
-    else{
-        frontRail->setNeedState(FrontRail::FrontRailOff);
-        frontRail->choosed = false;
-    }
-
+    bool isDumpActive = workMode.frontDumpLeft||workMode.frontDumpRight;
+    frontRail->setNeedState(isDumpActive? FrontRail::FrontRailFlowed: FrontRail::FrontRailOff);
+    frontRail->choosed = isDumpActive;
     frontRail->needSlided = workMode.frontDumpLeft;
 
     // дулка
-    if (workMode.blowLeft||workMode.blowRight){
-        blower->setNeedState(Blower::BlowerRotated);
-        blower->choosed = true;
-    }
-    else{
-        blower->setNeedState(Blower::BlowerOff);
-        blower->choosed = false;
-    }
+    bool isBlowerActive  = workMode.blowLeft||workMode.blowRight;
+    blower->setNeedState(isBlowerActive? Blower::BlowerRotated: Blower::BlowerOff);
+    blower->choosed = isBlowerActive;
 
     // магнит
-    if (workMode.backMagnet){
-        backMagnet->setNeedState(BackMagnet::BackMagnetDowned);
-        backMagnet->choosed = true;
-    }
-    else{
-        backMagnet->setNeedState(BackMagnet::BackMagnetOff);
-        backMagnet->choosed = false;
-    }
+    bool isMagnetActive = workMode.backMagnet;
+    backMagnet->setNeedState(isMagnetActive? BackMagnet::BackMagnetDowned: BackMagnet::BackMagnetOff);
+    backMagnet->choosed = isMagnetActive;
 
     // Применяем режимы к уже разложенным органам сразу при изменении workMode.
-    applyWorkModeToDeployedOrgans();
+
+
+    if (!workMode.centralBroomPress)// При отключенном прижиме сбрасываем поджим сразу, чтобы не оставались активные клапаны.
+        broomCentral->goPressNone();
+
+    if(!startClean){
+        return;
+    }
+    qDebug()<<"Broom: "<<broomCentral->getState()<<"  Dump: "<<frontRail->getState();
+
+    if (broomCentral->getState() >= CentralBroom::BroomFlowed){
+        if (workMode.centralBroomFlow)        {
+            broomCentral->goFlow();
+            screenLog->printLog("Щетка плавающая");
+        }
+        else{
+            broomCentral->goNoFlow();
+            screenLog->printLog("Щетка не плавающая");
+        }
+    }
+
+    if (frontRail->getState() >= FrontRail::FrontRailFlowed){
+        if (workMode.frontDumpFlow){
+            frontRail->goFlow();
+            screenLog->printLog("Отвал плавающий");}
+
+        else{
+            frontRail->goNoFlow();
+            screenLog->printLog("Отвал не плавающий");}
+    }
 }
 
 //==============================Sweep================================================
@@ -3273,20 +3183,20 @@ void MainWindow::setBroomState(){
                    path + "up_on.png);", path + "off.png);",
                    [this](){
                         broomCentral->goUp();
-                        printOrganStatus(BroomOrgan, Up, true);},
+                        printOrganStatus(organsEnums::BroomOrgan, organsEnums::Up, true);},
                    [this](){
                         broomCentral->goNone();
-                        printOrganStatus(BroomOrgan, Up, false);});
+                        printOrganStatus(organsEnums::BroomOrgan, organsEnums::Up, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_DOWN,
                    ui->label_centralBroomUpDown, ui->pushButton_centralBroomDown,
                    path + "down_on.png);", path + "off.png);",
                    [this](){
                         broomCentral->goDown();
-                        printOrganStatus(BroomOrgan, Down, true);},
+                        printOrganStatus(organsEnums::BroomOrgan, organsEnums::Down, true);},
                    [this](){
                         broomCentral->goNone();
-                        printOrganStatus(BroomOrgan, Down, false);});
+                        printOrganStatus(organsEnums::BroomOrgan, organsEnums::Down, false);});
 
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
@@ -3301,11 +3211,11 @@ void MainWindow::setBroomState(){
                    defaultIcon,//!!!
                    [this](){
                        broomCentral->goLeft();
-                       printOrganStatus(BroomOrgan, Left, true);
+                       printOrganStatus(organsEnums::BroomOrgan, organsEnums::Left, true);
                    },
                    [this](){
                        broomCentral->goNone();
-                       printOrganStatus(BroomOrgan, Left, false);
+                       printOrganStatus(organsEnums::BroomOrgan, organsEnums::Left, false);
                    });
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_RIGHT,
@@ -3314,11 +3224,11 @@ void MainWindow::setBroomState(){
                    defaultIcon,//!!!
                    [this](){
                        broomCentral->goRight();
-                       printOrganStatus(BroomOrgan, Right, true);
+                       printOrganStatus(organsEnums::BroomOrgan, organsEnums::Right, true);
                    },
                    [this](){
                        broomCentral->goNone();
-                       printOrganStatus(BroomOrgan, Right, false);
+                       printOrganStatus(organsEnums::BroomOrgan, organsEnums::Right, false);
                    });
 }
 
@@ -3331,22 +3241,22 @@ void MainWindow::setDumpState(){
                    path + "up_off.png);", path + "off.png);",
                    [this](){
                         frontRail->goUp();
-                        printOrganStatus(DumpOrgan, Up, true);
+                        printOrganStatus(organsEnums::DumpOrgan, organsEnums::Up, true);
     },
                    [this](){
                         frontRail->goNone();
-                        printOrganStatus(DumpOrgan, Up, false);});
+                        printOrganStatus(organsEnums::DumpOrgan, organsEnums::Up, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_DOWN,
                 ui->label_dumpUpDown, ui->pushButton_dumpDown,
                 path + "down_off.png);", path + "off.png);",
                 [this](){
                        frontRail->goDown();
-                       printOrganStatus(DumpOrgan, Down, true);
+                       printOrganStatus(organsEnums::DumpOrgan, organsEnums::Down, true);
     },
                 [this](){
                        frontRail->goNone();
-                       printOrganStatus(DumpOrgan, Down, false);
+                       printOrganStatus(organsEnums::DumpOrgan, organsEnums::Down, false);
     });
 
 
@@ -3360,11 +3270,11 @@ void MainWindow::setDumpState(){
                    defaultIcon,//!!!
                    [this](){
                        frontRail->goLeft();
-                       printOrganStatus(DumpOrgan, Left, true);
+                       printOrganStatus(organsEnums::DumpOrgan, organsEnums::Left, true);
                    },
                    [this](){
                        frontRail->goNone();
-                       printOrganStatus(DumpOrgan, Left, false);});
+                       printOrganStatus(organsEnums::DumpOrgan, organsEnums::Left, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT,
                    ui->label_dump, ui->pushButton_dumpRight,
@@ -3372,12 +3282,12 @@ void MainWindow::setDumpState(){
                    defaultIcon,//!!!
                    [this](){
                         frontRail->goRight();
-                        printOrganStatus(DumpOrgan, Right, true);
+                        printOrganStatus(organsEnums::DumpOrgan, organsEnums::Right, true);
 
                    },
                    [this](){
                         frontRail->goNone();
-                        printOrganStatus(DumpOrgan, Right, false);});
+                        printOrganStatus(organsEnums::DumpOrgan, organsEnums::Right, false);});
 }
 
 //==============================Blower===============================================
@@ -3391,21 +3301,10 @@ void MainWindow::setBlowerState(){
                    path + "off.png);",
                    [this](){
                         blower->goUp();
-                        printOrganStatus(BlowerOrgan, Up, true);},
+                        printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Up, true);},
                    [this](){
                         blower->goOff();
-                        printOrganStatus(BlowerOrgan, Up, false);});
-
-    // if (ui->pushButton_blowerUp->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_UP){
-    //     setStyle(ui->label_blowerUpDown, path + "up_on.png);");
-    //     ui->pushButton_blowerUp->setProperty("wasDown", true);
-    //     blower->goUp();
-    // }
-    // else if (ui->pushButton_blowerUp->property("wasDown").toBool()){
-    //     setStyle(ui->label_blowerUpDown, path + "off.png);");
-    //     ui->pushButton_blowerUp->setProperty("wasDown", false);
-    //     blower->goOff();
-    // }
+                        printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Up, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BLOW_DOWN,
                    ui->label_blowerUpDown, ui->pushButton_blowerDown,
@@ -3413,22 +3312,10 @@ void MainWindow::setBlowerState(){
                    path + "off.png);",
                    [this](){
                        blower->goUp();
-                       printOrganStatus(BlowerOrgan, Down, true);},
+                       printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Down, true);},
                    [this](){
                        blower->goOff();
-                       printOrganStatus(BlowerOrgan, Down, false);});
-
-    // if (ui->pushButton_blowerDown->isDown() || gpioMatirx->keyPressed == GPIOInput::IN_BLOW_DOWN){
-    //     setStyle(ui->label_blowerUpDown, path + "down_on.png);");
-    //     ui->pushButton_blowerDown->setProperty("wasDown", true);
-    //     blower->goDown();
-    // }
-    // else if (ui->pushButton_blowerDown->property("wasDown").toBool()){
-    //     setStyle(ui->label_blowerUpDown, path + "off.png);");
-    //     ui->pushButton_blowerDown->setProperty("wasDown", false);
-    //     blower->goOff();
-    // }
-
+                       printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Down, false);});
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
     auto defaultIcon = workMode.blowLeft ? path + "left_on.png);":
@@ -3438,50 +3325,22 @@ void MainWindow::setBlowerState(){
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BLOW_LEFT,
                    ui->label_blower, ui->pushButton_blowerLeft,
                    path + "left_on.png);",
-                   defaultIcon,//!!!
-                   [this](){blower->goSlide(false);printOrganStatus(BlowerOrgan, Left, true);},
-                   [this](){blower->goNone();printOrganStatus(BlowerOrgan, Left, false);});
+                   defaultIcon,
+                   [this](){blower->goSlide(false);printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Left, true);},
+                   [this](){blower->goNone();printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Left, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BLOW_RIGHT,
                    ui->label_blower, ui->pushButton_blowerRight,
                    path + "right_on.png);",
-                   defaultIcon,//!!!
-                   [this](){blower->goSlide(true);printOrganStatus(BlowerOrgan, Right, true);},
-                   [this](){blower->goNone();printOrganStatus(BlowerOrgan, Right, false);});
+                   defaultIcon,
+                   [this](){blower->goSlide(true);printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Right, true);},
+                   [this](){blower->goNone();printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Right, false);});
 
 }
 
 //==============================Messages=============================================
-void MainWindow::printOrganStatus(Organ organ, Direction direction, bool state){
-    addLog(getOrganText(organ)+": "+getMovementText(direction)+ (state? "":" завершено"), MainWindow::InfoStatus);
-}
-
-QString MainWindow:: getMovementText(Direction direction){
-    switch (direction) {
-    case Up:
-        return "Движение вверх";
-    case Down:
-        return "Движение вниз";
-    case Left:
-        return "Движение влево" ;
-    case Right:
-        return "Движение вправо" ;
-    default:
-        return "Error";
-    }
-}
-
-QString MainWindow:: getOrganText(Organ organ){
-    switch (organ) {
-    case BlowerOrgan:
-        return "Обдув";
-    case BroomOrgan:
-        return "Щетка";
-    case DumpOrgan:
-        return "Отвал" ;
-    default:
-        return "Error";
-    }
+void MainWindow::printOrganStatus(organsEnums::Organ organ, organsEnums::Direction direction, bool state){
+    screenLog->printMovementLog(organ, direction, (state? "":" завершено"));
 }
 
 QString MainWindow::getFatalStatusMessage(){
@@ -3508,6 +3367,7 @@ QString MainWindow::getFatalStatusMessage(){
     if(engine->waitOnStart){
         return "Стартер заблокирован: ожидание на старте";
     }
+    return "Стартер не заблокирован";
 }
 
 //==============================UI===================================================
@@ -3670,17 +3530,14 @@ void MainWindow::selectBtnState(bool gpioPressed, QLabel *lbl, QPushButton *btn,
     bool wasDown = btn->property("wasDown").toBool();
     if (btn->isDown() || gpioPressed){
         if(!wasDown){
-            qDebug()<<"*pressed"<<btn->objectName();
             btn->setProperty("wasDown", true);
             setBtnState(lbl, onPath, onPressHandler);}
     }
     else if (wasDown){
-        qDebug()<<"*released"<<btn->objectName();
         btn->setProperty("wasDown", false);
         setBtnState(lbl, offPath, onReleaseHandler);
     }
 }
-
 
 void MainWindow::selectBtnState(bool gpioPressed, QPushButton *btn, QString onPath, QString offPath,
                                 std::function<void()> onPressHandler,
@@ -3689,13 +3546,11 @@ void MainWindow::selectBtnState(bool gpioPressed, QPushButton *btn, QString onPa
     bool wasDown = btn->property("wasDown").toBool();
     if (btn->isDown() || gpioPressed){
         if(!wasDown){
-            qDebug()<<"*pressed"<<btn->objectName();
             btn->setProperty("wasDown", true);
             setBtnState(btn, onPath, onPressHandler);
         }
     }
     else if (wasDown){
-        qDebug()<<"*released"<<btn->objectName();
         btn->setProperty("wasDown", false);
         setBtnState(btn, offPath, onReleaseHandler);
     }
@@ -3715,8 +3570,8 @@ void MainWindow::showStatus(QLabel *label, bool check, QString message, bool sho
         return;
     }
     if(check){
-        if(showMsg) addLog(message, MainWindow::WarningStatus);
-
+        if(showMsg)
+            screenLog->printWarning(message);
         label->show();
     }
     else{
@@ -3729,11 +3584,11 @@ void MainWindow::showStatus(QLabel *label, bool check, QString messageOn, QStrin
         return;
     }
     if(check){
-        addLog(messageOn, MainWindow::WarningStatus);
+        screenLog->printWarning(messageOn);
         label->show();
     }
     else{
         label->hide();
-        addLog(messageOff, MainWindow::InfoStatus);
+        screenLog->printLog(messageOff);
     }
 }

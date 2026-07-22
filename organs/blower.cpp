@@ -6,11 +6,12 @@
 #include <QTimer>
 #include <QThread>
 
-Blower::Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, QObject *parent_) : QObject(parent_)
+Blower::Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ScreenLog *logger_, QObject *parent_) : QObject(parent_)
 {
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
     parent = parent_;
+    logger = logger_;
     setState(BlowerOff);
     setNeedState(BlowerOff);
     settings = settings_;
@@ -190,37 +191,30 @@ void Blower::goNone(){
     myCan->setState(StateValveE7, false);
 }
 
-Blower::BlowerStates Blower::getState()
-{
+Blower::BlowerStates Blower::getState(){
     return state;
 }
 
-void Blower::setNeedState(BlowerStates state_)
-{
+void Blower::setNeedState(BlowerStates state_){
     needState = state_;
 //    qDebug() << "Central broom needState " << toString(needState);
 }
 
-Blower::BlowerStates Blower::getAbleState()
-{
+Blower::BlowerStates Blower::getAbleState(){
     return ableState;
 }
 
-Blower::BlowerStates Blower::getNeedState()
-{
+Blower::BlowerStates Blower::getNeedState(){
     return needState;
 }
 
-void Blower::checkNeedState()
-{// утанавливает максимальную границу до которой может дойти щетка (при текущих параметрах)
+void Blower::checkNeedState(){// утанавливает максимальную границу до которой может дойти щетка (при текущих параметрах)
     if (needState != BlowerOff)
     {
-        if (!startClean)
-        {// пуск отжат или никакой режим смета не выбран или если щетки не выдвинуты
+        if (!startClean)        {// пуск отжат или никакой режим смета не выбран или если щетки не выдвинуты
             ableState = BlowerOff;// можно только продолжать пытаться включиться (используется такой странный статус потому что надо показать постоянно желание включиться даже если не нажали пуск например)
         }
-        else
-        {
+        else        {
             ableState = BlowerRotated;
         }
     }
@@ -228,20 +222,17 @@ void Blower::checkNeedState()
         ableState = BlowerOff;
 }
 
-int Blower::getTimeout()
-{//получает таймаут в секундах (сколько надо простаивать в той или иной операции)
+int Blower::getTimeout(){//получает таймаут в секундах (сколько надо простаивать в той или иной операции)
     return timeouts.value(state, 0);
 }
 
-bool Blower::testStateTimer()
-{// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)
+bool Blower::testStateTimer(){// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)
     qint64 msecs_to = startActionTime.msecsTo(QDateTime::currentDateTime());
     qint64 tmp_msecs = msecs_to;
     if (msecs_to > getTimeout() * 1000)
         tmp_msecs = getTimeout() * 1000;
     bool timeTest = false;
-    if (msecs_to > getTimeout() * 1000)
-    {// тест по времени прошел а мы ничего не достигли. Нужны тревоги
+    if (msecs_to > getTimeout() * 1000){// тест по времени прошел а мы ничего не достигли. Нужны тревоги
         timeTest = true;
         //return true;
     }
@@ -249,21 +240,17 @@ bool Blower::testStateTimer()
     // проверяем концевики
     bool dkpAndPositionTest = false;
     // магнимт идет вверх, ждем концевик
-    if (state == Blower::BlowerDownIn)
-    {
+    if (state == Blower::BlowerDownIn){
         const bool sensorReached = myCan->getState(StateDKPBlowerUp1).toBool() && myCan->getState(StateDKPBlowerUp2).toBool();
-        if (timeTest && !sensorReached)
-        {
-            if (!blowerAlarmed)
-            {
-                ((MainWindow*)parent)->addLog("Продувка: достигнут тайм-аут", MainWindow::InfoStatus);
+        if (timeTest && !sensorReached){
+            if (!blowerAlarmed){
+                logger->printLog("Продувка: достигнут тайм-аут");
                 goOff();
             }
             blowerAlarmed = true;
         }
-        else if (sensorReached)
-        {
-            ((MainWindow*)parent)->addLog("Продувка: достигнут датчик", MainWindow::InfoStatus);
+        else if (sensorReached){
+            logger->printLog("Продувка: достигнут датчик");
         }
         if (timeTest || sensorReached)
             dkpAndPositionTest = true;// не ждем таймера и разрешаем завершить процесс
@@ -277,8 +264,7 @@ bool Blower::testStateTimer()
          || state == Blower::BlowerRotateIn) && timeTest)
         dkpAndPositionTest = true;
 
-    if (dkpAndPositionTest)
-    {
+    if (dkpAndPositionTest){
         blowerAlarmed = false;
         return true;// достигнут концевик или нужное положение (мы молодцы)
     }
@@ -286,29 +272,25 @@ bool Blower::testStateTimer()
     return false;
 }
 
-void Blower::checkFriendVars()
-{
+void Blower::checkFriendVars(){
     startClean = ((MainWindow*)parent)->startClean;
     rightBlow = ((MainWindow*)parent)->workMode.blowRight;
 }
 
-void Blower::progressLoop()
-{
+void Blower::progressLoop(){
     // проверяет соседние модули и собирает информацию о их состояниях (нажатые кнопки, обороты, статусы и пр.)
     checkFriendVars();
     // проверяет до какого состояния может добираться щетка
     checkNeedState();
 
-    if (state >= Blower::BlowerRotateOut)
-    {
+    if (state >= Blower::BlowerRotateOut){
         //обороты движка
         ((MainWindow*)parent)->canForEngine->setEngineCommand(rpmForSweepType.value(((MainWindow*)parent)->workMode.sweepType) * 8);
         // скорость щеток
         goRotate(speedForSweepType.value(((MainWindow*)parent)->workMode.sweepType));
     }
 
-    if (state < needState && state < ableState)
-    {// нужно прогрессировать вверх (выдвигать, мыть и гусей не забыть)
+    if (state < needState && state < ableState){// нужно прогрессировать вверх (выдвигать, мыть и гусей не забыть)
         BlowerStates s = state;
         stateUp();
         if (s != state)// && (state == needState || state == ableState))
@@ -316,8 +298,7 @@ void Blower::progressLoop()
             qDebug() << "Blower state " << toString(state);
         }
     }
-    else if (state > needState || state > ableState)
-    {// прогрессируем вниз
+    else if (state > needState || state > ableState){// прогрессируем вниз
         BlowerStates s = state;
         stateDown();
         if (s != state)// && (state == needState || state == ableState))
@@ -327,12 +308,11 @@ void Blower::progressLoop()
     }
 }
 
-Blower::BlowerStates Blower::stateUp()
-{// пытаемся прогрессировать статусом вверх (если что меняем направление статуса, если вдруг был понижающий прогресс)
+Blower::BlowerStates Blower::stateUp(){// пытаемся прогрессировать статусом вверх (если что меняем направление статуса, если вдруг был понижающий прогресс)
     switch (state) {
     case BlowerOff:
         // начинаем опускание
-        ((MainWindow*)parent)->addLog("Опускаем раструб", MainWindow::InfoStatus);
+        logger->printLog("Опускаем раструб");
         setState(BlowerDownOut);
         break;
     case BlowerDownOut:
@@ -345,7 +325,7 @@ Blower::BlowerStates Blower::stateUp()
         setState(BlowerDownOut);
         break;
     case BlowerDowned:
-        ((MainWindow*)parent)->addLog("Выставлем направление обдува", MainWindow::InfoStatus);
+        logger->printLog("Выставлем направление обдува");
         setState(BlowerSlideOut);
         break;
     case BlowerSlideOut:
@@ -357,7 +337,7 @@ Blower::BlowerStates Blower::stateUp()
         setState(BlowerSlideOut);
         break;
     case BlowerSlided:
-        ((MainWindow*)parent)->addLog("Раскручиваем вентилятор", MainWindow::InfoStatus);
+        logger->printLog("Раскручиваем вентилятор");
         setState(BlowerRotateOut);
         break;
     case BlowerRotateOut:
@@ -389,7 +369,7 @@ Blower::BlowerStates Blower::stateDown()
         break;
     case BlowerDowned:
         // начинаем поднимаение по таймеру
-        ((MainWindow*)parent)->addLog("Поднимаем раструб", MainWindow::InfoStatus);
+        logger->printLog("Поднимаем раструб");
         setState(BlowerDownIn);
         break;
     case BlowerSlideOut:
@@ -410,7 +390,7 @@ Blower::BlowerStates Blower::stateDown()
             setState(BlowerSlided);
         break;
     case BlowerRotated:
-        ((MainWindow*)parent)->addLog("Выключаем вентилятор", MainWindow::InfoStatus);
+        logger->printLog("Выключаем вентилятор");
         setState(BlowerRotateIn);
         break;
     default:
