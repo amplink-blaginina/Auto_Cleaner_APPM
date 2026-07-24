@@ -136,37 +136,28 @@ BackMagnet::BackMagnetStates BackMagnet::getNeedState()
     return needState;
 }
 
-void BackMagnet::checkNeedState()
-{// утанавливает максимальную границу до которой может дойти щетка (при текущих параметрах)
-    if (needState != BackMagnetOff)
-    {
-        if (!startClean)
-        {// пуск отжат или никакой режим смета не выбран или если щетки не выдвинуты
+void BackMagnet::checkNeedState(){// утанавливает максимальную границу до которой может дойти щетка (при текущих параметрах)
+    if (needState != BackMagnetOff){
+        if (!startClean)// пуск отжат или никакой режим смета не выбран или если щетки не выдвинуты
             ableState = BackMagnetOff;// можно только продолжать пытаться включиться (используется такой странный статус потому что надо показать постоянно желание включиться даже если не нажали пуск например)
-        }
         else
-        {
             ableState = BackMagnetDowned;
-        }
     }
     else
         ableState = BackMagnetOff;
 }
 
-int BackMagnet::getTimeout()
-{//получает таймаут в секундах (сколько надо простаивать в той или иной операции)
+int BackMagnet::getTimeout(){//получает таймаут в секундах (сколько надо простаивать в той или иной операции)
     return timeouts.value(state, 0);
 }
 
-bool BackMagnet::testStateTimer()
-{// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)
+bool BackMagnet::testStateTimer(){// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)
     qint64 msecs_to = startActionTime.msecsTo(QDateTime::currentDateTime());
     qint64 tmp_msecs = msecs_to;
     if (msecs_to > getTimeout() * 1000)
         tmp_msecs = getTimeout() * 1000;
     bool timeTest = false;
-    if (msecs_to > getTimeout() * 1000)
-    {// тест по времени прошел а мы ничего не достигли. Нужны тревоги
+    if (msecs_to > getTimeout() * 1000){// тест по времени прошел а мы ничего не достигли. Нужны тревоги
         timeTest = true;
         //return true;
     }
@@ -204,13 +195,11 @@ bool BackMagnet::testStateTimer()
     return false;
 }
 
-void BackMagnet::checkFriendVars()
-{
+void BackMagnet::checkFriendVars(){
     startClean = ((MainWindow*)parent)->startClean;
 }
 
-void BackMagnet::progressLoop()
-{
+void BackMagnet::progressLoop(){
     // проверяет соседние модули и собирает информацию о их состояниях (нажатые кнопки, обороты, статусы и пр.)
     checkFriendVars();
     // проверяет до какого состояния может добираться щетка

@@ -13,9 +13,10 @@ public:
     };
 
     enum Organ{
-        BroomOrgan,
-        BlowerOrgan,
-        DumpOrgan
+        BroomBlock,
+        Broom,
+        Blower,
+        Dump
     };
 
     organsEnums();

@@ -147,7 +147,8 @@ public:
     {
         InfoStatus      = 0,
         WarningStatus   = 1,
-        FatalStatus     = 2
+        FatalStatus     = 2,
+        TestStatus      = 3
     };
 
     enum MenuMode
@@ -502,6 +503,7 @@ private:
     QString getOrganText(organsEnums::Organ organ);
     void printOrganStatus(organsEnums::Organ organ, organsEnums::Direction direction, bool state);
     MessageList *createMessageList();
+    void updateBroomBtnsView();
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
@@ -509,6 +511,8 @@ signals:
     void Pass_close();
 public :
     QString getMovementText(organsEnums::Direction direction);
+    void setFlowView(bool state);
+    void setPressView(bool state);
 public slots:
     void messageListPressed();
     void settingsAskPassword();
@@ -558,8 +562,8 @@ private slots:
     void on_pushButton_homeState_clicked();
 
 
-    void on_pushButton_centralBroomUp_pressed();
-    void on_pushButton_centralBroomUp_released();
+    //void on_pushButton_centralBroomUp_pressed();
+    //void on_pushButton_centralBroomUp_released();
     void on_pushButton_centralBroomDown_pressed();
     void on_pushButton_centralBroomDown_released();
     void on_pushButton_centralBroomLeft_pressed();

@@ -16,9 +16,13 @@ void ScreenLog::printError(const QString& msg) {
     qDebug()<<"print error: "<<msg;
     emit errorSignal(msg);
 }
+void ScreenLog::printTest(const QString& msg) {
+    qDebug()<<"print test: "<<msg;
+    emit testSignal(msg);
+}
 
-void ScreenLog::printMovementLog(organsEnums::Organ organ, organsEnums::Direction, QString additionalMsg) {
-    printLog(getOrganText(organ)+": "+getMovementText(organsEnums::Down) + additionalMsg);
+void ScreenLog::printMovementLog(organsEnums::Organ organ, organsEnums::Direction dir, QString additionalMsg) {
+    printLog(getOrganText(organ)+": "+getMovementText(dir) + additionalMsg);
 }
 
 QString ScreenLog::getMovementText(organsEnums::Direction direction){
@@ -38,39 +42,15 @@ QString ScreenLog::getMovementText(organsEnums::Direction direction){
 
 QString ScreenLog::getOrganText(organsEnums::Organ organ){
     switch (organ) {
-    case organsEnums::BlowerOrgan:
+    case organsEnums::Blower:
         return "Обдув";
-    case organsEnums::BroomOrgan:
+    case organsEnums::Broom:
         return "Щетка";
-    case organsEnums::DumpOrgan:
+    case organsEnums::BroomBlock:
+        return "Портал щетки";
+    case organsEnums::Dump:
         return "Отвал" ;
     default:
         return "Error";
     }
 }
-
-// QString ScreenLog::getFatalStatusMessage(){
-//     if(!starterBlocked()){
-//         return "Стартер не заблокирован";
-//     }
-//     if(starterLockedByRoll){
-//         return "Стартер заблокирован: прокрутка";
-//     }
-//     if(starterLockedByTemperature){
-//         return "Стартер заблокирован: требуется прогрев двигателя";
-//     }
-//     if(starterLockedByEmergency){
-//         if(waterAlarm)
-//             return "Стартер заблокирован: по датчику воды";
-//         if(airAlarm)
-//             return "Стартер заблокирован: по датчику воздуха";
-//         if(oilAlarm)
-//             return "Стартер заблокирован: по датчику масла";
-//     }
-//     if(starterNeedReboot){
-//         return "Стартер заблокирован: требуется перезагрузка";
-//     }
-//     if(engine->waitOnStart){
-//         return "Стартер заблокирован: ожидание на старте";
-//     }
-// }

@@ -30,7 +30,7 @@
 QLocale EngLocale (QLocale::Russian);
 
 static int ptsInc = 0;
-QString programmVersionString = "AutoCleaner APPM v3.014";
+QString programmVersionString = "AutoCleaner APPM v3.015";
 
 //Changes
 // 3.001 - форкнулся от APPM2 imx6, удалил лишнее и накатил на нее все от разбери с 200 и 318D4
@@ -315,6 +315,8 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
             this, [this](const QString& msg){ addLog(msg, MainWindow::WarningStatus); });
     connect(screenLog, &ScreenLog::errorSignal,
             this, [this](const QString& msg){ addLog(msg, MainWindow::FatalStatus); });
+    connect(screenLog, &ScreenLog::testSignal,
+            this, [this](const QString& msg){ addLog(msg, MainWindow::TestStatus); });
 
     // создаем виджеты щеток и прочих модулей
     broomCentral = new CentralBroom(can0, NULL, settings, screenLog, this);
@@ -1181,17 +1183,17 @@ void MainWindow::incomeData(struct can_frame frame)
     if (frame.can_id == 0x00000AC0)// && (centralBroom->getState() == CentralBroom::BroomRotated || serviceForm->isVisible()))
     {// КВ
         if (frame.data[3] & 0x10 && (frame.data[3] & ~(0x10)) && workMode.centralBroomPress){// назад
-            broomCentral->goPressUp();
+            broomCentral->goPressUp(true);
             KVControl = true;
 
             currentKV = 0;
         }
         else if ((frame.data[3] & 0x10) == 0 && frame.data[3] && workMode.centralBroomPress){// вперед
-            broomCentral->goPressDown();
+            broomCentral->goPressDown(true);
             KVControl = true;
         }
         else if (KVControl){
-            broomCentral->goPressNone();
+            broomCentral->stopPress();
             KVControl = false;
         }
     }
@@ -1771,6 +1773,11 @@ void MainWindow::addLog(QString text, LogStatus logStatus)
         color.setRgb(255, 0, 0);
         log_text += " [ FAIL ]";
     }
+    if(logStatus == TestStatus)
+    {
+        color.setRgb(0, 223, 223);
+        log_text += " [ TEST ]";
+    }
 
     messageList->addMessage(text,
                             color,
@@ -1786,8 +1793,7 @@ void MainWindow::stopStarterOutput()
     gpio->setOutput(GPIOOutput::OUT_STARTER_LIGHT, false);
 }
 
-void MainWindow::stopRollOutput()
-{
+void MainWindow::stopRollOutput(){
     can0->setState(StateStarterRoll, false);
 }
 
@@ -2512,8 +2518,7 @@ void MainWindow::settingsAskPassword()
 {
     if (DEVELOPER_MODE)
         Password_accepted = true;
-    if (!Password_accepted)
-    {
+    if (!Password_accepted){
         Password_Form *Password_window = new Password_Form (this, true, true);
         Password_window->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
         Password_window->setAttribute(Qt::WA_DeleteOnClose,true);
@@ -2529,8 +2534,7 @@ void MainWindow::settingsAskPassword()
         settings->endGroup();
         Password_window->show();
     }
-    else
-    {
+    else{
         Password_accepted = false;
         menuMode = SettingsMode;
         //superDiagMode = true;
@@ -2543,8 +2547,7 @@ void MainWindow::settingsAskPassword()
     }
 }
 
-void MainWindow::diagAskPassword()
-{
+void MainWindow::diagAskPassword(){
     if (DEVELOPER_MODE)
         Password_accepted = true;
     if (!Password_accepted)
@@ -2591,8 +2594,7 @@ void MainWindow::passwordDiagOk(int pass){
     diagAskPassword();
 }
 
-void MainWindow::passwordSettingsOk(int pass)
-{
+void MainWindow::passwordSettingsOk(int pass){
     if (pass == readSettingsValue("Global/secretPassword").toString().toInt())
     {// сбросим одноразовы пароль
         if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
@@ -2625,16 +2627,14 @@ void MainWindow::settingsClosed()
     canForEngine->setEngineAddr(enigneAddr);
 }
 
-void MainWindow::showWorkMode()
-{
+void MainWindow::showWorkMode(){
     if (!pauseActive)
         updateOrgansStates();
     updateButtonsActiveState();// проверим доступность кнопошков
     updateButtonsIcons();// меняем картиночки доступности кнопок после анализа
 }
 
-bool MainWindow::canStart()
-{
+bool MainWindow::canStart(){
     return true;
 }
 
@@ -2716,12 +2716,12 @@ void  MainWindow::showCentralBroomLeft(){
     {// нажали кнопку
         centralBroomLeftTimeCounter++;
         if (startClean)
-            broomCentral->goLeft();
+            broomCentral->setDirection(organsEnums::Left);
     }
     else
     {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
         if (startClean && centralBroomLeftTimeCounter > 0)
-            broomCentral->goNone();
+            broomCentral->setDirection(organsEnums::None);
 
         if (centralBroomLeftTimeCounter > 1)
         {
@@ -2739,11 +2739,11 @@ void  MainWindow::showCentralBroomRight(){
     if ((startClean && ui->pushButton_centralBroomRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_RIGHT)    {// нажали кнопку
         centralBroomRightTimeCounter++;
         if (startClean)
-            broomCentral->goRight();
+            broomCentral->setDirection(organsEnums::Right);
     }
     else    {// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
         if (startClean && centralBroomRightTimeCounter > 0)
-            broomCentral->goNone();
+            broomCentral->setDirection(organsEnums::None);
         if (centralBroomRightTimeCounter > 1)        {
             // отработаем нажатие
             if (!startClean)
@@ -2831,7 +2831,7 @@ void MainWindow::showBlower(){
 }
 
 void MainWindow::showPauseButton(){
-    if (gpioMatirx->keyPressed == GPIOInput::IN_PAUSE_HOME)    {
+    if (gpioMatirx->keyPressed == GPIOInput::IN_PAUSE_HOME){
         pauseCleanTimeCounter++;
     }
     else{// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
@@ -2957,7 +2957,7 @@ void MainWindow::on_pushButton_dumpFlow_clicked(){
 //------------------------------------------------------------------------
 void MainWindow::onBroomReleased(){
     if (startClean){
-        broomCentral->goNone();
+        broomCentral->setDirection(organsEnums::None);
         qDebug()<<"BroomReleased";
     }
 }
@@ -2971,7 +2971,7 @@ void MainWindow::on_pushButton_centralBroomLeft_clicked(){
 }
 void MainWindow::on_pushButton_centralBroomLeft_pressed(){
     if (startClean){
-        broomCentral->goLeft();
+        broomCentral->setDirection(organsEnums::Left);
     }
 }
 void MainWindow::on_pushButton_centralBroomLeft_released(){
@@ -2987,24 +2987,24 @@ void MainWindow::on_pushButton_centralBroomRight_clicked(){
 }
 void MainWindow::on_pushButton_centralBroomRight_pressed(){
     if(startClean){
-        broomCentral->goRight();
+        broomCentral->setDirection(organsEnums::Right);
     }
 }
 void MainWindow::on_pushButton_centralBroomRight_released(){
     onBroomReleased();
 }
 
-void MainWindow::on_pushButton_centralBroomUp_pressed(){
-    if (startClean){
-        broomCentral->goUp();}
-}
-void MainWindow::on_pushButton_centralBroomUp_released(){
-    onBroomReleased();
-}
+// void MainWindow::on_pushButton_centralBroomUp_pressed(){
+//     if (startClean){
+//         broomCentral->goUp();}
+// }
+// void MainWindow::on_pushButton_centralBroomUp_released(){
+//     onBroomReleased();
+// }
 
 void MainWindow::on_pushButton_centralBroomDown_pressed(){
     if (startClean){
-        broomCentral->goDown();
+        broomCentral->setDirection(organsEnums::Down);
     }
 }
 void MainWindow::on_pushButton_centralBroomDown_released(){
@@ -3012,11 +3012,19 @@ void MainWindow::on_pushButton_centralBroomDown_released(){
 }
 
 void MainWindow::on_pushButton_centralBroomFlow_clicked(){
-    workMode.centralBroomFlow = !workMode.centralBroomFlow;
+    //workMode.centralBroomFlow = !workMode.centralBroomFlow;
+    bool newState = !workMode.centralBroomFlow;
+    QString msg = (&"Switch broom flow to "[newState]);
+    //screenLog->printTest(msg);
+    setFlowView(newState);
+    broomCentral->setFlowActive(newState);
     showWorkMode();
 }
 void MainWindow::on_pushButton_centralBroomPress_clicked(){
     workMode.centralBroomPress = !workMode.centralBroomPress;
+    bool newState = !workMode.centralBroomPress;
+    QString msg = (&"Switch broom press to "[newState]);
+    broomCentral->setPressActive(workMode.centralBroomPress);
     showWorkMode();
 }
 //------------------------------------------------------------------------
@@ -3122,7 +3130,7 @@ void MainWindow::updateOrgansStates(){
     frontRail->needSlided = workMode.frontDumpLeft;
 
     // дулка
-    bool isBlowerActive  = workMode.blowLeft||workMode.blowRight;
+    bool isBlowerActive = workMode.blowLeft||workMode.blowRight;
     blower->setNeedState(isBlowerActive? Blower::BlowerRotated: Blower::BlowerOff);
     blower->choosed = isBlowerActive;
 
@@ -3133,34 +3141,48 @@ void MainWindow::updateOrgansStates(){
 
     // Применяем режимы к уже разложенным органам сразу при изменении workMode.
 
-
-    if (!workMode.centralBroomPress)// При отключенном прижиме сбрасываем поджим сразу, чтобы не оставались активные клапаны.
-        broomCentral->goPressNone();
+    if (!workMode.centralBroomPress){// При отключенном прижиме сбрасываем поджим сразу, чтобы не оставались активные клапаны.
+        broomCentral->stopPress();
+    }
 
     if(!startClean){
         return;
     }
-    qDebug()<<"Broom: "<<broomCentral->getState()<<"  Dump: "<<frontRail->getState();
+
+    // if(broomCentral->getState() == CentralBroom::){
+    //     if(workMode.centralBroomPress)
+    //     {
+    //         broomCentral->goPressDown();
+    //     }
+    // }
+
+    //qDebug()<<"Broom: "<<broomCentral->getState()<<"  Dump: "<<frontRail->getState();
 
     if (broomCentral->getState() >= CentralBroom::BroomFlowed){
-        if (workMode.centralBroomFlow)        {
-            broomCentral->goFlow();
-            screenLog->printLog("Щетка плавающая");
+        if (workMode.centralBroomFlow){
+            broomCentral->setFlowActive(true);
+            //screenLog->printLog("Щетка плавающая #1");
         }
         else{
-            broomCentral->goNoFlow();
-            screenLog->printLog("Щетка не плавающая");
+            //broomCentral->setState(CentralBroom::BroomFlowIn);
+            broomCentral->setFlowActive(false);
+            //broomCentral->goNoFlow();
+            //screenLog->printLog("Щетка не плавающая #1");
         }
     }
 
     if (frontRail->getState() >= FrontRail::FrontRailFlowed){
         if (workMode.frontDumpFlow){
-            frontRail->goFlow();
-            screenLog->printLog("Отвал плавающий");}
+            screenLog->printLog("!!!Отвал плавающий");
+            frontRail->setState(FrontRail::FrontRailFlowIn);
+            //frontRail->goFlow();
+        }
 
         else{
-            frontRail->goNoFlow();
-            screenLog->printLog("Отвал не плавающий");}
+            screenLog->printLog("!!!Отвал не плавающий");
+            frontRail->setState(FrontRail::FrontRailFlowOut);
+            //frontRail->goNoFlow();
+        }
     }
 }
 
@@ -3181,22 +3203,20 @@ void MainWindow::setBroomState(){
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_UP,
                    ui->label_centralBroomUpDown, ui->pushButton_centralBroomUp,
                    path + "up_on.png);", path + "off.png);",
-                   [this](){
-                        broomCentral->goUp();
-                        printOrganStatus(organsEnums::BroomOrgan, organsEnums::Up, true);},
-                   [this](){
-                        broomCentral->goNone();
-                        printOrganStatus(organsEnums::BroomOrgan, organsEnums::Up, false);});
+                   [this](){broomCentral->setDirection(organsEnums::Up);;},
+
+                        //printOrganStatus(organsEnums::BroomBlock, organsEnums::Up, true);
+                   [this](){broomCentral->setDirection(organsEnums::None);});
+
+                        //printOrganStatus(organsEnums::BroomBlock, organsEnums::Up, false);
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_DOWN,
                    ui->label_centralBroomUpDown, ui->pushButton_centralBroomDown,
                    path + "down_on.png);", path + "off.png);",
-                   [this](){
-                        broomCentral->goDown();
-                        printOrganStatus(organsEnums::BroomOrgan, organsEnums::Down, true);},
-                   [this](){
-                        broomCentral->goNone();
-                        printOrganStatus(organsEnums::BroomOrgan, organsEnums::Down, false);});
+                   [this](){broomCentral->setDirection(organsEnums::Down);},
+                        //printOrganStatus(organsEnums::BroomBlock, organsEnums::Down, true);
+                   [this](){broomCentral->setDirection(organsEnums::None);});
+                        //printOrganStatus(organsEnums::BroomBlock, organsEnums::Down, false);
 
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
@@ -3210,12 +3230,12 @@ void MainWindow::setBroomState(){
                    path + "left_on.png);",
                    defaultIcon,//!!!
                    [this](){
-                       broomCentral->goLeft();
-                       printOrganStatus(organsEnums::BroomOrgan, organsEnums::Left, true);
+                       broomCentral->setDirection(organsEnums::Left);
+                       //printOrganStatus(organsEnums::BroomBlock, organsEnums::Left, true);
                    },
                    [this](){
-                       broomCentral->goNone();
-                       printOrganStatus(organsEnums::BroomOrgan, organsEnums::Left, false);
+                       broomCentral->setDirection(organsEnums::None);
+                       //printOrganStatus(organsEnums::BroomBlock, organsEnums::Left, false);
                    });
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_RIGHT,
@@ -3223,12 +3243,12 @@ void MainWindow::setBroomState(){
                    path + "right_on.png);",
                    defaultIcon,//!!!
                    [this](){
-                       broomCentral->goRight();
-                       printOrganStatus(organsEnums::BroomOrgan, organsEnums::Right, true);
+                       broomCentral->setDirection(organsEnums::Right);
+                       //printOrganStatus(organsEnums::BroomBlock, organsEnums::Right, true);
                    },
                    [this](){
-                       broomCentral->goNone();
-                       printOrganStatus(organsEnums::BroomOrgan, organsEnums::Right, false);
+                       broomCentral->setDirection(organsEnums::None);
+                       //printOrganStatus(organsEnums::BroomBlock, organsEnums::Right, false);
                    });
 }
 
@@ -3241,22 +3261,22 @@ void MainWindow::setDumpState(){
                    path + "up_off.png);", path + "off.png);",
                    [this](){
                         frontRail->goUp();
-                        printOrganStatus(organsEnums::DumpOrgan, organsEnums::Up, true);
+                        printOrganStatus(organsEnums::Dump, organsEnums::Up, true);
     },
                    [this](){
                         frontRail->goNone();
-                        printOrganStatus(organsEnums::DumpOrgan, organsEnums::Up, false);});
+                        printOrganStatus(organsEnums::Dump, organsEnums::Up, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_DOWN,
                 ui->label_dumpUpDown, ui->pushButton_dumpDown,
                 path + "down_off.png);", path + "off.png);",
                 [this](){
                        frontRail->goDown();
-                       printOrganStatus(organsEnums::DumpOrgan, organsEnums::Down, true);
+                       printOrganStatus(organsEnums::Dump, organsEnums::Down, true);
     },
                 [this](){
                        frontRail->goNone();
-                       printOrganStatus(organsEnums::DumpOrgan, organsEnums::Down, false);
+                       printOrganStatus(organsEnums::Dump, organsEnums::Down, false);
     });
 
 
@@ -3270,11 +3290,11 @@ void MainWindow::setDumpState(){
                    defaultIcon,//!!!
                    [this](){
                        frontRail->goLeft();
-                       printOrganStatus(organsEnums::DumpOrgan, organsEnums::Left, true);
+                       printOrganStatus(organsEnums::Dump, organsEnums::Left, true);
                    },
                    [this](){
                        frontRail->goNone();
-                       printOrganStatus(organsEnums::DumpOrgan, organsEnums::Left, false);});
+                       printOrganStatus(organsEnums::Dump, organsEnums::Left, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT,
                    ui->label_dump, ui->pushButton_dumpRight,
@@ -3282,12 +3302,12 @@ void MainWindow::setDumpState(){
                    defaultIcon,//!!!
                    [this](){
                         frontRail->goRight();
-                        printOrganStatus(organsEnums::DumpOrgan, organsEnums::Right, true);
+                        printOrganStatus(organsEnums::Dump, organsEnums::Right, true);
 
                    },
                    [this](){
                         frontRail->goNone();
-                        printOrganStatus(organsEnums::DumpOrgan, organsEnums::Right, false);});
+                        printOrganStatus(organsEnums::Dump, organsEnums::Right, false);});
 }
 
 //==============================Blower===============================================
@@ -3301,10 +3321,10 @@ void MainWindow::setBlowerState(){
                    path + "off.png);",
                    [this](){
                         blower->goUp();
-                        printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Up, true);},
+                        printOrganStatus(organsEnums::Blower, organsEnums::Up, true);},
                    [this](){
                         blower->goOff();
-                        printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Up, false);});
+                        printOrganStatus(organsEnums::Blower, organsEnums::Up, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BLOW_DOWN,
                    ui->label_blowerUpDown, ui->pushButton_blowerDown,
@@ -3312,10 +3332,10 @@ void MainWindow::setBlowerState(){
                    path + "off.png);",
                    [this](){
                        blower->goUp();
-                       printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Down, true);},
+                       printOrganStatus(organsEnums::Blower, organsEnums::Down, true);},
                    [this](){
                        blower->goOff();
-                       printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Down, false);});
+                       printOrganStatus(organsEnums::Blower, organsEnums::Down, false);});
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
     auto defaultIcon = workMode.blowLeft ? path + "left_on.png);":
@@ -3326,15 +3346,15 @@ void MainWindow::setBlowerState(){
                    ui->label_blower, ui->pushButton_blowerLeft,
                    path + "left_on.png);",
                    defaultIcon,
-                   [this](){blower->goSlide(false);printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Left, true);},
-                   [this](){blower->goNone();printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Left, false);});
+                   [this](){blower->goSlide(false);printOrganStatus(organsEnums::Blower, organsEnums::Left, true);},
+                   [this](){blower->goNone();printOrganStatus(organsEnums::Blower, organsEnums::Left, false);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BLOW_RIGHT,
                    ui->label_blower, ui->pushButton_blowerRight,
                    path + "right_on.png);",
                    defaultIcon,
-                   [this](){blower->goSlide(true);printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Right, true);},
-                   [this](){blower->goNone();printOrganStatus(organsEnums::BlowerOrgan, organsEnums::Right, false);});
+                   [this](){blower->goSlide(true);printOrganStatus(organsEnums::Blower, organsEnums::Right, true);},
+                   [this](){blower->goNone();printOrganStatus(organsEnums::Blower, organsEnums::Right, false);});
 
 }
 
@@ -3441,6 +3461,39 @@ void MainWindow::updateButtonsActiveState(){
             ui->pushButton_dumpRight->setEnabled(true);
         }
     }
+}
+
+void MainWindow::setFlowView(bool state){
+    workMode.centralBroomFlow = state;
+    updateBroomBtnsView();
+}
+
+void MainWindow::setPressView(bool state){
+    workMode.centralBroomPress = state;
+    updateBroomBtnsView();
+}
+
+void MainWindow::updateBroomBtnsView(){
+    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
+
+    if (workMode.centralBroomLeft){
+        setStyle(ui->label_centralBroom, path + "left_on.png);");
+    }
+    else{
+        if (workMode.centralBroomRight)
+            setStyle(ui->label_centralBroom, path + "right_on.png);");
+        else
+            setStyle(ui->label_centralBroom, "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_off.png);");
+
+    }
+
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
+    if(workMode.centralBroomFlow){
+        setStyle(ui->label_centralBroomFloatPress, path + (workMode.centralBroomPress? "on.png);": "up_on.png);"));
+    }
+    else{
+        setStyle(ui->label_centralBroomFloatPress, path + (workMode.centralBroomPress? "down_on.png);": "off.png);"));
+    }
 
 }
 
@@ -3462,26 +3515,7 @@ void MainWindow::updateButtonsIcons(){
 
 
     // задняя щетка
-    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
-
-    if (workMode.centralBroomLeft){
-        setStyle(ui->label_centralBroom, path + "left_on.png);");
-    }
-    else{
-        if (workMode.centralBroomRight)
-            setStyle(ui->label_centralBroom, path + "right_on.png);");
-        else
-            setStyle(ui->label_centralBroom, "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_off.png);");
-
-    }
-
-    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
-    if(workMode.centralBroomFlow){
-        setStyle(ui->label_centralBroomFloatPress, path + (workMode.centralBroomPress? "on.png);": "up_on.png);"));
-    }
-    else{
-        setStyle(ui->label_centralBroomFloatPress, path + ( workMode.centralBroomPress? "down_on.png);": "off.png);"));
-    }
+    updateBroomBtnsView();
 
     // отвал
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";

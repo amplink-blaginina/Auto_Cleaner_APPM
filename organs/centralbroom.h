@@ -34,7 +34,9 @@ public:
         BroomDowned     = 11,
         BroomFlowIn     = 12,
         BroomFlowOut    = 13,
-        BroomFlowed     = 14
+        BroomFlowed     = 14,
+        BroomPressOut   = 15,
+        BroomPressed    = 16,
 
     };
 
@@ -68,39 +70,36 @@ public:
 
     bool startClean;
     bool needSlided; // тут главный признак-будет ли эта щетка желать развернуться или нет (это поворот ВЛЕВО)
+    bool isPressed;
+    bool isFlowing;
+    organsEnums::Direction direction;
 
     // установка и получение состояния модуля
     void setState(BroomStates state_);
     BroomStates state; // стутус который мы предполагаем сейчас (лигические выводы)
+
     BroomStates needState; // статус который мы желаем достичь
-    BroomStates ableState; // статус который мы можем достичь
-    BroomStates getState();
-    QString toString(BroomStates s);
-
-    void goLeft();
-    void goLeft(bool state);
-    void goRight();
-    void goRight(bool state);
-    void goNone();
-    void goPressNone();
-    void goUp();
-    void goUp(bool state);
-    void goDown();
-    void goDown(bool state);
-    void goFlow();
-    void goNoFlow();
-    void goRotate(int speed_);
-    void goNoRotate();
-    void increaseSpeed();
-    void decreaseSpeed();
-    void goPressUp();
-    void goPressDown();
-
     // установка и получение требуемого состояния модуля (к чему модуль движется так скажем)
     void setNeedState(BroomStates state_);
     BroomStates getNeedState();
+
+    BroomStates ableState; // статус который мы можем достичь
     void setAbleState(BroomStates state_);
     BroomStates getAbleState();
+
+    BroomStates getState();
+    QString toString(BroomStates s);
+
+    void setDirection(organsEnums::Direction dir);
+    void goPressUp(bool state);
+    void goPressDown(bool state);
+    void stopPress();
+    // void goPressUp();
+    // void goPressDown();
+    //void goPress();
+    void setPressActive(bool state);
+    void setFlowActive(bool state);
+
 
 public slots:
     // слот для получания данных из CAN
@@ -108,10 +107,30 @@ public slots:
 signals:
 
 private:
+    void goLeft();
+    void goLeft(bool state);
+    void goRight();
+    void goRight(bool state);
+    void goNone();
+    void goUp();
+    void goUp(bool state, bool isPressed);
+    void goDown();
+    void goDown(bool state, bool isPressed);
+    void goFlow(bool state);
+    //void goNoFlow();
+    void goRotate(int speed_);
+    void goNoRotate();
+
+    void printMovement(organsEnums::Direction dir, bool state, bool isPressed);
+
+    void increaseSpeed();
+    void decreaseSpeed();
     void goSlide(bool toLeft);
     bool isTimeoutReached();
     bool wereBusyAndTimeoutReached(bool timeoutReached, BroomStates state);
     bool checkMovementAndStopOnTimeout(bool timeoutReached, bool isSensorReached, organsEnums::Direction dir);
+
+    void printMovement(int, bool, bool);
 };
 
 #endif // CENTRALBROOM_H

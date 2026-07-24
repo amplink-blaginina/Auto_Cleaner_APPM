@@ -110,8 +110,7 @@ void FrontRail::setState(FrontRailStates state_){
     }
     if (state == FrontRail::FrontRailFlowOut){// началось плавание
         startActionTime = QDateTime::currentDateTime();
-        if (timeouts.value(FrontRailFlowOut, 0) > 0)
-        {
+        if (timeouts.value(FrontRailFlowOut, 0) > 0){
             goNone();
             goFlow();
         }

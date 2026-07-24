@@ -26,67 +26,73 @@ void ServiceDevicesHydraulicsLeftForm::refreshSliders()
 
 void ServiceDevicesHydraulicsLeftForm::updateVisual()
 {
-    if (((MainWindow*)parent)->can0->getState(StateValveC1).toBool() != ui->pushButton_broomFlow->isChecked())
-        ui->pushButton_broomFlow->setChecked(((MainWindow*)parent)->can0->getState(StateValveC1).toBool());
-    if (((MainWindow*)parent)->can0->getState(StateValveC3).toBool() != ui->pushButton_dumpFlow->isChecked())
-        ui->pushButton_dumpFlow->setChecked(((MainWindow*)parent)->can0->getState(StateValveC3).toBool());
+    auto mainWindow = (MainWindow*)parent;
+    if (mainWindow->can0->getState(StateValveC1).toBool() != ui->pushButton_broomFlow->isChecked())
+        ui->pushButton_broomFlow->setChecked(mainWindow->can0->getState(StateValveC1).toBool());
+    if (mainWindow->can0->getState(StateValveC3).toBool() != ui->pushButton_dumpFlow->isChecked())
+        ui->pushButton_dumpFlow->setChecked(mainWindow->can0->getState(StateValveC3).toBool());
 
-    if (((MainWindow*)parent)->can0->getState(StateValveF2).toBool() != ui->pushButton_broomPressUp->isChecked())
-        ui->pushButton_broomPressUp->setChecked(((MainWindow*)parent)->can0->getState(StateValveF2).toBool());
-    if (((MainWindow*)parent)->can0->getState(StateValveF8).toBool() != ui->pushButton_broomPressDown->isChecked())
-        ui->pushButton_broomPressDown->setChecked(((MainWindow*)parent)->can0->getState(StateValveF8).toBool());
+    if (mainWindow->can0->getState(StateValveF2).toBool() != ui->pushButton_broomPressUp->isChecked())
+        ui->pushButton_broomPressUp->setChecked(mainWindow->can0->getState(StateValveF2).toBool());
+    if (mainWindow->can0->getState(StateValveF8).toBool() != ui->pushButton_broomPressDown->isChecked())
+        ui->pushButton_broomPressDown->setChecked(mainWindow->can0->getState(StateValveF8).toBool());
 
     if (ui->pushButton_dumpLeft->isDown())
-        ((MainWindow*)parent)->frontRail->goLeft();
+        mainWindow->frontRail->goLeft();
     else if (ui->pushButton_dumpRight->isDown())
-        ((MainWindow*)parent)->frontRail->goRight();
+        mainWindow->frontRail->goRight();
     else if (ui->pushButton_dumpUp->isDown())
-        ((MainWindow*)parent)->frontRail->goUp();
+        mainWindow->frontRail->goUp();
     else if (ui->pushButton_dumpDown->isDown())
-        ((MainWindow*)parent)->frontRail->goDown();
+        mainWindow->frontRail->goDown();
     else
-        ((MainWindow*)parent)->frontRail->goNone();
+        mainWindow->frontRail->goNone();
 
     if (ui->pushButton_broomLeft->isDown())
-        ((MainWindow*)parent)->broomCentral->goLeft();
+        mainWindow->broomCentral->setDirection(organsEnums::Left);
+
     else if (ui->pushButton_broomRight->isDown())
-        ((MainWindow*)parent)->broomCentral->goRight();
+        mainWindow->broomCentral->setDirection(organsEnums::Right);
+
     else if (ui->pushButton_broomUp->isDown())
-        ((MainWindow*)parent)->broomCentral->goUp();
+        mainWindow->broomCentral->setDirection(organsEnums::Up);
+
     else if (ui->pushButton_broomDown->isDown())
-        ((MainWindow*)parent)->broomCentral->goDown();
+        mainWindow->broomCentral->setDirection(organsEnums::Down);
+
     else
-        ((MainWindow*)parent)->broomCentral->goNone();
+        mainWindow->broomCentral->setDirection(organsEnums::None);
+
 
     if (ui->pushButton_blowLeft->isDown())
-        ((MainWindow*)parent)->blower->goSlide(false);
+        mainWindow->blower->goSlide(false);
     else if (ui->pushButton_blowRight->isDown())
-        ((MainWindow*)parent)->blower->goSlide(true);
+        mainWindow->blower->goSlide(true);
     else if (ui->pushButton_blowUp->isDown())
-        ((MainWindow*)parent)->blower->goUp();
+        mainWindow->blower->goUp();
     else if (ui->pushButton_blowDown->isDown())
-        ((MainWindow*)parent)->blower->goDown();
+        mainWindow->blower->goDown();
     else
-        ((MainWindow*)parent)->blower->goOff();
+        mainWindow->blower->goOff();
 
     if (ui->pushButton_magnetUp->isDown())
-        ((MainWindow*)parent)->backMagnet->goUp();
+        mainWindow->backMagnet->goUp();
     else if (ui->pushButton_magnetDown->isDown())
-        ((MainWindow*)parent)->backMagnet->goDown();
+        mainWindow->backMagnet->goDown();
     else
-        ((MainWindow*)parent)->backMagnet->goOff();
+        mainWindow->backMagnet->goOff();
 
-    QString text = QString::number(((MainWindow*)parent)->hydroTempK * ((MainWindow*)parent)->can0->getState(StateHydraulicOilTemperature).toUInt() + ((MainWindow*)parent)->hydroTempB, 'f', 1);
+    QString text = QString::number(mainWindow->hydroTempK * mainWindow->can0->getState(StateHydraulicOilTemperature).toUInt() + mainWindow->hydroTempB, 'f', 1);
     if (ui->label_hydraulicTemperature->text() != text + " C ТЕМП ГО")
         ui->label_hydraulicTemperature->setText(text + " C ТЕМП ГО");
-    text = QString::number(((MainWindow*)parent)->hydraulicPressureValue(0), 'f', 1);
+    text = QString::number(mainWindow->hydraulicPressureValue(0), 'f', 1);
     if (ui->label_hydraulicPressure->text() != text + " P ТИ1")
         ui->label_hydraulicPressure->setText(text + " P ТИ1");
-    text = QString::number(((MainWindow*)parent)->hydraulicPressureValue(1), 'f', 1);
+    text = QString::number(mainWindow->hydraulicPressureValue(1), 'f', 1);
     if (ui->label_hydraulicPressure2->text() != text + " P ТИ2")
         ui->label_hydraulicPressure2->setText(text + " P ТИ2");
 
-    if (((MainWindow*)parent)->can0->getState(StateHydroTankLevelD27).toBool())
+    if (mainWindow->can0->getState(StateHydroTankLevelD27).toBool())
     {
         if (ui->label_hydraulicLevel1->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_on.png);")
             ui->label_hydraulicLevel1->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_on.png);");
@@ -96,7 +102,7 @@ void ServiceDevicesHydraulicsLeftForm::updateVisual()
         if (ui->label_hydraulicLevel1->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_off.png);")
             ui->label_hydraulicLevel1->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_off.png);");
     }
-    if (((MainWindow*)parent)->can0->getState(StateDrainFilterD28).toBool())
+    if (mainWindow->can0->getState(StateDrainFilterD28).toBool())
     {
         if (ui->label_drainFilter1->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_on.png);")
             ui->label_drainFilter1->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_on.png);");
@@ -106,7 +112,7 @@ void ServiceDevicesHydraulicsLeftForm::updateVisual()
         if (ui->label_drainFilter1->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_off.png);")
             ui->label_drainFilter1->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_off.png);");
     }
-    if (((MainWindow*)parent)->can0->getState(StatePressureFilter1).toBool())
+    if (mainWindow->can0->getState(StatePressureFilter1).toBool())
     {
         if (ui->label_powerFilter1->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_on.png);")
             ui->label_powerFilter1->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_on.png);");
@@ -116,7 +122,7 @@ void ServiceDevicesHydraulicsLeftForm::updateVisual()
         if (ui->label_powerFilter1->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_off.png);")
             ui->label_powerFilter1->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_off.png);");
     }
-    if (((MainWindow*)parent)->can0->getState(StatePressureFilter2).toBool())
+    if (mainWindow->can0->getState(StatePressureFilter2).toBool())
     {
         if (ui->label_powerFilter2->styleSheet() != "border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_on.png);")
             ui->label_powerFilter2->setStyleSheet("border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_on.png);");
