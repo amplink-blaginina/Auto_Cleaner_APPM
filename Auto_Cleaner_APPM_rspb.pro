@@ -63,6 +63,7 @@ SOURCES += \
     service/other/intervals/servicetoelement.cpp \
     service/other/engine/serviceotherengineleftform.cpp \
     service/other/light/serviceotherlightleftform.cpp \
+    service/safetyinterlock.cpp \
     service/servicemainrightform.cpp \
     settings/gpio/superDiag/serviceBUConfigElementform.cpp \
     settings/gpio/superDiag/serviceBUConfigform.cpp \
@@ -107,6 +108,7 @@ HEADERS += \
     service/other/intervals/servicetoelement.h \
     service/other/engine/serviceotherengineleftform.h \
     service/other/light/serviceotherlightleftform.h \
+    service/safetyinterlock.h \
     service/servicemainrightform.h \
     settings/gpio/superDiag/serviceBUConfigElementform.h \
     settings/gpio/superDiag/serviceBUConfigform.h \

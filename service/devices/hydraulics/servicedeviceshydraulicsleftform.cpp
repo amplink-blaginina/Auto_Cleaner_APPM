@@ -50,16 +50,12 @@ void ServiceDevicesHydraulicsLeftForm::updateVisual()
 
     if (ui->pushButton_broomLeft->isDown())
         mainWindow->broomCentral->setDirection(organsEnums::Left);
-
     else if (ui->pushButton_broomRight->isDown())
         mainWindow->broomCentral->setDirection(organsEnums::Right);
-
     else if (ui->pushButton_broomUp->isDown())
-        mainWindow->broomCentral->setDirection(organsEnums::Up);
-
+        mainWindow->broomCentral->setDirection(organsEnums::Up, false);
     else if (ui->pushButton_broomDown->isDown())
-        mainWindow->broomCentral->setDirection(organsEnums::Down);
-
+        mainWindow->broomCentral->setDirection(organsEnums::Down, false);
     else
         mainWindow->broomCentral->setDirection(organsEnums::None);
 

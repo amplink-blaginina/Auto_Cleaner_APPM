@@ -504,6 +504,9 @@ private:
     void printOrganStatus(organsEnums::Organ organ, organsEnums::Direction direction, bool state);
     MessageList *createMessageList();
     void updateBroomBtnsView();
+    void setRandomPassword(int pass, QString passwordName);
+    void setDefaultValues();
+    void createFormsAndHide();
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);

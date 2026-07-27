@@ -91,6 +91,7 @@ public:
     QString toString(BroomStates s);
 
     void setDirection(organsEnums::Direction dir);
+        void setDirection(organsEnums::Direction dir, bool isPressed);
     void goPressUp(bool state);
     void goPressDown(bool state);
     void stopPress();

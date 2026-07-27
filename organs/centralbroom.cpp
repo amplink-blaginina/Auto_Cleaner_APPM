@@ -191,7 +191,7 @@ void CentralBroom::goSlide(bool toLeft){
     setDirection(toLeft?organsEnums::Left:organsEnums::Right);
 }
 
-void CentralBroom::goLeft(){ setDirection(organsEnums::Left);}
+void CentralBroom::goLeft(){setDirection(organsEnums::Left);}
 void CentralBroom::goRight(){setDirection(organsEnums::Right);}
 void CentralBroom::goUp(){setDirection(organsEnums::Up);}
 void CentralBroom::goDown(){setDirection(organsEnums::Down);}
@@ -229,6 +229,7 @@ void CentralBroom::goUp(bool state, bool isPressed){
         ((MainWindow*)parent)->setFlowView(false);
         setFlowActive(false);//вырубаем плавающий режим, если начали движение порталом щётки вверх
         myCan->setState(StateValveF10, state);}
+
     myCan->setState(StateValveA1, state);
     printMovement(organsEnums::Up, state, isPressed);
 }
@@ -270,6 +271,9 @@ void CentralBroom::stopPress(){
 }
 
 void CentralBroom::setDirection(organsEnums::Direction dir){
+    setDirection(dir, isPressed);
+}
+void CentralBroom::setDirection(organsEnums::Direction dir, bool pressed){
     if(dir == direction)
         return;
 
@@ -289,15 +293,16 @@ void CentralBroom::setDirection(organsEnums::Direction dir){
         default:
             break;
     }
-
+    //printMovement(dir, false, isPressed);
     direction = dir;
+    setPressActive(pressed);
 
     switch (dir) {
         case organsEnums::Up:
-            goUp(true, isPressed);
+            goUp(true, pressed);
             break;
         case organsEnums::Down:
-            goDown(true, isPressed);
+            goDown(true, pressed);
             break;
         case organsEnums::Left:
             goLeft(true);
@@ -307,6 +312,7 @@ void CentralBroom::setDirection(organsEnums::Direction dir){
             break;
         default:
             break;
+    //printMovement(dir, true, pressed);
     }
 }
 

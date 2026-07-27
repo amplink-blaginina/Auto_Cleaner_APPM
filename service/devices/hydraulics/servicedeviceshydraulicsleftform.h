@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QSlider>
+#include <screenlog.h>
 
 #include <can/mycan.h>
 #include <interface_button/interfacebutton.h>
@@ -17,7 +18,7 @@ class ServiceDevicesHydraulicsLeftForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit ServiceDevicesHydraulicsLeftForm(QWidget *parent = nullptr);
+    explicit ServiceDevicesHydraulicsLeftForm(ScreenLog *logger_,QWidget *parent = nullptr);
     ~ServiceDevicesHydraulicsLeftForm();
 
     void refreshSliders();
@@ -42,6 +43,7 @@ private slots:
 
 private:
     Ui::ServiceDevicesHydraulicsLeftForm *ui;
+    ScreenLog* logger;
 };
 
 #endif // SERVICEDEVICESHYDRAULICSLEFTFORM_H
