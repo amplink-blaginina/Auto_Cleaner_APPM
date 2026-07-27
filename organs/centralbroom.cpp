@@ -226,7 +226,7 @@ void CentralBroom::goUp(bool state, bool isPressed){
         myCan->setState(StateValveF2, state);
     }
     else{
-        ((MainWindow*)parent)->setFlowView(false);
+        ((MainWindow*)parent)->setBroomFlowView(false);
         setFlowActive(false);//вырубаем плавающий режим, если начали движение порталом щётки вверх
         myCan->setState(StateValveF10, state);}
 
@@ -239,7 +239,7 @@ void CentralBroom::goDown(bool state, bool isPressed){
         myCan->setState(StateValveF8, state);
     }
     else{
-        ((MainWindow*)parent)->setFlowView(false);
+        ((MainWindow*)parent)->setBroomFlowView(false);
         setFlowActive(false);//вырубаем плавающий режим, если начали движение порталом щётки вниз
         myCan->setState(StateValveF4, state);}
     myCan->setState(StateValveA1, state);
@@ -333,7 +333,7 @@ void CentralBroom::setPressActive(bool state){
             break;}
     }
     isPressed = state;
-    ((MainWindow*)parent)->setPressView(state);
+    ((MainWindow*)parent)->setBroomPressView(state);
     logger->printWarning(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
 }
 
@@ -364,7 +364,7 @@ void CentralBroom::setFlowActive(bool state){
     //     setDirection(organsEnums::None);
     // }
     goFlow(state);
-    ((MainWindow*)parent)->setFlowView(state);
+    ((MainWindow*)parent)->setBroomFlowView(state);
 }
 
 void CentralBroom::goFlow(bool state){

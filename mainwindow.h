@@ -507,6 +507,7 @@ private:
     void setRandomPassword(int pass, QString passwordName);
     void setDefaultValues();
     void createFormsAndHide();
+    void updateDumpBtnsView();
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
@@ -514,8 +515,9 @@ signals:
     void Pass_close();
 public :
     QString getMovementText(organsEnums::Direction direction);
-    void setFlowView(bool state);
-    void setPressView(bool state);
+    void setBroomFlowView(bool state);
+    void setBroomPressView(bool state);
+    void setDumpFlowView(bool state);
 public slots:
     void messageListPressed();
     void settingsAskPassword();

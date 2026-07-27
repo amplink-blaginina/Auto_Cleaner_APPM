@@ -80,108 +80,158 @@ QString FrontRail::toString(FrontRailStates s){
     }
 }
 
+
+// void FrontRail::setDirection(organsEnums::Direction dir){
+//     setDirection(dir, isPressed);
+// }
+void FrontRail::setDirection(organsEnums::Direction dir){
+    if(dir == direction)
+        return;
+
+    switch (direction) {
+    case organsEnums::Up:
+        goUp(false);
+        break;
+    case organsEnums::Down:
+        goDown(false);
+        break;
+    case organsEnums::Left:
+        goLeft(false);
+        break;
+    case organsEnums::Right:
+        goRight(false);
+        break;
+    default:
+        break;
+    }
+    //printMovement(dir, false, isPressed);
+    direction = dir;
+    //setPressActive(pressed);
+
+    switch (dir) {
+    case organsEnums::Up:
+        goUp(true);
+        break;
+    case organsEnums::Down:
+        goDown(true);
+        break;
+    case organsEnums::Left:
+        goLeft(true);
+        break;
+    case organsEnums::Right:
+        goRight(true);
+        break;
+    default:
+        break;
+        //printMovement(dir, true, pressed);
+    }
+}
+
 void FrontRail::setState(FrontRailStates state_){
     qDebug()<<" статус отвала: "<<state_;
     state = state_;
     if (state == FrontRail::FrontRailOff){// перешла в домашнее щетка
         // отменить опускание
-        goNone();
+        setDirection(organsEnums::None);
+        //goNone();
     }
     if (state == FrontRail::FrontRailDownOut){// началось опускание ( из верхнего в нижние, мимо домашнего)
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailDownOut, 0) > 0) {
-            goNone();
-            goDown();
-            logger->printLog("Отвал опускается");
+            setDirection(organsEnums::Down);
+            //logger->printLog("Отвал опускается");
             //mainWindow->addLog("Отвал опускается", MainWindow::InfoStatus);
         }
     }
     if (state == FrontRail::FrontRailDowned){// опустилась на нужный уровень
-        goNone();
+        setDirection(organsEnums::None);
+        //goNone();
     }
     if (state == FrontRail::FrontRailDownIn){// поднимаем из нижнего в самое верхнее
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailDownIn, 0) > 0) {
-            goNone();
-            goUp();
-            logger->printLog("Отвал поднимается");
+            setDirection(organsEnums::Up);
+            // goNone();
+            // goUp();
+            //logger->printLog("Отвал поднимается");
             //mainWindow->addLog(, MainWindow::InfoStatus);
         }
     }
     if (state == FrontRail::FrontRailFlowOut){// началось плавание
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailFlowOut, 0) > 0){
-            goNone();
-            goFlow();
+            setFlowActive(true);
         }
-        logger->printLog("Плавающий режим отвала");
+        //logger->printLog("Плавающий режим отвала №1");
         //mainWindow->addLog("Плавающий режим отвала", MainWindow::InfoStatus);
     }
     if (state == FrontRail::FrontRailFlowed){// закончилось плавание
-        if (((MainWindow*)parent)->workMode.frontDumpFlow){
-            goFlow();
-            logger->printLog("Плавающий режим отвала");
-        }
-        else{
-            goNoFlow();
-            logger->printLog("Не плавающий режим отвала");
-        }
+        setFlowActive(((MainWindow*)parent)->workMode.frontDumpFlow);
+        // if (((MainWindow*)parent)->workMode.frontDumpFlow){
+        //     goFlow();
+        //     logger->printLog("Плавающий режим отвала №2");
+        // }
+        // else{
+        //     goNoFlow();
+        //     logger->printLog("Не плавающий режим отвала");
+        // }
     }
     if (state == FrontRail::FrontRailFlowIn){// заканчиваем плавание
-        goNoFlow();
-        logger->printLog("Отвал не плавающий");
+        setFlowActive(false);
     }
 
     if (state == FrontRail::FrontRailSlideOut){// начинается поворот на нужный угол
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailSlideOut, 0) > 0) {
-            goNone();
-            if (!needSlided)
-                goRight();
-            else
-                goLeft();
-            logger->printLog("Отвал поворачивает");
+            setDirection(needSlided? organsEnums::Left: organsEnums::Right);
+            //logger->printLog("Отвал поворачивает");
         }
     }
     if (state == FrontRail::FrontRailSlideIn)
     {
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailSlideIn, 0) > 0) {
-            goNone();
-            goRight();
-            logger->printLog("Отвал поворачивает");
+            setDirection(organsEnums::Right);
+            // goNone();
+            // goRight();
+            //logger->printLog("Отвал поворачивает");
         }
     }
     if (state == FrontRail::FrontRailSlided)
     {// повернулась куда надо
-        goNone();
+        setDirection(organsEnums::None);
+        //goNone();
     }
-    if (state == FrontRail::FrontRailBounceOut)
-    {// отскок — поворот в противоположную сторону
+    if (state == FrontRail::FrontRailBounceOut)    {// отскок — поворот в противоположную сторону
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailBounceOut, 0) > 0) {
-            goNone();
-            if (!needSlided)
-                goLeft();
-            else
-                goRight();
-            logger->printLog("Отвал отскок");
+             setDirection(!needSlided? organsEnums::Left: organsEnums::Right);
+            // goNone();
+            // if (!needSlided)
+            //     goLeft();
+            // else
+            //     goRight();
+            logger->printLog("Отвал: отскок");
         }
     }
-    if (state == FrontRail::FrontRailBounced)
-    {// отскок завершён
-        goNone();
+    if (state == FrontRail::FrontRailBounced){// отскок завершён
+        setDirection(organsEnums::None);
+        //goNone();
     }
 }
 
-void FrontRail::goRight(){
-    myCan->setState(StateValveF6, true);
-    myCan->setState(StateValveA1, true);
-}
+void FrontRail::goRight(){goRight(true);}
 
-void FrontRail::goLeft(){
-    myCan->setState(StateValveF12, true);
-    myCan->setState(StateValveA1, true);
+void FrontRail::goRight(bool state){
+    myCan->setState(StateValveF6, state);
+    myCan->setState(StateValveA1, state);
+    printMovement(organsEnums::Right, state);
+}
+void FrontRail::goLeft(){goLeft(true);}
+void FrontRail::goLeft(bool state){
+    myCan->setState(StateValveF12, state);
+    myCan->setState(StateValveA1, state);
+    printMovement(organsEnums::Left, state);
 }
 
 void FrontRail::goNone(){
@@ -191,28 +241,49 @@ void FrontRail::goNone(){
     myCan->setState(StateValveF7, false);
     myCan->setState(StateValveA1, false);
 }
-
-void FrontRail::goDown(){
-    myCan->setState(StateValveF7, true);
-    myCan->setState(StateValveA1, true);
+void FrontRail::goDown(){goDown(true);}
+void FrontRail::goDown(bool state){
+    if(state){
+        setFlowActive(false);
+    }
+    myCan->setState(StateValveF7, state);
+    myCan->setState(StateValveA1, state);
+    printMovement(organsEnums::Down, state);
 }
 
 void FrontRail::goUp(){
-    myCan->setState(StateValveF1, true);
-    myCan->setState(StateValveA1, true);
+    goUp(true);
+}
+void FrontRail::goUp(bool state){
+    if(state){
+        setFlowActive(false);
+    }
+    myCan->setState(StateValveF1, state);
+    myCan->setState(StateValveA1, state);
+    printMovement(organsEnums::Up, state);
 }
 
 void FrontRail::goFlow(){
-    qDebug()<<"!!! dump go Flow";
-    myCan->setState(StateValveC3, true);
-    myCan->setState(StateValveC4, true);
+    goFlow(true);
 }
 
 void FrontRail::goNoFlow(){
-    qDebug()<<"!!! dump stop Flow";
-    myCan->setState(StateValveC3, false);
-    myCan->setState(StateValveC4, false);
+    goFlow(false);
 }
+void FrontRail::goFlow(bool state){
+    logger->printWarning(state?"Отвал: плавание активировано":"Отвал: плавание деактивировано");
+    myCan->setState(StateValveC3, state);
+    myCan->setState(StateValveC4, state);
+}
+
+void FrontRail::setFlowActive(bool state){
+    if(isFlowing == state)
+        return;
+    isFlowing = state;
+    goFlow(state);
+    ((MainWindow*)parent)->setDumpFlowView(state);
+}
+
 
 FrontRail::FrontRailStates FrontRail::getState(){
     return state;
@@ -252,6 +323,13 @@ void FrontRail::checkNeedState()
 float FrontRail::getTimeout(){//получает таймаут в секундах (сколько надо простаивать в той или иной операции)
     return timeouts.value(state, 0);
 }
+
+void FrontRail::printMovement(organsEnums::Direction dir, bool state){
+    logger->printMovementLog(organsEnums::Dump,
+                             dir,
+                             state?"": " завершено");
+}
+
 
 bool FrontRail::testStateTimer(){// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)
     qint64 msecs_to = startActionTime.msecsTo(QDateTime::currentDateTime());

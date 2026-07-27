@@ -30,24 +30,25 @@ void Blower::readSettings()
     timeouts.clear();
     rpmForSweepType.clear();
     speedForSweepType.clear();
+    auto mainWindow = ((MainWindow*)parent);
 
-    rpmForSweepType.insert(MainWindow::LeafSweep, ((MainWindow*)parent)->readSettingsValue("Engine/rpm.LeafSweep").toInt());
-    rpmForSweepType.insert(MainWindow::LightSweep, ((MainWindow*)parent)->readSettingsValue("Engine/rpm.LightSweep").toInt());
-    rpmForSweepType.insert(MainWindow::MediumSweep, ((MainWindow*)parent)->readSettingsValue("Engine/rpm.MediumSweep").toInt());
-    rpmForSweepType.insert(MainWindow::HeavySweep, ((MainWindow*)parent)->readSettingsValue("Engine/rpm.HeavySweep").toInt());
+    rpmForSweepType.insert(MainWindow::LeafSweep, mainWindow->readSettingsValue("Engine/rpm.LeafSweep").toInt());
+    rpmForSweepType.insert(MainWindow::LightSweep, mainWindow->readSettingsValue("Engine/rpm.LightSweep").toInt());
+    rpmForSweepType.insert(MainWindow::MediumSweep, mainWindow->readSettingsValue("Engine/rpm.MediumSweep").toInt());
+    rpmForSweepType.insert(MainWindow::HeavySweep, mainWindow->readSettingsValue("Engine/rpm.HeavySweep").toInt());
 
     // назначаем таймауты на длительные операции
-    timeouts.insert(BlowerSlideOut, ((MainWindow*)parent)->readSettingsValue("Blower/timeouts.BlowerSlideOut").toInt());
-    timeouts.insert(BlowerSlideIn, ((MainWindow*)parent)->readSettingsValue("Blower/timeouts.BlowerSlideIn").toInt());
-    timeouts.insert(BlowerDownOut, ((MainWindow*)parent)->readSettingsValue("Blower/timeouts.BlowerDownOut").toInt());
-    timeouts.insert(BlowerDownIn, ((MainWindow*)parent)->readSettingsValue("Blower/timeouts.BlowerDownIn").toInt());
-    timeouts.insert(BlowerRotateOut, ((MainWindow*)parent)->readSettingsValue("Blower/timeouts.BlowerRotateOut").toInt());
-    timeouts.insert(BlowerRotateIn, ((MainWindow*)parent)->readSettingsValue("Blower/timeouts.BlowerRotateIn").toInt());
+    timeouts.insert(BlowerSlideOut, mainWindow->readSettingsValue("Blower/timeouts.BlowerSlideOut").toInt());
+    timeouts.insert(BlowerSlideIn, mainWindow->readSettingsValue("Blower/timeouts.BlowerSlideIn").toInt());
+    timeouts.insert(BlowerDownOut, mainWindow->readSettingsValue("Blower/timeouts.BlowerDownOut").toInt());
+    timeouts.insert(BlowerDownIn, mainWindow->readSettingsValue("Blower/timeouts.BlowerDownIn").toInt());
+    timeouts.insert(BlowerRotateOut, mainWindow->readSettingsValue("Blower/timeouts.BlowerRotateOut").toInt());
+    timeouts.insert(BlowerRotateIn, mainWindow->readSettingsValue("Blower/timeouts.BlowerRotateIn").toInt());
 
-    speedForSweepType.insert(MainWindow::LeafSweep, ((MainWindow*)parent)->readSettingsValue("Blower/speeds.LeafSweep").toInt());
-    speedForSweepType.insert(MainWindow::LightSweep, ((MainWindow*)parent)->readSettingsValue("Blower/speeds.LightSweep").toInt());
-    speedForSweepType.insert(MainWindow::MediumSweep, ((MainWindow*)parent)->readSettingsValue("Blower/speeds.MediumSweep").toInt());
-    speedForSweepType.insert(MainWindow::HeavySweep, ((MainWindow*)parent)->readSettingsValue("Blower/speeds.HeavySweep").toInt());
+    speedForSweepType.insert(MainWindow::LeafSweep, mainWindow->readSettingsValue("Blower/speeds.LeafSweep").toInt());
+    speedForSweepType.insert(MainWindow::LightSweep, mainWindow->readSettingsValue("Blower/speeds.LightSweep").toInt());
+    speedForSweepType.insert(MainWindow::MediumSweep, mainWindow->readSettingsValue("Blower/speeds.MediumSweep").toInt());
+    speedForSweepType.insert(MainWindow::HeavySweep, mainWindow->readSettingsValue("Blower/speeds.HeavySweep").toInt());
 
     qDebug() << timeouts;
 }
@@ -152,8 +153,7 @@ void Blower::goOff()
     myCan->setState(StateValveA1, false);
 }
 
-void Blower::goRotate(quint8 speed)
-{
+void Blower::goRotate(quint8 speed){
     myCan->setState(StateValveD3, speed);
 }
 

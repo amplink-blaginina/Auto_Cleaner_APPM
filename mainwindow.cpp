@@ -2672,11 +2672,11 @@ void MainWindow::showDumpLeft(){
     if ((startClean && ui->pushButton_dumpLeft->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_LEFT)    {// нажали кнопку
         frontDumpLeftTimeCounter++;
         if (startClean)
-            frontRail->goLeft();
+            frontRail->setDirection(organsEnums::Left);
     }
     else{// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
         if (startClean && frontDumpLeftTimeCounter > 0)
-            frontRail->goNone();
+            frontRail->setDirection(organsEnums::None);
         if (frontDumpLeftTimeCounter > 1){
             // отработаем нажатие
             if (!startClean)
@@ -2690,11 +2690,11 @@ void MainWindow::showDumpRight(){
     if ((startClean && ui->pushButton_dumpRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT)    {// нажали кнопку
         frontDumpRightTimeCounter++;
         if (startClean)
-            frontRail->goRight();
+            frontRail->setDirection(organsEnums::Right);
     }
     else{// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
         if (startClean && frontDumpRightTimeCounter > 0)
-            frontRail->goNone();
+            frontRail->setDirection(organsEnums::None);
         if (frontDumpRightTimeCounter > 1){
             // отработаем нажатие
             if (!startClean)
@@ -2798,14 +2798,14 @@ void MainWindow::on_pushButton_settings_clicked(){
 //------------------------------------------------------------------------
 void MainWindow::onRailReleased(){
     if (startClean){
-        frontRail->goNone();
+        frontRail->setDirection(organsEnums::None);
         qDebug()<<"StopRail";
     }
 }
 
 void MainWindow::on_pushButton_dumpUp_pressed(){
     if (startClean){
-        frontRail->goUp();
+        frontRail->setDirection(organsEnums::Up);
         qDebug()<<"LeftRailPressed";
     }
 }
@@ -2814,7 +2814,7 @@ void MainWindow::on_pushButton_dumpUp_released(){
 }
 void MainWindow::on_pushButton_dumpDown_pressed(){
     if (startClean){
-        frontRail->goDown();
+        frontRail->setDirection(organsEnums::Down);
         qDebug()<<"LeftRailPressed";
     }
 }
@@ -2831,7 +2831,7 @@ void MainWindow::on_pushButton_dumpLeft_clicked(){
 }
 void MainWindow::on_pushButton_dumpLeft_pressed(){
     if (startClean){
-        frontRail->goLeft();
+        frontRail->setDirection(organsEnums::Left);
         qDebug()<<"LeftRailPressed";
     }
 }
@@ -2848,7 +2848,7 @@ void MainWindow::on_pushButton_dumpRight_clicked(){
 }
 void MainWindow::on_pushButton_dumpRight_pressed(){
     if (startClean){
-        frontRail->goRight();
+        frontRail->setDirection(organsEnums::Right);
     }
 }
 void MainWindow::on_pushButton_dumpRight_released(){
@@ -2857,6 +2857,7 @@ void MainWindow::on_pushButton_dumpRight_released(){
 
 void MainWindow::on_pushButton_dumpFlow_clicked(){
     workMode.frontDumpFlow = !workMode.frontDumpFlow;
+    frontRail->setFlowActive(workMode.frontDumpFlow);
     showWorkMode();
 }
 
@@ -2922,7 +2923,7 @@ void MainWindow::on_pushButton_centralBroomFlow_clicked(){
     bool newState = !workMode.centralBroomFlow;
     //QString msg = (&"Switch broom flow to "[newState]);
     //screenLog->printTest(msg);
-    setFlowView(newState);
+    setBroomFlowView(newState);
     broomCentral->setFlowActive(newState);
     showWorkMode();
 }
@@ -3163,23 +3164,24 @@ void MainWindow::setDumpState(){
                    ui->label_dumpUpDown, ui->pushButton_dumpUp,
                    path + "up_off.png);", path + "off.png);",
                    [this](){
-                        frontRail->goUp();
-                        printOrganStatus(organsEnums::Dump, organsEnums::Up, true);
+                        frontRail->setDirection(organsEnums::Up);
+                        //printOrganStatus(organsEnums::Dump, organsEnums::Up, true);
     },
                    [this](){
-                        frontRail->goNone();
-                        printOrganStatus(organsEnums::Dump, organsEnums::Up, false);});
+                        frontRail->setDirection(organsEnums::None);
+                        //printOrganStatus(organsEnums::Dump, organsEnums::Up, false);
+                   });
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_DOWN,
                 ui->label_dumpUpDown, ui->pushButton_dumpDown,
                 path + "down_off.png);", path + "off.png);",
                 [this](){
-                       frontRail->goDown();
-                       printOrganStatus(organsEnums::Dump, organsEnums::Down, true);
+                       frontRail->setDirection(organsEnums::Down);
+                       //printOrganStatus(organsEnums::Dump, organsEnums::Down, true);
     },
                 [this](){
-                       frontRail->goNone();
-                       printOrganStatus(organsEnums::Dump, organsEnums::Down, false);
+                       frontRail->setDirection(organsEnums::None);
+                       //printOrganStatus(organsEnums::Dump, organsEnums::Down, false);
     });
 
 
@@ -3192,25 +3194,28 @@ void MainWindow::setDumpState(){
                    "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_left_on.png);",
                    defaultIcon,//!!!
                    [this](){
-                       frontRail->goLeft();
-                       printOrganStatus(organsEnums::Dump, organsEnums::Left, true);
+                       frontRail->setDirection(organsEnums::Left);
+                       //printOrganStatus(organsEnums::Dump, organsEnums::Left, true);
                    },
                    [this](){
-                       frontRail->goNone();
-                       printOrganStatus(organsEnums::Dump, organsEnums::Left, false);});
+                       frontRail->setDirection(organsEnums::None);
+                       //printOrganStatus(organsEnums::Dump, organsEnums::Left, false);
+                   });
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT,
                    ui->label_dump, ui->pushButton_dumpRight,
                    "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_right_on.png);",
                    defaultIcon,//!!!
                    [this](){
-                        frontRail->goRight();
-                        printOrganStatus(organsEnums::Dump, organsEnums::Right, true);
+                        frontRail->setDirection(organsEnums::Right);
+                        //frontRail->goRight(true);
+                        //printOrganStatus(organsEnums::Dump, organsEnums::Right, true);
 
                    },
                    [this](){
-                        frontRail->goNone();
-                        printOrganStatus(organsEnums::Dump, organsEnums::Right, false);});
+                       frontRail->setDirection(organsEnums::None);//goNone();
+                        //printOrganStatus(organsEnums::Dump, organsEnums::Right, false);
+                   });
 }
 
 //==============================Blower===============================================
@@ -3394,12 +3399,17 @@ void MainWindow::updateButtonsActiveState(){
     }
 }
 
-void MainWindow::setFlowView(bool state){
+void MainWindow::setBroomFlowView(bool state){
     workMode.centralBroomFlow = state;
     updateBroomBtnsView();
 }
 
-void MainWindow::setPressView(bool state){
+void MainWindow::setDumpFlowView(bool state){
+    workMode.frontDumpFlow = state;
+    updateDumpBtnsView();
+}
+
+void MainWindow::setBroomPressView(bool state){
     workMode.centralBroomPress = state;
     updateBroomBtnsView();
 }
@@ -3427,6 +3437,24 @@ void MainWindow::updateBroomBtnsView(){
     }
 
 }
+void MainWindow::updateDumpBtnsView(){
+    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
+    setStyle(ui->label_dumpUpDown, path + (ui->pushButton_dumpDown->isEnabled()? "off.png);": "blocked.png);"));
+
+    // передний отвал
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_";
+    if (workMode.frontDumpLeft && !workMode.frontDumpRight)
+        setStyle(ui->label_dump, path + "left_on.png);");
+    else if (!workMode.frontDumpLeft && workMode.frontDumpRight )
+        setStyle(ui->label_dump, path + "right_on.png);");
+    else if (!workMode.frontDumpLeft && !workMode.frontDumpRight )
+        setStyle(ui->label_dump, path + "off.png);");
+
+    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_";
+    setStyle(ui->label_dumpFloatPress, path + (workMode.frontDumpFlow? "on_down_blocked.png);": "off_down_blocked.png);"));
+
+
+}
 
 void MainWindow::updateButtonsIcons(){
 
@@ -3449,21 +3477,7 @@ void MainWindow::updateButtonsIcons(){
     updateBroomBtnsView();
 
     // отвал
-    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
-    setStyle(ui->label_dumpUpDown, path + (ui->pushButton_dumpDown->isEnabled()? "off.png);": "blocked.png);"));
-
-    // передний отвал
-    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_";
-    if (workMode.frontDumpLeft && !workMode.frontDumpRight)
-        setStyle(ui->label_dump, path + "left_on.png);");
-    else if (!workMode.frontDumpLeft && workMode.frontDumpRight )
-        setStyle(ui->label_dump, path + "right_on.png);");
-    else if (!workMode.frontDumpLeft && !workMode.frontDumpRight )
-        setStyle(ui->label_dump, path + "off.png);");
-
-    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_";
-    setStyle(ui->label_dumpFloatPress, path + (workMode.frontDumpFlow? "on_down_blocked.png);": "off_down_blocked.png);"));
-
+    updateDumpBtnsView();
 
     // магнит
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_magnet_";

@@ -3,12 +3,12 @@
 
 #include "mainwindow.h"
 
-ServiceDevicesHydraulicsLeftForm::ServiceDevicesHydraulicsLeftForm(QWidget *parent_) :
+ServiceDevicesHydraulicsLeftForm::ServiceDevicesHydraulicsLeftForm(ScreenLog *logger_, QWidget *parent_) :
     QWidget(parent_),
     ui(new Ui::ServiceDevicesHydraulicsLeftForm)
 {
     ui->setupUi(this);
-
+    logger = logger_;
     parent = parent_;
 }
 
@@ -38,15 +38,15 @@ void ServiceDevicesHydraulicsLeftForm::updateVisual()
         ui->pushButton_broomPressDown->setChecked(mainWindow->can0->getState(StateValveF8).toBool());
 
     if (ui->pushButton_dumpLeft->isDown())
-        mainWindow->frontRail->goLeft();
+        mainWindow->frontRail->setDirection(organsEnums::Left);
     else if (ui->pushButton_dumpRight->isDown())
-        mainWindow->frontRail->goRight();
+        mainWindow->frontRail->setDirection(organsEnums::Right);
     else if (ui->pushButton_dumpUp->isDown())
-        mainWindow->frontRail->goUp();
+        mainWindow->frontRail->setDirection(organsEnums::Up);
     else if (ui->pushButton_dumpDown->isDown())
-        mainWindow->frontRail->goDown();
+        mainWindow->frontRail->setDirection(organsEnums::Down);
     else
-        mainWindow->frontRail->goNone();
+        mainWindow->frontRail->setDirection(organsEnums::None);
 
     if (ui->pushButton_broomLeft->isDown())
         mainWindow->broomCentral->setDirection(organsEnums::Left);

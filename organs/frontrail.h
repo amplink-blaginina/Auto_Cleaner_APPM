@@ -51,6 +51,8 @@ public:
     FrontRailStates stateDown();
 
     QDateTime startActionTime;
+    bool isFlowing;
+    organsEnums::Direction direction;
 
     // таймауты на каждую длительную операцию
     QMap<FrontRailStates, float> timeouts;
@@ -66,14 +68,13 @@ public:
     FrontRailStates ableState; // статус который мы можем достичь
     FrontRailStates getState();
     QString toString(FrontRailStates s);
+    void goLeft(bool state);
+    void goRight(bool state);
+    void goNone(bool state);
+    void goUp(bool state);
+    void goDown(bool state);
+    void goFlow(bool state);
 
-    void goLeft();
-    void goRight();
-    void goNone();
-    void goUp();
-    void goDown();
-    void goFlow();
-    void goNoFlow();
 
     // установка и получение требуемого состояния модуля (к чему модуль движется так скажем)
     void setNeedState(FrontRailStates state_);
@@ -81,9 +82,22 @@ public:
     void setAbleState(FrontRailStates state_);
     FrontRailStates getAbleState();
 
+    void setDirection(organsEnums::Direction dir);
+    //void setDirection(organsEnums::Direction dir, bool isPressed);
+    void setFlowActive(bool state);
+
 public slots:
     // слот для получания данных из CAN
     void progressLoop();
+private:
+    void goLeft();
+    void goRight();
+    void goNone();
+    void goUp();
+    void goDown();
+    void goFlow();
+    void goNoFlow();
+    void printMovement(organsEnums::Direction dir, bool state);
 signals:
 
 };
