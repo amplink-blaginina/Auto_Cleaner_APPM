@@ -1383,12 +1383,10 @@ void MainWindow::oneSecond(){// универсальный таймер для �
     // отображаем моточасы
     QString temp = "%1";
     temp = temp.arg(TOCurValues["Engine"] / 3600, 5, 10, QChar('0'));
-    if (temp != ui->label_frontEngineTOTotalValue->text())
-        ui->label_frontEngineTOTotalValue->setText(temp);
+    setText(ui->label_frontEngineTOTotalValue, temp);
     temp = "%1";
     temp = temp.arg((TOCurValues["Engine"] - engineToday) / 3600, 2, 10, QChar('0'));
-    if (temp != ui->label_engineTODailyValue->text())
-        ui->label_engineTODailyValue->setText(temp);
+    setText(ui->label_engineTODailyValue, temp);
     if (TOCurValues["Engine"] - TOCurValues["EngineLast"] > 5 * 60)
     {// пора сохранить кой какие данные каждые 5 минут
         TOCurValues["EngineLast"] = TOCurValues["Engine"];
@@ -1550,16 +1548,12 @@ void MainWindow::mainProgress(){
         frontRPM = 0;
     }
     if (engine->online > ENGINE_ONLINE_EDGE * 10){
-        if (ui->label_engineTemp->text() != "n/a")
-            ui->label_engineTemp->setText("n/a");
-        if (ui->label_engineRPM->text() != "n/a")
-            ui->label_engineRPM->setText("n/a");
+        setText(ui->label_engineTemp, "n/a");
+        setText(ui->label_engineRPM, "n/a");
     }
     else{
-        if (ui->label_engineTemp->text() != QString::number(engine->engineCoolantTemp))
-            ui->label_engineTemp->setText(QString::number(engine->engineCoolantTemp));
-        if (ui->label_engineRPM->text() != QString::number(engine->getRpm()))
-            ui->label_engineRPM->setText(QString::number(engine->getRpm()));
+        setText(ui->label_engineTemp, QString::number(engine->engineCoolantTemp));
+        setText(ui->label_engineRPM, QString::number(engine->getRpm()));
     }
 
 
@@ -3523,21 +3517,27 @@ void MainWindow::selectBtnState(bool gpioPressed, QPushButton *btn, QString onPa
                                 std::function<void()> onReleaseHandler){
 
     bool wasDown = btn->property("wasDown").toBool();
-    if (btn->isDown() || gpioPressed){
-        if(!wasDown){
+
+    if(wasDown){
+        btn->setProperty("wasDown", false);
+        setBtnState(btn, offPath, onReleaseHandler);
+    }
+    else{
+        if(btn->isDown() || gpioPressed){
             btn->setProperty("wasDown", true);
             setBtnState(btn, onPath, onPressHandler);
         }
-    }
-    else if (wasDown){
-        btn->setProperty("wasDown", false);
-        setBtnState(btn, offPath, onReleaseHandler);
     }
 }
 
 void MainWindow::setStyle(QWidget *widget, QString path){
     if (widget->styleSheet() != path)
         widget->setStyleSheet(path);
+}
+
+void MainWindow::setText(QLabel *lbl, QString text){
+    if (lbl->text() != text)
+        lbl->setText(text);
 }
 
 void MainWindow::showStatus(QLabel *label, bool check) {

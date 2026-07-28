@@ -367,6 +367,8 @@ public:
 
     float hydraulicPressureValue(int index) const;
     void toggleAllFrm();
+    void setStyle(QWidget *btn, QString path);
+    void setText(QLabel *lbl, QString text);
 
     int oldCentralOffset;
 
@@ -466,7 +468,7 @@ private:
     // void updatePrerollButtonsVisual();
     // void cachePrerollButtons();
     void restoreIgnitionAfterRoll();
-    void setStyle(QWidget *btn, QString path);
+
     void setBlowerState();
     void changeSweepMode(quint8 mode);
     void setDumpState();
