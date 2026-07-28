@@ -19,8 +19,8 @@ ServiceDevicesHydraulicsLeftForm::~ServiceDevicesHydraulicsLeftForm()
 
 void ServiceDevicesHydraulicsLeftForm::refreshSliders()
 {
-    ui->horizontalSlider_broomRotateLeft->setValue(((MainWindow*)parent)->can0->getState(StateValveD1).toInt());
-    ui->horizontalSlider_broomRotateRight->setValue(((MainWindow*)parent)->can0->getState(StateValveD2).toInt());
+    ui->horizontalSlider_broomRotateLeft->setValue(((MainWindow*)parent)->can0->getState(StateValveD2).toInt());
+    ui->horizontalSlider_broomRotateRight->setValue(((MainWindow*)parent)->can0->getState(StateValveD1).toInt());
     ui->horizontalSlider_fanRotateRight->setValue(((MainWindow*)parent)->can0->getState(StateValveD3).toInt());
 }
 
@@ -132,12 +132,12 @@ void ServiceDevicesHydraulicsLeftForm::updateVisual()
 
 void ServiceDevicesHydraulicsLeftForm::on_horizontalSlider_broomRotateLeft_valueChanged(int value)
 {
-    ((MainWindow*)parent)->can0->setState(StateValveD1, value);
+    ((MainWindow*)parent)->can0->setState(StateValveD2, value);
 }
 
 void ServiceDevicesHydraulicsLeftForm::on_horizontalSlider_broomRotateRight_valueChanged(int value)
 {
-    ((MainWindow*)parent)->can0->setState(StateValveD2, value);
+    ((MainWindow*)parent)->can0->setState(StateValveD1, value);
 }
 
 void ServiceDevicesHydraulicsLeftForm::on_horizontalSlider_fanRotateRight_valueChanged(int value)
