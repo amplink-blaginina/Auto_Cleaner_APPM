@@ -11,8 +11,6 @@
 #include <QScroller>
 #include <QScrollBar>
 #include <QPushButton>
-#include <custombutton.h>
-#include <custombuttonsgroup.h>
 #include <screenlog.h>
 
 // pwm
@@ -857,21 +855,6 @@ void MainWindow::setDefaultSettings(){
 }
 
 void MainWindow::createButtons(){
-    //!!!
-    // btn_broom_up = new CustomButton(ui->pushButton_centralBroomUp, ui->label_centralBroomUpDown);
-    // btn_broom_up->setIcons("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_",
-    //                        "off.png);",
-    //                        "up_on.png);",
-    //                        "off.png);");
-    // btn_broom_down = new CustomButton(ui->pushButton_centralBroomDown, ui->label_centralBroomUpDown);
-    // btn_broom_down->setIcons("background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_",
-    //                        "off.png);",
-    //                        "up_on.png);",
-    //                        "off.png);");
-
-    // btn_group_broom_vert = new CustomButtonGroup(ui->label_centralBroomUpDown);
-    // btn_group_broom_vert->addButton(btn_broom_up);
-    // btn_group_broom_vert->addButton(btn_broom_down);
 }
 
 void MainWindow::buttonsLightCheck(){

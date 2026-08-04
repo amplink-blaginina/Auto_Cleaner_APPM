@@ -11,8 +11,6 @@
 #include <QGraphicsOpacityEffect>
 #include <QPalette>
 #include <QDate>
-#include <custombutton.h>
-#include <custombuttonsgroup.h>
 
 #include <sys/socket.h>
 #include <net/if.h>
@@ -414,31 +412,6 @@ public:
     MyCanJ1939 *canj1939;
     MyCanJ1939 *canj1939Main;
 
-    //==============Buttons=================
-
-    CustomButton *btn_broom_up;
-    CustomButton *btn_broom_down;
-    CustomButton *btn_broom_left;
-    CustomButton *btn_broom_right;
-    CustomButtonGroup *btn_group_broom_hor;
-    CustomButtonGroup *btn_group_broom_vert;
-
-
-    CustomButton *btn_dump_up;
-    CustomButton *btn_dump_down;
-    CustomButton *btn_dump_left;
-    CustomButton *btn_dump_right;
-    CustomButtonGroup *btn_group_dump_hor;
-    CustomButtonGroup *btn_group_dump_vert;
-
-
-    CustomButton *btn_blower_up;
-    CustomButton *btn_blower_down;
-    CustomButton *btn_blower_left;
-    CustomButton *btn_blower_right;
-    CustomButtonGroup *btn_group_blower_hor;
-    CustomButtonGroup *btn_group_blower_vert;
-
 private:
     Ui::MainWindow *ui;
 
@@ -487,7 +460,7 @@ private:
     void createButtons();
     bool isBroomDownPressed();
     bool isBroomUpPressed();
-    void setOrgansButtonsState(CustomButtonGroup::Mode mode);
+    //void setOrgansButtonsState(CustomButtonGroup::Mode mode);
     void onBroomReleased();
     void onRailReleased();
     void onBlowerReleased();
