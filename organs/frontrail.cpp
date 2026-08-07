@@ -6,7 +6,7 @@
 #include <QTimer>
 #include <QThread>
 
-FrontRail::FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ScreenLog *logger_, QObject *parent_) : QObject(parent_){
+FrontRail::FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, QObject *parent_) : QObject(parent_){
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
     parent = parent_;
@@ -28,13 +28,14 @@ FrontRail::FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings
 void FrontRail::readSettings(){
     timeouts.clear();
     auto mainWin = (MainWindow*)parent;
+    auto reader = mainWin->getReader();
     // назначаем таймауты на длительные операции
-    timeouts.insert(FrontRailSlideOut, mainWin ->readSettingsValue("Dump/timeouts.DumpSlideOut").toFloat());
-    timeouts.insert(FrontRailSlideIn, mainWin ->readSettingsValue("Dump/timeouts.DumpSlideIn").toFloat());
-    timeouts.insert(FrontRailBounceOut, mainWin->readSettingsValue("Dump/timeouts.DumpBounceOut").toFloat());
-    timeouts.insert(FrontRailDownOut, mainWin->readSettingsValue("Dump/timeouts.DumpDownOut").toFloat());
-    timeouts.insert(FrontRailDownIn, mainWin->readSettingsValue("Dump/timeouts.DumpDownIn").toFloat());
-    timeouts.insert(FrontRailFlowOut, mainWin->readSettingsValue("Dump/timeouts.DumpFlowOut").toFloat());
+    timeouts.insert(FrontRailSlideOut, reader->readSettingsValue("Dump/timeouts.DumpSlideOut").toFloat());
+    timeouts.insert(FrontRailSlideIn, reader->readSettingsValue("Dump/timeouts.DumpSlideIn").toFloat());
+    timeouts.insert(FrontRailBounceOut, reader->readSettingsValue("Dump/timeouts.DumpBounceOut").toFloat());
+    timeouts.insert(FrontRailDownOut, reader->readSettingsValue("Dump/timeouts.DumpDownOut").toFloat());
+    timeouts.insert(FrontRailDownIn, reader->readSettingsValue("Dump/timeouts.DumpDownIn").toFloat());
+    timeouts.insert(FrontRailFlowOut, reader->readSettingsValue("Dump/timeouts.DumpFlowOut").toFloat());
 }
 
 QString FrontRail::toString(FrontRailStates s){
@@ -139,7 +140,7 @@ void FrontRail::setState(FrontRailStates state_){
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailDownOut, 0) > 0) {
             setDirection(organsEnums::Down);
-            //logger->printLog("Отвал опускается");
+            //logger->addLog("Отвал опускается");
             //mainWindow->addLog("Отвал опускается", MainWindow::InfoStatus);
         }
     }
@@ -211,7 +212,7 @@ void FrontRail::setState(FrontRailStates state_){
             //     goLeft();
             // else
             //     goRight();
-            logger->printLog("Отвал: отскок");
+            logger->addLog("Отвал: отскок");
         }
     }
     if (state == FrontRail::FrontRailBounced){// отскок завершён
@@ -271,7 +272,7 @@ void FrontRail::goNoFlow(){
     goFlow(false);
 }
 void FrontRail::goFlow(bool state){
-    logger->printWarning(state?"Отвал: плавание активировано":"Отвал: плавание деактивировано");
+    logger->addLogWarning(state?"Отвал: плавание активировано":"Отвал: плавание деактивировано");
     myCan->setState(StateValveC3, state);
     myCan->setState(StateValveC4, state);
 }
@@ -351,13 +352,13 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
         if (timeTest && !sensorReached)
         {
             if (!railAlarmed){
-                logger->printLog("Отвал: достигнут тайм-аут");
+                logger->addLog("Отвал: достигнут тайм-аут");
                 goNone();
             }
             railAlarmed = true;
         }
         else if (sensorReached){
-            logger->printLog("Отвал: достигнут датчик");
+            logger->addLog("Отвал: достигнут датчик");
         }
         if (timeTest || sensorReached)
             dkpAndPositionTest = true;
@@ -378,14 +379,14 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
         const bool sensorReached = myCan->getState((needSlided ? StateDKPDumpLeft : StateDKPDumpRight)).toBool();
         if (timeTest && !sensorReached){
             if (!railAlarmed){
-                logger->printLog("Отвал: достигнут тайм-аут");
+                logger->addLog("Отвал: достигнут тайм-аут");
                 goNone();
             }
             railAlarmed = true;
         }
         else if (sensorReached){
 
-            logger->printLog("Отвал: достигнут датчик");
+            logger->addLog("Отвал: достигнут датчик");
         }
         if (timeTest || sensorReached){
             dkpAndPositionTest = true;// не ждем таймера и разрешаем завершить процесс
@@ -395,13 +396,13 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
         const bool sensorReached = myCan->getState(StateDKPDumpRight).toBool();
         if (timeTest && !sensorReached){
             if (!railAlarmed){
-                logger->printLog("Отвал: достигнут тайм-аут");
+                logger->addLog("Отвал: достигнут тайм-аут");
                 goNone();
             }
             railAlarmed = true;
         }
         else if (sensorReached){
-            logger->printLog("Отвал: достигнут датчик");
+            logger->addLog("Отвал: достигнут датчик");
         }
         if (timeTest || sensorReached)
             dkpAndPositionTest = true;// не ждем таймера и разрешаем завершить процесс

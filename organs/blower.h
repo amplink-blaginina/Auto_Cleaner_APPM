@@ -11,6 +11,8 @@
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
 
+#include <Controllers/viewcontroller.h>
+
 class Blower : public QObject
 {
     Q_OBJECT
@@ -30,9 +32,9 @@ public:
         BlowerRotated     = 9
     };
 
-    explicit Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ScreenLog *logger, QObject *parent_);
+    explicit Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, QObject *parent_);
     QObject * parent;
-    ScreenLog *logger;
+    ViewController *logger;
     MyCan *myCan;
     MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;

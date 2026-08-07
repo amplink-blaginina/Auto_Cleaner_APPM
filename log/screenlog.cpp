@@ -4,6 +4,7 @@
 #include <organsenums.h>
 
 ScreenLog::ScreenLog() {}
+
 void ScreenLog::printLog(const QString& msg) {
     qDebug()<<"print log: "<<msg;
     emit logSignal(msg);

@@ -6,7 +6,7 @@
 #include <QTimer>
 #include <QThread>
 
-BackMagnet::BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ScreenLog *logger_, QObject *parent_) : QObject(parent_)
+BackMagnet::BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, QObject *parent_) : QObject(parent_)
 {
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
@@ -25,13 +25,12 @@ BackMagnet::BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settin
     progressTimer.start(100);
 }
 
-void BackMagnet::readSettings()
-{
+void BackMagnet::readSettings(){
     timeouts.clear();
-
+    SettingsReader* reader = ((MainWindow*)parent)->getReader();
 //    // назначаем таймауты на длительные операции
-    timeouts.insert(BackMagnetDownOut, ((MainWindow*)parent)->readSettingsValue("BackMagnet/timeouts.BackMagnetDownOut").toInt());
-    timeouts.insert(BackMagnetDownIn, ((MainWindow*)parent)->readSettingsValue("BackMagnet/timeouts.BackMagnetDownIn").toInt());
+    timeouts.insert(BackMagnetDownOut, reader->readSettingsValue("BackMagnet/timeouts.BackMagnetDownOut").toInt());
+    timeouts.insert(BackMagnetDownIn, reader->readSettingsValue("BackMagnet/timeouts.BackMagnetDownIn").toInt());
 }
 
 QString BackMagnet::toString(BackMagnetStates s)
@@ -61,7 +60,7 @@ void BackMagnet::setState(BackMagnetStates state_)
     if (state == BackMagnet::BackMagnetOff)
     {// выключили
         goOff();
-        logger->printLog("Магнит поднят");
+        logger->addLog("Магнит поднят");
        //((MainWindow*)parent)->addLog("Магнит поднят", MainWindow::InfoStatus);
         //myCan->setState(StateValveC5, false);
         //myCan->setState(StateFRMBackL2, false);
@@ -69,7 +68,7 @@ void BackMagnet::setState(BackMagnetStates state_)
     if (state == BackMagnet::BackMagnetDownIn)
     {// поднимаем
         startActionTime = QDateTime::currentDateTime();
-        logger->printLog("Поднимаем магнит");
+        logger->addLog("Поднимаем магнит");
         //((MainWindow*)parent)->addLog("Поднимаем магнит", MainWindow::InfoStatus);
         goUp();
         //myCan->setState(StateValveC5, true);
@@ -77,7 +76,7 @@ void BackMagnet::setState(BackMagnetStates state_)
     if (state == BackMagnet::BackMagnetDownOut)
     {// опускаем
         startActionTime = QDateTime::currentDateTime();
-        logger->printLog("Опускаем магнит");
+        logger->addLog("Опускаем магнит");
         //((MainWindow*)parent)->addLog("Опускаем магнит", MainWindow::InfoStatus);
         goDown();
         //myCan->setState(StateFRMBackL2, true);
@@ -86,7 +85,7 @@ void BackMagnet::setState(BackMagnetStates state_)
     if (state == BackMagnet::BackMagnetDowned)
     {// опустили
         startActionTime = QDateTime::currentDateTime();
-        logger->printLog("Магнит опущен");
+        logger->addLog("Магнит опущен");
         //((MainWindow*)parent)->addLog("Магнит опущен", MainWindow::InfoStatus);
         goOff();
         //myCan->setState(StateValveC5, true);
@@ -165,19 +164,17 @@ bool BackMagnet::testStateTimer(){// мощная функция проверк�
     // проверяем концевики
     bool dkpAndPositionTest = false;
     // магнимт идет вверх, ждем концевик
-    if (state == BackMagnet::BackMagnetDownIn)
-    {
+    if (state == BackMagnet::BackMagnetDownIn){
         const bool sensorReached = myCan->getState(StateDKPBackMagnetUp).toBool();
-        if (timeTest && !sensorReached)
-        {
+        if (timeTest && !sensorReached){
             if (!magnetAlarmed){
-                logger->printLog("Магнит: достигнут тайм-аут");
+                logger->addLog("Магнит: достигнут тайм-аут");
                 goOff();
             }
             magnetAlarmed = true;
         }
         else if (sensorReached){
-            logger->printLog("Магнит: достигнут датчик");
+            logger->addLog("Магнит: достигнут датчик");
         }
         if (timeTest || sensorReached)
             dkpAndPositionTest = true;// не ждем таймера и разрешаем завершить процесс
@@ -187,8 +184,7 @@ bool BackMagnet::testStateTimer(){// мощная функция проверк�
     if (state == BackMagnet::BackMagnetDownOut && timeTest)
         dkpAndPositionTest = true;
 
-    if (dkpAndPositionTest)
-    {
+    if (dkpAndPositionTest){
         magnetAlarmed = false;
         return true;// достигнут концевик или нужное положение (мы молодцы)
     }

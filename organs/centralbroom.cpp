@@ -6,7 +6,7 @@
 #include <QTimer>
 #include <QThread>
 
-CentralBroom::CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ScreenLog *logger_, QObject *parent_) : QObject(parent_){
+CentralBroom::CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, QObject *parent_) : QObject(parent_){
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
     logger = logger_;
@@ -30,34 +30,34 @@ void CentralBroom::readSettings(){
     rpmForSweepType.clear();
     speedForSweepType.clear();
     auto mainWindow = (MainWindow*)parent;
-    rpmForSweepType.insert(MainWindow::LeafSweep, mainWindow ->readSettingsValue("Engine/rpm.LeafSweep").toInt());
-    rpmForSweepType.insert(MainWindow::LightSweep, mainWindow ->readSettingsValue("Engine/rpm.LightSweep").toInt());
-    rpmForSweepType.insert(MainWindow::MediumSweep, mainWindow ->readSettingsValue("Engine/rpm.MediumSweep").toInt());
-    rpmForSweepType.insert(MainWindow::HeavySweep, mainWindow ->readSettingsValue("Engine/rpm.HeavySweep").toInt());
+    auto reader = mainWindow->getReader();
+    rpmForSweepType.insert(MainWindow::LeafSweep, reader ->readSettingsValue("Engine/rpm.LeafSweep").toInt());
+    rpmForSweepType.insert(MainWindow::LightSweep, reader ->readSettingsValue("Engine/rpm.LightSweep").toInt());
+    rpmForSweepType.insert(MainWindow::MediumSweep, reader ->readSettingsValue("Engine/rpm.MediumSweep").toInt());
+    rpmForSweepType.insert(MainWindow::HeavySweep, reader ->readSettingsValue("Engine/rpm.HeavySweep").toInt());
 
-    timeouts.insert(BroomSlideOut, mainWindow ->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toInt());
-    timeouts.insert(BroomSlideIn, mainWindow ->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toInt());
-    timeouts.insert(BroomBounceOut, mainWindow ->readSettingsValue("CentralBroom/timeouts.BroomBounceOut").toFloat());
-    auto mainWin = (MainWindow*)parent;
+    timeouts.insert(BroomSlideOut, reader ->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toInt());
+    timeouts.insert(BroomSlideIn, reader ->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toInt());
+    timeouts.insert(BroomBounceOut, reader ->readSettingsValue("CentralBroom/timeouts.BroomBounceOut").toFloat());
 
-    rpmForSweepType.insert(MainWindow::LeafSweep, mainWin->readSettingsValue("Engine/rpm.LeafSweep").toInt());
-    rpmForSweepType.insert(MainWindow::LightSweep, mainWin->readSettingsValue("Engine/rpm.LightSweep").toInt());
-    rpmForSweepType.insert(MainWindow::MediumSweep, mainWin->readSettingsValue("Engine/rpm.MediumSweep").toInt());
-    rpmForSweepType.insert(MainWindow::HeavySweep, mainWin->readSettingsValue("Engine/rpm.HeavySweep").toInt());
+    rpmForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("Engine/rpm.LeafSweep").toInt());
+    rpmForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("Engine/rpm.LightSweep").toInt());
+    rpmForSweepType.insert(MainWindow::MediumSweep, reader->readSettingsValue("Engine/rpm.MediumSweep").toInt());
+    rpmForSweepType.insert(MainWindow::HeavySweep, reader->readSettingsValue("Engine/rpm.HeavySweep").toInt());
 
-    timeouts.insert(BroomSlideOut, mainWin->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toInt());
-    timeouts.insert(BroomSlideIn, mainWin->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toInt());
-    timeouts.insert(BroomBounceOut, mainWin->readSettingsValue("CentralBroom/timeouts.BroomBounceOut").toFloat());
-    timeouts.insert(BroomDownOut, mainWin->readSettingsValue("CentralBroom/timeouts.BroomDownOut").toInt());
-    timeouts.insert(BroomDownIn, mainWin->readSettingsValue("CentralBroom/timeouts.BroomDownIn").toInt());
-    timeouts.insert(BroomFlowOut, mainWin->readSettingsValue("CentralBroom/timeouts.BroomFlowOut").toInt());
-    timeouts.insert(BroomRotateOut, mainWin->readSettingsValue("CentralBroom/timeouts.BroomRotateOut").toInt());
-    timeouts.insert(BroomRotateIn, mainWin->readSettingsValue("CentralBroom/timeouts.BroomRotateIn").toInt());
+    timeouts.insert(BroomSlideOut, reader->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toInt());
+    timeouts.insert(BroomSlideIn, reader->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toInt());
+    timeouts.insert(BroomBounceOut, reader->readSettingsValue("CentralBroom/timeouts.BroomBounceOut").toFloat());
+    timeouts.insert(BroomDownOut, reader->readSettingsValue("CentralBroom/timeouts.BroomDownOut").toInt());
+    timeouts.insert(BroomDownIn, reader->readSettingsValue("CentralBroom/timeouts.BroomDownIn").toInt());
+    timeouts.insert(BroomFlowOut, reader->readSettingsValue("CentralBroom/timeouts.BroomFlowOut").toInt());
+    timeouts.insert(BroomRotateOut, reader->readSettingsValue("CentralBroom/timeouts.BroomRotateOut").toInt());
+    timeouts.insert(BroomRotateIn, reader->readSettingsValue("CentralBroom/timeouts.BroomRotateIn").toInt());
 
-    speedForSweepType.insert(MainWindow::LeafSweep, mainWin->readSettingsValue("CentralBroom/speeds.LeafSweep").toInt());
-    speedForSweepType.insert(MainWindow::LightSweep, mainWin->readSettingsValue("CentralBroom/speeds.LightSweep").toInt());
-    speedForSweepType.insert(MainWindow::MediumSweep, mainWin->readSettingsValue("CentralBroom/speeds.MediumSweep").toInt());
-    speedForSweepType.insert(MainWindow::HeavySweep, mainWin->readSettingsValue("CentralBroom/speeds.HeavySweep").toInt());
+    speedForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("CentralBroom/speeds.LeafSweep").toInt());
+    speedForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("CentralBroom/speeds.LightSweep").toInt());
+    speedForSweepType.insert(MainWindow::MediumSweep, reader->readSettingsValue("CentralBroom/speeds.MediumSweep").toInt());
+    speedForSweepType.insert(MainWindow::HeavySweep, reader->readSettingsValue("CentralBroom/speeds.HeavySweep").toInt());
 }
 
 QString CentralBroom::toString(BroomStates s){
@@ -137,21 +137,21 @@ void CentralBroom::setState(BroomStates state_){
             startActionTime = QDateTime::currentDateTime();
             goNone();
             goSlide(!needSlided);
-            logger->printLog("Щетка отскок");
+            logger->addLog("Щетка отскок");
         }
     }
 
     //---------------------------------------------------------------------------
     if (state == CentralBroom::BroomFlowOut){// началось плавание
         goNone();
-        //logger->printWarning("**");
+        //logger->addLogWarning("**");
         //setFlowActive(true);
     }
 
     if (state == CentralBroom::BroomFlowed){// закончилось плавание
         if (!mainWindow->workMode.centralBroomFlow){
             setFlowActive(false);
-            //logger->printLog("Щетка не плавающая");
+            //logger->addLog("Щетка не плавающая");
             //mainWindow->addLog("Щетка не плавающая", MainWindow::InfoStatus);
         }
     }
@@ -161,11 +161,11 @@ void CentralBroom::setState(BroomStates state_){
     //----------------------------------------------------------------------------
     startActionTime = QDateTime::currentDateTime();
     if (state == CentralBroom::BroomRotateOut){
-        logger->printLog("Щетка раскручивается");
+        logger->addLog("Щетка раскручивается");
     }
     if (state == CentralBroom::BroomRotateIn){// тормозим щетки
         goNoRotate();
-        logger->printLog("Щетка останавливается");
+        logger->addLog("Щетка останавливается");
     }
     //----------------------------------------------------------------------------
     goNone();
@@ -334,7 +334,7 @@ void CentralBroom::setPressActive(bool state){
     }
     isPressed = state;
     ((MainWindow*)parent)->setBroomPressView(state);
-    logger->printWarning(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
+    logger->addLogWarning(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
 }
 
 
@@ -342,7 +342,7 @@ void CentralBroom::setPressActive(bool state){
 //     if(isPressed == state)
 //         return;
 //     if(direction!= organsEnums::None)
-//         logger->printWarning(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
+//         logger->addLogWarning(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
 
 //     if(isPressed)
 //         stopPress();
@@ -368,7 +368,7 @@ void CentralBroom::setFlowActive(bool state){
 }
 
 void CentralBroom::goFlow(bool state){
-    logger->printWarning(state?"Щетка: плавание активировано":"Щетка: плавание деактивировано");
+    logger->addLogWarning(state?"Щетка: плавание активировано":"Щетка: плавание деактивировано");
     myCan->setState(StateValveC1, state);
     myCan->setState(StateValveC2, state);
 }

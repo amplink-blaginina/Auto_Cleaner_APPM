@@ -13,6 +13,7 @@ ServiceMainRightForm::ServiceMainRightForm(QWidget *parent_) :
     ui->setupUi(this);
 
     parent = parent_;
+    _settings = ((MainWindow*)parent)->settings;
 
     currentLevel = 0;
     currentElement = -1;
@@ -59,13 +60,11 @@ ServiceMainRightForm::ServiceMainRightForm(QWidget *parent_) :
     showService();
 }
 
-ServiceMainRightForm::~ServiceMainRightForm()
-{
+ServiceMainRightForm::~ServiceMainRightForm(){
     delete ui;
 }
 
-void ServiceMainRightForm::addMenu(QString name_, quint8 id_, quint8 id1_, quint8 goLevel_, QWidget* form_, QString png_)
-{
+void ServiceMainRightForm::addMenu(QString name_, quint8 id_, quint8 id1_, quint8 goLevel_, QWidget* form_, QString png_){
     menu[id_][id1_].goLevel = goLevel_;
     menu[id_][id1_].form = form_;
     menu[id_][id1_].png = png_;
@@ -74,36 +73,31 @@ void ServiceMainRightForm::addMenu(QString name_, quint8 id_, quint8 id1_, quint
 
 void ServiceMainRightForm::showService()
 {// отображаем правое меню и левую форму в соответствии с данными меню
-    for (int i = 0; i < 4; i++)
-    {
-        if (menu[currentLevel][i].png != "")
-        {
+    QString path = "border-style:none;outline: none;background-image:url(";
+    for (int i = 0; i < 4; i++){
+        if (menu[currentLevel][i].png != ""){
             buttons[i]->show();
 
-            if (i == currentElement && menu[currentLevel][i].form)
-            {
-                buttons[i]->setStyleSheet("border-style:none;outline: none;background-image:url(" + menu[currentLevel][i].png + "_on.png);");
+            if (i == currentElement && menu[currentLevel][i].form){
+                buttons[i]->setStyleSheet(path + menu[currentLevel][i].png + "_on.png);");
                 menu[currentLevel][i].form->show();
                 menu[currentLevel][i].form->raise();
             }
-            else
-            {
+            else{
                 if (menu[currentLevel][i].form)
                     menu[currentLevel][i].form->hide();
-                buttons[i]->setStyleSheet("border-style:none;outline: none;background-image:url(" + menu[currentLevel][i].png + "_off.png);");
+                buttons[i]->setStyleSheet(path + menu[currentLevel][i].png + "_off.png);");
             }
         }
         else
             buttons[i]->hide();
+    }
 
+    if (currentLevel == 0){// нарисуем выход ниже всех
+        ui->pushButton_exit->setStyleSheet(path + ":/Images/Images/service/buttons/service_button_exit_off.png);");
     }
-    if (currentLevel == 0)
-    {// нарисуем выход ниже всех
-        ui->pushButton_exit->setStyleSheet("border-style:none;outline: none;background-image:url(:/Images/Images/service/buttons/service_button_exit_off.png);");
-    }
-    else
-    {
-        ui->pushButton_exit->setStyleSheet("border-style:none;outline: none;background-image:url(:/Images/Images/settings/buttons/settings_button_cancel_off.png);");
+    else{
+        ui->pushButton_exit->setStyleSheet(path + ":/Images/Images/settings/buttons/settings_button_cancel_off.png);");
     }
 
     // подпись заголовка
@@ -113,8 +107,7 @@ void ServiceMainRightForm::showService()
 //    else
 //        ui->label_name->setText("");
 
-    if (currentElement == 1 && currentLevel == 3 && oldCurrentElement != currentElement && oldCurrentLevel != currentLevel)
-    {// техосмотр
+    if (currentElement == 1 && currentLevel == 3 && oldCurrentElement != currentElement && oldCurrentLevel != currentLevel){// техосмотр
         Password_Form *Password_window = new Password_Form (parent, true);
         Password_window->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
         Password_window->setAttribute(Qt::WA_DeleteOnClose,true);
@@ -124,30 +117,26 @@ void ServiceMainRightForm::showService()
         connect(this,SIGNAL(Send_SecretPass_2_pass_form(int)),Password_window,SLOT(Recieve_secret_pass_name(int)));
         connect(Password_window,SIGNAL(Send_correct(int)),this,SLOT(passwordDiagOk(int)));
 
-        ((MainWindow*)parent)->settings->beginGroup("Global");
-        emit Send_Pass_2_pass_form(((MainWindow*)parent)->settings->value("passwordDiag").toInt());
-        emit Send_SecretPass_2_pass_form(((MainWindow*)parent)->settings->value("secretPasswordDiag").toInt());
-        ((MainWindow*)parent)->settings->endGroup();
+        _settings->beginGroup("Global");
+        emit Send_Pass_2_pass_form(_settings->value("passwordDiag").toInt());
+        emit Send_SecretPass_2_pass_form(_settings->value("secretPasswordDiag").toInt());
+        _settings->endGroup();
         Password_window->show();        
         menu[currentLevel][currentElement].form->hide();
         ((MainWindow*)parent)->serviceGPIOServiceIntervalLeftForm->fillElements();
     }
-    if (currentElement == 0 && currentLevel == 2)
-    {// гидравлика инициализация
+    if (currentElement == 0 && currentLevel == 2){// гидравлика инициализация
         ((MainWindow*)parent)->serviceDevicesHydraulicsLeftForm->refreshSliders();
     }
-    if (currentElement == 1 && currentLevel == 1)
-    {// сброс пароля
+    if (currentElement == 1 && currentLevel == 1){// сброс пароля
         ((MainWindow*)parent)->serviceGeneralPasswordLeftForm->passwordVariable = "passwordDiag";
         ((MainWindow*)parent)->serviceGeneralPasswordLeftForm->goStep(0);
     }
-    if (currentElement == 0 && currentLevel == 1 && oldCurrentElement != currentElement && oldCurrentLevel != currentLevel)
-    {// выставить текущую дату
+    if (currentElement == 0 && currentLevel == 1 && oldCurrentElement != currentElement && oldCurrentLevel != currentLevel){// выставить текущую дату
         ((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->actualTime();
     }
     //ищем специальные пункты которые не так просты как мы думаем
-    if (currentElement == 2 && currentLevel == 1)
-    {//pdf
+    if (currentElement == 2 && currentLevel == 1){//pdf
         currentElement = -1;
         pdfWidget = new QWidget();
         pdfWidget->setGeometry(0,0,1024,600);
@@ -159,14 +148,13 @@ void ServiceMainRightForm::showService()
 
 void ServiceMainRightForm::passwordDiagOk(int pass)
 {
-    if (pass == ((MainWindow*)parent)->readSettingsValue("Global/secretPasswordDiag").toString().toInt())
-    {// сбросим одноразовы пароль
+    if (pass == ((MainWindow*)parent)->getReader()->readSettingsValue("Global/secretPasswordDiag").toString().toInt()){// сбросим одноразовы пароль
         if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
             QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
         int random = std::rand() % ((9999 + 1) - 1) + 1;
         //qDebug() << random;
-        ((MainWindow*)parent)->settings->setValue("Global/secretPasswordDiag", random);// рандом от 1 до 9999
-        ((MainWindow*)parent)->settings->sync();
+        _settings->setValue("Global/secretPasswordDiag", random);// рандом от 1 до 9999
+        _settings->sync();
         system("sync");
         // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
         ((MainWindow*)parent)->removeBadSettings();
@@ -174,22 +162,18 @@ void ServiceMainRightForm::passwordDiagOk(int pass)
     menu[currentLevel][currentElement].form->show();
 }
 
-void ServiceMainRightForm::moveMenu(qint8 level)
-{// организуем переход по меню
-    if (level == 0 && currentLevel == 5)
-    {// ДА
+void ServiceMainRightForm::moveMenu(qint8 level){// организуем переход по меню
+    if (level == 0 && currentLevel == 5){// ДА
         currentLevel = oldCurrentLevel;
         currentElement = oldCurrentElement;
         menu[currentLevel][currentElement].form->hide();
         level = oldLevel;
-        if (currentElement == 1 && currentLevel == 3)
-        {// ТО
+        if (currentElement == 1 && currentLevel == 3){// ТО
             ((MainWindow*)parent)->serviceGPIOServiceIntervalLeftForm->saveIntervals();
-            ((MainWindow*)parent)->readSettings();
+            ((MainWindow*)parent)->readValues();
             menu[currentLevel][currentElement].form->hide();
         }
-        if (currentElement == 0 && currentLevel == 1)
-        {// дату редактировали
+        if (currentElement == 0 && currentLevel == 1){// дату редактировали
             ((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->changed = false;
             QString dataa = "date -s @\"" + QString::number(((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->curDT.toTime_t()) + "\"";
 //            QString dataa = "date -s "
@@ -211,8 +195,7 @@ void ServiceMainRightForm::moveMenu(qint8 level)
         oldCurrentElement = -1;
         oldCurrentLevel = -1;
     }
-    if (level == 1 && currentLevel == 5)
-    {// НЕТ
+    if (level == 1 && currentLevel == 5){// НЕТ
         currentLevel = oldCurrentLevel;
         currentElement = oldCurrentElement;
         if (currentElement == 1 && currentLevel == 3)
@@ -223,8 +206,7 @@ void ServiceMainRightForm::moveMenu(qint8 level)
         oldCurrentElement = -1;
         oldCurrentLevel = -1;
     }
-    if (level == 3 && currentLevel == 5)
-    {// ОТМЕНА сохранения
+    if (level == 3 && currentLevel == 5){// ОТМЕНА сохранения
         currentLevel = oldCurrentLevel;
         currentElement = oldCurrentElement;
         showService();
@@ -232,8 +214,7 @@ void ServiceMainRightForm::moveMenu(qint8 level)
     }
 
     // в некоторых случаях при переходе из меню в меню надо попасть на вопрос о сохранении или не сохранении. попробуем сделать это перенаправляясь на скрытое меню
-    if (currentElement == 0 && currentLevel == 1 && ((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->changed)
-    {// дата время сменилась
+    if (currentElement == 0 && currentLevel == 1 && ((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->changed){// дата время сменилась
         oldCurrentLevel = currentLevel;
         oldCurrentElement = currentElement;
         oldLevel = level;
@@ -241,8 +222,7 @@ void ServiceMainRightForm::moveMenu(qint8 level)
         currentElement = -1;
         return;
     }
-    if (currentElement == 1 && currentLevel == 3 && menu[currentLevel][currentElement].form->isVisible())
-    {// вышли из ТО
+    if (currentElement == 1 && currentLevel == 3 && menu[currentLevel][currentElement].form->isVisible()){// вышли из ТО
         oldCurrentLevel = currentLevel;
         oldCurrentElement = currentElement;
         oldLevel = level;
@@ -253,8 +233,7 @@ void ServiceMainRightForm::moveMenu(qint8 level)
 
     if (menu[currentLevel][level].goLevel == currentLevel)
         currentElement = level;
-    else
-    {
+    else{
         if (currentElement != -1 && menu[currentLevel][currentElement].form)
             menu[currentLevel][currentElement].form->hide();
         currentElement = -1;
@@ -262,43 +241,35 @@ void ServiceMainRightForm::moveMenu(qint8 level)
     currentLevel = menu[currentLevel][level].goLevel;
 }
 
-void ServiceMainRightForm::on_pushButton_1_clicked()
-{
+void ServiceMainRightForm::on_pushButton_1_clicked(){
     moveMenu(0);
     showService();
 }
 
-void ServiceMainRightForm::on_pushButton_2_clicked()
-{
+void ServiceMainRightForm::on_pushButton_2_clicked(){
     moveMenu(1);
     showService();
 }
 
-void ServiceMainRightForm::on_pushButton_3_clicked()
-{
+void ServiceMainRightForm::on_pushButton_3_clicked(){
     moveMenu(2);
     showService();
 }
 
-void ServiceMainRightForm::on_pushButton_4_clicked()
-{
+void ServiceMainRightForm::on_pushButton_4_clicked(){
     moveMenu(3);
     showService();
 }
 
-void ServiceMainRightForm::on_pushButton_exit_clicked()
-{
-    if (currentLevel == 0)
-    {
+void ServiceMainRightForm::on_pushButton_exit_clicked(){
+    if (currentLevel == 0)    {
         ((MainWindow*)parent)->serviceSetingsName->hide();
         hide();
-        ((MainWindow*)parent)->menuMode = MainWindow::SweepMode;
-        ((MainWindow*)parent)->superDiagMode = false;
-        ((MainWindow*)parent)->ignitionOffTimer = 0;
+        ((MainWindow*)parent)->currentState->setSweepMode();
+        ((MainWindow*)parent)->starter->resetIgnitionTimer();//ignitionOffTimer = 0;
         //((MainWindow*)parent)->Password_accepted_settings = false;
     }
-    else
-    {
+    else{
         // выход невидимый
         moveMenu(3);
         showService();

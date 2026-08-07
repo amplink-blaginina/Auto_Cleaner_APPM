@@ -5,6 +5,8 @@
 
 #include "../pdf/pdfscroller.h"
 
+#include "settingsform.h"
+
 namespace Ui {
 class SettingsMainRightForm;
 }
@@ -24,8 +26,8 @@ class SettingsMainRightForm : public QWidget
         QPushButton* button;
     };
 
-public:
-    explicit SettingsMainRightForm(QWidget *parent = nullptr);
+public: //= nullptr
+    explicit SettingsMainRightForm(QWidget *parent, SettingsForm *settingsForm);
     ~SettingsMainRightForm();
 
     QWidget* parent;
@@ -40,7 +42,8 @@ public:
 
     QWidget* pdfWidget;
     PdfScroller* pdfScroller;
-
+    
+    SettingsForm *_settingsForm;
 private slots:
     void on_pushButton_1_clicked();
     void on_pushButton_2_clicked();

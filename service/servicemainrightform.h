@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QPushButton>
+#include <qsettings.h>
 
 #include "../pdf/pdfscroller.h"
 
@@ -57,6 +58,7 @@ private slots:
 
 private:
     Ui::ServiceMainRightForm *ui;
+    QSettings *_settings;
 };
 
 #endif // SERVICEMAINRIGHTFORM_H

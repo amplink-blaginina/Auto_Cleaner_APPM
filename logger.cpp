@@ -360,7 +360,7 @@ void Logger::timeToFlush()
         if (noFreeSpaceAlert)
         {
             createBlackBox();
-            QMetaObject::invokeMethod( parent, "addLog", Qt::QueuedConnection, Q_ARG( QString, "Сводобное место на карточке восстановилось" ), Q_ARG(int, MainWindow::WarningStatus) );
+            QMetaObject::invokeMethod( parent, "addLog", Qt::QueuedConnection, Q_ARG( QString, "Сводобное место на карточке восстановилось" ), Q_ARG(int, ViewController::WarningStatus) );
             noFreeSpaceAlert = false;
             qDebug() << "free space restored";
         }
@@ -379,7 +379,7 @@ void Logger::timeToFlush()
     {
         if (!noFreeSpaceAlert)
         {
-            QMetaObject::invokeMethod( parent, "addLog", Qt::QueuedConnection, Q_ARG( QString, "Сводобное место на карточке кончилось" ), Q_ARG(int, MainWindow::FatalStatus) );
+            QMetaObject::invokeMethod( parent, "addLog", Qt::QueuedConnection, Q_ARG( QString, "Сводобное место на карточке кончилось" ), Q_ARG(int, ViewController::FatalStatus) );
             noFreeSpaceAlert = true;
             qDebug() << "no free space to write blackbox";
         }
@@ -439,8 +439,7 @@ void Logger::addUserLogInfo(userFields field, int value)
     logDataTimeout.insert(0x0000A000, (1000 / WRITE_PERIOD) * 5);// (1000 / 100) * 5 = 50 раз вызовется timeToWrite с периодом 100 ( итого время жизни пакета 5 сек )
 }
 
-void Logger::addLogText(QString text)
-{
+void Logger::addLogText(QString text){
     QMutexLocker m(&logInfoMutex);
     QFile bFile(BBdir + "/AutoCleaner.txt");
     bFile.open(QIODevice::Append | QIODevice::Text);

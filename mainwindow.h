@@ -11,6 +11,8 @@
 #include <QGraphicsOpacityEffect>
 #include <QPalette>
 #include <QDate>
+#include <globalsettings.h>
+#include <currentstate.h>
 
 #include <sys/socket.h>
 #include <net/if.h>
@@ -48,6 +50,9 @@
 #include <service/other/engine/serviceotherengineleftform.h>
 #include <service/other/light/serviceotherlightleftform.h>
 #include <service/other/intervals/servicegpioserviceintervalleftform.h>
+#include <Controllers/cancontroller.h>
+#include <Controllers/prerollcontroller.h>
+#include <Controllers/startercontroller.h>
 
 #include <settings/settingsmainrightform.h>
 #include <settings/gpio/wifi/settingswifileftform.h>
@@ -141,21 +146,7 @@ public:
         HeavySweep  = 4
     };
 
-    enum LogStatus
-    {
-        InfoStatus      = 0,
-        WarningStatus   = 1,
-        FatalStatus     = 2,
-        TestStatus      = 3
-    };
 
-    enum MenuMode
-    {
-        SweepMode  = 1,
-        BunkerMode = 2,
-        DiagMode   = 3,
-        SettingsMode   = 4
-    };
 
     MainWindow(int argc, char *argv[], QWidget *parent = nullptr);
     ~MainWindow();
@@ -171,9 +162,9 @@ public:
 
     qint8 getFilteredTemp();
 
-    void readSettings();
+    void readValues();
     QVariant readSettingsValue(QString name);
-    QMap<QString, QVariant> defaultValues;
+    //QMap<QString, QVariant> defaultValues;
     QMap<QString, quint32> TOValues;
     QMap<QString, quint32> TOCurValues;
     QMap<QString, QString> TONameValues;
@@ -196,7 +187,6 @@ public:
     void applyWorkModeToDeployedOrgans();
     bool organsWereTransitioning;
 
-    MessageList* messageList;
     bool waitOnStartAlarmed;
     bool cleanWrongSpeedAlarmed;
     int minCleanSpeed, maxCleanSpeed;
@@ -210,13 +200,14 @@ public:
     void showStatus(QLabel *label, bool check, QString messageOn, QString messageOff);
     void showPultOffIgnition();
     void updateFRM();
-    void showStarter();
+
     void showStartClean();
     void showModeButton();
     void showMatrixFRMButton();
 
     bool inHomeState();
 
+    CurrentState *currentState;
     quint8 startCleanTimeCounter;
     quint8 centralBroomLeftTimeCounter;
     quint8 centralBroomRightTimeCounter;
@@ -239,28 +230,26 @@ public:
 
     QSettings *settings;
 
-    bool starterStarted;
-    QDateTime starterStartedTime;
 
-    ScreenLog *screenLog;
+
     Engine *engine;
     CentralBroom *broomCentral;
     Blower *blower;
     BackMagnet *backMagnet;
     FrontRail *frontRail;
+    GPIOController *_gpio;
 
     quint8 currentKV;
     bool KVControl;
 
-    quint8 menuMode;
+//    quint8 menuMode;
+    GlobalSettings *globals;
     // переменные интерфейса
     bool startClean;
     //bool starter; // нажата ли кнопка стартера
     bool chooseBackCamera;
     bool chooseFrm;
-    bool starterStartedAlarmed;
-    bool starterBroomAlarmed;
-    bool starterBunkerAlarmed;
+
     bool engineTempCrit;
     bool engineTempWarn;
     int engineTempWarnTimer;
@@ -284,70 +273,47 @@ public:
     bool backLight;
     quint32 backBlockCounter;
     quint32 backLightTimeCounter;
-    quint32 ignitionOffTimer;
+    //quint32 ignitionOffTimer;
     qint32 chooseGabaritCount;
-    bool engineStartedOk = false;
-    int rpmNone; // скорость двигателя для холостых
+
     int ventEdge;
-    quint8 enigneAddr;
+
     bool Password_accepted;
-    bool superDiagMode;
+
     int pauseCleanTimeCounter;
     bool pauseActive;
 
-    int starterMaxWorkSec;
-    int starterPauseSec;
-    int starterMaxAttempts;
-    int rollMaxWorkSec;
-    int rollPauseSec;
-    int rollMaxAttempts;
-    int requireRollAfterDays;
-    int lowTempRequireWarm;
-    int waterSensorRedHours;
-    int airFilterRedHours;
+    StarterController *starter;
+    PrerollController *preroll;
+    CanController *can;
+
+    // int starterMaxWorkSec;
+    // int starterPauseSec;
+    // int starterMaxAttempts;
+    // int rollMaxWorkSec;
+    // int rollPauseSec;
+    // int rollMaxAttempts;
+    //int requireRollAfterDays;
+    //int lowTempRequireWarm;
+    //int waterSensorRedHours;
+    //int airFilterRedHours;
+
     bool waterSensorEmergencyMode;
     bool airFilterEmergencyMode;
-    bool disableRollRequirement;
+
     bool disableTemperatureBlock;
     bool ignoreAllEmergency;
 
     bool engineRunStatePrev;
-    bool starterLockedByRoll;
-    bool starterLockedByTemperature;
-    bool starterLockedByEmergency;
-    bool rollLockedByTemperature;
-    bool rollLockedByEmergency;
-    bool needRollProcedure;
-    bool rollCompleted;
-    bool waterAlarm;
-    bool airAlarm;
-    bool oilAlarm;
 
-    bool starterPauseActive;
-    QDateTime starterPauseStartedAt;
-    int starterAttemptsUsed;
-    bool starterNeedReboot;
-    bool starterPressedPrev;
-    bool starterPauseWarned;
 
-    bool prerollButtonPrev;
-    bool prerollStarterButtonPrev;
-    bool rollInputPrev;
-    bool prerollSequenceActive;
-    int prerollSequenceStep;
-    QDateTime prerollStepStartedAt;
-    bool prerollStarterUnlocked;
-    bool rollRunActive;
-    QDateTime rollRunStartedAt;
-    bool rollPauseActive;
-    QDateTime rollPauseStartedAt;
-    int rollAttemptsUsed;
-    bool rollNeedReboot;
-    bool rollPauseWarned;
+
+
+
     bool serviceIgnitionAutoRestoreBlocked;
 
-    QDate lastEngineStartDate;
-    bool logNeedRollShown;
+
+
     bool logNeedWarmShown;
     bool waterSensorActivePrev;
     bool airFilterActivePrev;
@@ -365,8 +331,7 @@ public:
 
     float hydraulicPressureValue(int index) const;
     void toggleAllFrm();
-    void setStyle(QWidget *btn, QString path);
-    void setText(QLabel *lbl, QString text);
+
 
     int oldCentralOffset;
 
@@ -414,27 +379,20 @@ public:
 
 private:
     Ui::MainWindow *ui;
-
-    int restartIgnitionDelay;
-
     QTimer mainProgressTimer;
     QTimer repaintTimer;
     QTimer oneSecondTimer;
     QTimer goHomeTimer;
     QFont font;
+
+
     //std::unordered_map<std::pair<CleanConfiguration, Direction>, double> dict;
 
-    void addLog(QString text, LogStatus logStatus);
-    void stopStarterOutput();
-    void stopRollOutput();
+    //void addLog(QString text, LogStatus logStatus);
+
     void updateEngineAndRollLocks();
-    bool starterBlocked() const;
-    bool rollBlocked() const;
-    bool inStarterPause() const;
-    bool inRollPause() const;
-    int starterPauseSecondsLeft() const;
-    int rollPauseSecondsLeft() const;
-    void processPrerollInService();
+
+
     void updateSensorAndWarningIndicators();
     void updateIndicatorPixmap(QLabel* label, const QString& colorName, const QString& baseName);
 
@@ -464,7 +422,6 @@ private:
     void onBroomReleased();
     void onRailReleased();
     void onBlowerReleased();
-    QString getFatalStatusMessage();
     void updateButtonsIcons();
     void updateButtonsActiveState();
     void updateOrgansStates();
@@ -477,12 +434,17 @@ private:
     void setDefaultSettings();
     QString getOrganText(organsEnums::Organ organ);
     void printOrganStatus(organsEnums::Organ organ, organsEnums::Direction direction, bool state);
-    MessageList *createMessageList();
+
     void updateBroomBtnsView();
     void setRandomPassword(int pass, QString passwordName);
     void setDefaultValues();
     void createFormsAndHide();
     void updateDumpBtnsView();
+
+    ViewController *view;
+    SettingsReader *_settingsReader;
+    void configureChannelTypes();
+    void insertValues();
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
@@ -493,14 +455,18 @@ public :
     void setBroomFlowView(bool state);
     void setBroomPressView(bool state);
     void setDumpFlowView(bool state);
+
+    void resetPassword();
+    ViewController *getView();
+    SettingsReader * getReader();
 public slots:
-    void messageListPressed();
+    //void messageListPressed();
     void settingsAskPassword();
     void diagAskPassword();
     void passwordSettingsOk(int);
     void passwordDiagOk(int);
     void resetDevices();
-    void startIgnition();
+    //void startIgnition();
     void canPOError();
     void canJ1939Error();
     void canJ1939MainError();
@@ -541,9 +507,6 @@ private slots:
     void on_pushButton_frmMagnet_clicked();
     void on_pushButton_homeState_clicked();
 
-
-    //void on_pushButton_centralBroomUp_pressed();
-    //void on_pushButton_centralBroomUp_released();
     void on_pushButton_centralBroomDown_pressed();
     void on_pushButton_centralBroomDown_released();
     void on_pushButton_centralBroomLeft_pressed();

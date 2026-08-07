@@ -51,6 +51,7 @@ SettingsForm::~SettingsForm()
 
 void SettingsForm::fillElements()
 {
+    auto reader = ((MainWindow*)parent)->getReader();
     for (int i = 0; i < elementsGlobal.count(); i++)
         elementsGlobal.at(i)->deleteLater();
     elementsGlobal.clear();
@@ -136,10 +137,10 @@ void SettingsForm::fillElements()
     elementsFrontTimings.append(new SettingsElement("Отвал плавающий(с)", "Dump", "timeouts.DumpFlowOut", settings->value("Dump/timeouts.DumpFlowOut").toInt(), 0, 60));
     elementsFrontTimings.append(new SettingsElement("Отвал отскок(с)", "Dump", "timeouts.DumpBounceOut", settings->value("Dump/timeouts.DumpBounceOut").toFloat(), 0, 60, 0.1));
 
-    elementsMiddleTimings.append(new SettingsElement("Щетка поднимание(с)", "CentralBroom", "timeouts.BroomDownIn", ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomDownIn").toInt(), 0, 60));
-    elementsMiddleTimings.append(new SettingsElement("Щетка опускание(с)", "CentralBroom", "timeouts.BroomDownOut", ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomDownOut").toInt(), 0, 60));
-    elementsMiddleTimings.append(new SettingsElement("Щетка поворачивание назад(с)", "CentralBroom", "timeouts.BroomSlideIn", ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toInt(), 0, 60));
-    elementsMiddleTimings.append(new SettingsElement("Щетка поворачивание(с)", "CentralBroom", "timeouts.BroomSlideOut", ((MainWindow*)parent)->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toInt(), 0, 60));
+    elementsMiddleTimings.append(new SettingsElement("Щетка поднимание(с)", "CentralBroom", "timeouts.BroomDownIn", reader->readSettingsValue("CentralBroom/timeouts.BroomDownIn").toInt(), 0, 60));
+    elementsMiddleTimings.append(new SettingsElement("Щетка опускание(с)", "CentralBroom", "timeouts.BroomDownOut", reader->readSettingsValue("CentralBroom/timeouts.BroomDownOut").toInt(), 0, 60));
+    elementsMiddleTimings.append(new SettingsElement("Щетка поворачивание назад(с)", "CentralBroom", "timeouts.BroomSlideIn", reader->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toInt(), 0, 60));
+    elementsMiddleTimings.append(new SettingsElement("Щетка поворачивание(с)", "CentralBroom", "timeouts.BroomSlideOut", reader->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toInt(), 0, 60));
     elementsMiddleTimings.append(new SettingsElement("Щетка раскручивание(с)", "CentralBroom", "timeouts.BroomRotateOut", settings->value("CentralBroom/timeouts.BroomRotateOut").toInt(), 0, 60));
     elementsMiddleTimings.append(new SettingsElement("Щетка остановка(с)", "CentralBroom", "timeouts.BroomRotateIn", settings->value("CentralBroom/timeouts.BroomRotateIn").toInt(), 0, 60));
     elementsMiddleTimings.append(new SettingsElement("Щетка плавающая(с)", "CentralBroom", "timeouts.BroomFlowOut", settings->value("CentralBroom/timeouts.BroomFlowOut").toInt(), 0, 60));

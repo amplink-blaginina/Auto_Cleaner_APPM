@@ -31,14 +31,17 @@ LIBS += -lpoppler -lpoppler-qt5
 QMAKE_RPATHDIR += $$(HOME)/libgpiod-1.6/lib
 
 SOURCES += \
+    Controllers/cancontroller.cpp \
+    Controllers/gpiocontroller.cpp \
+    Controllers/prerollcontroller.cpp \
+    Controllers/startercontroller.cpp \
+    Controllers/viewcontroller.cpp \
     blockform.cpp \
     can/mycanengine.cpp \
     engine.cpp \
     fogotform.cpp \
     gpio/gpio_matrix.cpp \
     gpio/gpio_worker.cpp \
-    interface_button/custombutton.cpp \
-    interface_button/custombuttonsgroup.cpp \
     interface_button/interfacebutton.cpp \
     log/Delegate.cpp \
     log/MessageList.cpp \
@@ -65,15 +68,23 @@ SOURCES += \
     service/other/light/serviceotherlightleftform.cpp \
     service/safetyinterlock.cpp \
     service/servicemainrightform.cpp \
+    settings/currentstate.cpp \
+    settings/globalsettings.cpp \
     settings/gpio/superDiag/serviceBUConfigElementform.cpp \
     settings/gpio/superDiag/serviceBUConfigform.cpp \
     settings/gpio/wifi/settingswifileftform.cpp \
     settings/settings/configuration/settingssettingsconfigurationleftform.cpp \
     settings/settingselement.cpp \
     settings/settingsform.cpp \
-    settings/settingsmainrightform.cpp
+    settings/settingsmainrightform.cpp \
+    settings/settingsreader.cpp
 
 HEADERS += \
+    Controllers/cancontroller.h \
+    Controllers/gpiocontroller.h \
+    Controllers/prerollcontroller.h \
+    Controllers/startercontroller.h \
+    Controllers/viewcontroller.h \
     blockform.h \
     can/mycanengine.h \
     configure.h \
@@ -110,13 +121,16 @@ HEADERS += \
     service/other/light/serviceotherlightleftform.h \
     service/safetyinterlock.h \
     service/servicemainrightform.h \
+    settings/currentstate.h \
+    settings/globalsettings.h \
     settings/gpio/superDiag/serviceBUConfigElementform.h \
     settings/gpio/superDiag/serviceBUConfigform.h \
     settings/gpio/wifi/settingswifileftform.h \
     settings/settings/configuration/settingssettingsconfigurationleftform.h \
     settings/settingselement.h \
     settings/settingsform.h \
-    settings/settingsmainrightform.h
+    settings/settingsmainrightform.h \
+    settings/settingsreader.h
 
 FORMS += \
     blockform.ui \

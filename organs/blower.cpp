@@ -6,7 +6,7 @@
 #include <QTimer>
 #include <QThread>
 
-Blower::Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ScreenLog *logger_, QObject *parent_) : QObject(parent_)
+Blower::Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, QObject *parent_) : QObject(parent_)
 {
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
@@ -31,24 +31,24 @@ void Blower::readSettings()
     rpmForSweepType.clear();
     speedForSweepType.clear();
     auto mainWindow = ((MainWindow*)parent);
-
-    rpmForSweepType.insert(MainWindow::LeafSweep, mainWindow->readSettingsValue("Engine/rpm.LeafSweep").toInt());
-    rpmForSweepType.insert(MainWindow::LightSweep, mainWindow->readSettingsValue("Engine/rpm.LightSweep").toInt());
-    rpmForSweepType.insert(MainWindow::MediumSweep, mainWindow->readSettingsValue("Engine/rpm.MediumSweep").toInt());
-    rpmForSweepType.insert(MainWindow::HeavySweep, mainWindow->readSettingsValue("Engine/rpm.HeavySweep").toInt());
+    auto reader = mainWindow->getReader();
+    rpmForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("Engine/rpm.LeafSweep").toInt());
+    rpmForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("Engine/rpm.LightSweep").toInt());
+    rpmForSweepType.insert(MainWindow::MediumSweep, reader->readSettingsValue("Engine/rpm.MediumSweep").toInt());
+    rpmForSweepType.insert(MainWindow::HeavySweep, reader->readSettingsValue("Engine/rpm.HeavySweep").toInt());
 
     // назначаем таймауты на длительные операции
-    timeouts.insert(BlowerSlideOut, mainWindow->readSettingsValue("Blower/timeouts.BlowerSlideOut").toInt());
-    timeouts.insert(BlowerSlideIn, mainWindow->readSettingsValue("Blower/timeouts.BlowerSlideIn").toInt());
-    timeouts.insert(BlowerDownOut, mainWindow->readSettingsValue("Blower/timeouts.BlowerDownOut").toInt());
-    timeouts.insert(BlowerDownIn, mainWindow->readSettingsValue("Blower/timeouts.BlowerDownIn").toInt());
-    timeouts.insert(BlowerRotateOut, mainWindow->readSettingsValue("Blower/timeouts.BlowerRotateOut").toInt());
-    timeouts.insert(BlowerRotateIn, mainWindow->readSettingsValue("Blower/timeouts.BlowerRotateIn").toInt());
+    timeouts.insert(BlowerSlideOut, reader->readSettingsValue("Blower/timeouts.BlowerSlideOut").toInt());
+    timeouts.insert(BlowerSlideIn, reader->readSettingsValue("Blower/timeouts.BlowerSlideIn").toInt());
+    timeouts.insert(BlowerDownOut, reader->readSettingsValue("Blower/timeouts.BlowerDownOut").toInt());
+    timeouts.insert(BlowerDownIn, reader->readSettingsValue("Blower/timeouts.BlowerDownIn").toInt());
+    timeouts.insert(BlowerRotateOut, reader->readSettingsValue("Blower/timeouts.BlowerRotateOut").toInt());
+    timeouts.insert(BlowerRotateIn, reader->readSettingsValue("Blower/timeouts.BlowerRotateIn").toInt());
 
-    speedForSweepType.insert(MainWindow::LeafSweep, mainWindow->readSettingsValue("Blower/speeds.LeafSweep").toInt());
-    speedForSweepType.insert(MainWindow::LightSweep, mainWindow->readSettingsValue("Blower/speeds.LightSweep").toInt());
-    speedForSweepType.insert(MainWindow::MediumSweep, mainWindow->readSettingsValue("Blower/speeds.MediumSweep").toInt());
-    speedForSweepType.insert(MainWindow::HeavySweep, mainWindow->readSettingsValue("Blower/speeds.HeavySweep").toInt());
+    speedForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("Blower/speeds.LeafSweep").toInt());
+    speedForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("Blower/speeds.LightSweep").toInt());
+    speedForSweepType.insert(MainWindow::MediumSweep, reader->readSettingsValue("Blower/speeds.MediumSweep").toInt());
+    speedForSweepType.insert(MainWindow::HeavySweep, reader->readSettingsValue("Blower/speeds.HeavySweep").toInt());
 
     qDebug() << timeouts;
 }
@@ -244,13 +244,13 @@ bool Blower::testStateTimer(){// мощная функция проверки т
         const bool sensorReached = myCan->getState(StateDKPBlowerUp1).toBool() && myCan->getState(StateDKPBlowerUp2).toBool();
         if (timeTest && !sensorReached){
             if (!blowerAlarmed){
-                logger->printLog("Продувка: достигнут тайм-аут");
+                logger->addLog("Продувка: достигнут тайм-аут");
                 goOff();
             }
             blowerAlarmed = true;
         }
         else if (sensorReached){
-            logger->printLog("Продувка: достигнут датчик");
+            logger->addLog("Продувка: достигнут датчик");
         }
         if (timeTest || sensorReached)
             dkpAndPositionTest = true;// не ждем таймера и разрешаем завершить процесс
@@ -312,7 +312,7 @@ Blower::BlowerStates Blower::stateUp(){// пытаемся прогрессир�
     switch (state) {
     case BlowerOff:
         // начинаем опускание
-        logger->printLog("Опускаем раструб");
+        logger->addLog("Опускаем раструб");
         setState(BlowerDownOut);
         break;
     case BlowerDownOut:
@@ -325,7 +325,7 @@ Blower::BlowerStates Blower::stateUp(){// пытаемся прогрессир�
         setState(BlowerDownOut);
         break;
     case BlowerDowned:
-        logger->printLog("Выставлем направление обдува");
+        logger->addLog("Выставлем направление обдува");
         setState(BlowerSlideOut);
         break;
     case BlowerSlideOut:
@@ -337,7 +337,7 @@ Blower::BlowerStates Blower::stateUp(){// пытаемся прогрессир�
         setState(BlowerSlideOut);
         break;
     case BlowerSlided:
-        logger->printLog("Раскручиваем вентилятор");
+        logger->addLog("Раскручиваем вентилятор");
         setState(BlowerRotateOut);
         break;
     case BlowerRotateOut:
@@ -369,7 +369,7 @@ Blower::BlowerStates Blower::stateDown()
         break;
     case BlowerDowned:
         // начинаем поднимаение по таймеру
-        logger->printLog("Поднимаем раструб");
+        logger->addLog("Поднимаем раструб");
         setState(BlowerDownIn);
         break;
     case BlowerSlideOut:
@@ -390,7 +390,7 @@ Blower::BlowerStates Blower::stateDown()
             setState(BlowerSlided);
         break;
     case BlowerRotated:
-        logger->printLog("Выключаем вентилятор");
+        logger->addLog("Выключаем вентилятор");
         setState(BlowerRotateIn);
         break;
     default:
