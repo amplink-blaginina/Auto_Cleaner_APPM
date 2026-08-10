@@ -28,8 +28,11 @@ public:
     int restartIgnitionDelay;
     int rpmNone; // скорость двигателя для холостых
 
-    quint8 enigneAddr;
+    int disableCleanSpeed;
+    int enableCleanSpeed;
 
+    int ventEdge;//не используется
+    quint8 enigneAddr;
 
     int getRollAttempts() const;
     int getRpm() const;

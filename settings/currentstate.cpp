@@ -17,9 +17,7 @@ void CurrentState::setDefaults(){
     waterAlarm = false;
     airAlarm = false;
     oilAlarm = false;
-    
     superDiagMode = false;
-    
     prerollButtonPrev = false;
     prerollStarterButtonPrev = false;
     rollInputPrev = false;
@@ -32,27 +30,29 @@ void CurrentState::setDefaults(){
     rollNeedReboot = false;
     rollPauseWarned = false;
     serviceIgnitionAutoRestoreBlocked = false;
-    
     logNeedRollShown = false;
     logNeedWarmShown = false;
     waterSensorActivePrev = false;
     airFilterActivePrev = false;
     oilFilterActivePrev = false;
     heatRelayActivePrev = false;
-    
     waterSensorEmergencyMode = true;
     airFilterEmergencyMode = true;
-    
     disableTemperatureBlock = false;
     ignoreAllEmergency = false;
-    
     engineRunStatePrev = false;
-    
-    
     waterSensorTimeStarted = false;
     airFilterTimeStarted = false;
     waterSensorStartedAt = 0;
     airFilterStartedAt = 0;
+
+    resetVehicleValues();
+}
+
+void CurrentState::resetVehicleValues(){
+    engineCoolantTemp = -40;
+    vehicleSpeed = 0;
+    vehicleVoltage = 0;
 }
 
 void CurrentState::setMode(quint8 mode){
@@ -74,6 +74,17 @@ void CurrentState::setDiagMode(bool state){
 
 void CurrentState::setSettingsMode(){
     setMode(CurrentState::SettingsMode);
+}
+
+void CurrentState::setCoolantTmp(int value){
+    engineCoolantTemp = value;
+}
+
+void CurrentState::setVehicleSpeed(int value){
+    vehicleSpeed = value;
+}
+void CurrentState::setVehicleVoltage(float value){
+    vehicleVoltage = value;
 }
 
 void CurrentState::readValues(){

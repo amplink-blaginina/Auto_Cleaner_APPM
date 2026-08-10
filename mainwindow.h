@@ -276,8 +276,6 @@ public:
     //quint32 ignitionOffTimer;
     qint32 chooseGabaritCount;
 
-    int ventEdge;
-
     bool Password_accepted;
 
     int pauseCleanTimeCounter;
@@ -362,13 +360,13 @@ public:
     int voltageCounter;
     int frontRPMCounter;
     int frontRPM;
-    qint16 vehicleSpeed; // скорость движения машины
-    qint16 engineCoolantTemp;
-    float vehicleVoltage;
-    qint16 vehicleTemperature;
 
-    int enableCleanSpeed;
-    int disableCleanSpeed;
+
+
+
+
+
+
 
     bool showCheckEngine;
 
@@ -445,6 +443,7 @@ private:
     SettingsReader *_settingsReader;
     void configureChannelTypes();
     void insertValues();
+    bool isSpeedTooHigh();
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
@@ -459,6 +458,7 @@ public :
     void resetPassword();
     ViewController *getView();
     SettingsReader * getReader();
+    void invertIgnition();
 public slots:
     //void messageListPressed();
     void settingsAskPassword();

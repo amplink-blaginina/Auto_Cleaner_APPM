@@ -23,6 +23,9 @@ void GlobalSettings::readValues(){
 
     rpmNone = readSettingsValue("Engine/rpm.None").toInt();// холостой ход
     enigneAddr = readSettingsValue("Engine/addr").toInt();// адрес двигателя
+    enableCleanSpeed = _reader->readSettingsValue("Global/enableCleanSpeed").toInt();// пороги скорости
+    disableCleanSpeed = _reader->readSettingsValue("Global/disableCleanSpeed").toInt();
+    ventEdge = _reader->readSettingsValue("Engine/rpm.VentEdge").toInt();// охлаждение двигателя
 
     requireRollAfterDays = readSettingsValue("Engine/startRollRequiredDays").toInt();
     lowTempRequireWarm = readSettingsValue("Engine/startLowTemperatureEdge").toInt();

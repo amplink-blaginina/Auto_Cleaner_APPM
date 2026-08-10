@@ -67,6 +67,11 @@ public:
     int waterSensorStartedAt;
     int airFilterStartedAt;
 
+    qint16 engineCoolantTemp;
+    qint16 vehicleSpeed; // скорость движения машины
+    float vehicleVoltage;
+    qint16 vehicleTemperature;
+
 
     void setDefaults();
     void setSuperDiagMode(bool state);
@@ -84,6 +89,11 @@ public:
     void setSweepMode();
     void setDiagMode(bool state = true);
     void setSettingsMode();
+
+    void resetVehicleValues();
+    void setCoolantTmp(int value);//QByteRef
+    void setVehicleSpeed(int value);
+    void setVehicleVoltage(float value);
 private:
     QDate lastEngineStartDate;
     quint8 menuMode;

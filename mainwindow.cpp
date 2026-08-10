@@ -79,6 +79,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     _settingsReader->readSettingsValue("Global/passwordDiag").toInt();
     _settingsReader->readSettingsValue("Global/secretPasswordDiag").toInt();
 
+    globals = new GlobalSettings(_settingsReader);
     logger = new Logger(NULL);// инит логгера (черный ящик)
 
 
@@ -87,16 +88,13 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     canForEngine = new MyCanEngine(j1939_device, logger, false, NULL);
     canForEngine->setEngineAddr(globals->enigneAddr);
     canj1939 = new MyCanJ1939(j1939_device, logger, true, NULL);
+    engine = new Engine(canj1939, this);// создаем виджет двигателя
     canj1939Main = new MyCanJ1939(can_device, logger, false, NULL);// камазовкий кан незя рестартить потому как он на таком же интерфейсе как и ПО ГО. А это опасно
     //gp = new gpio_class();
     gpio = new GPIOWorker();
     gpioMatirx = new GPIOMatrix();
-
-
     can = new CanController(can0);
     _gpio = new GPIOController(gpio, gpioMatirx);
-
-    globals = new GlobalSettings(_settingsReader);
     currentState = new CurrentState(_settingsReader, _gpio);
     view = new ViewController(this, logger);
     ui->logLayout->addWidget(view->getMessageList());
@@ -133,11 +131,9 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     
     loadAndSetFonts();// загружаем сторонние шрифты
-
-    bool need_to_reconf = false;
-
     removeBadSettings();// надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
 
+    bool need_to_reconf = false;
     if (need_to_reconf)
         QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini");
 
@@ -146,7 +142,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     readValues();
     configureChannelTypes();
-
 
     addElement(StateValveA1, "Силовой клапан A1", 1, 0, OUT_MODE_NORMAL);
     addElement(StateValveF1, "(F1)Подъем отвала", 1, 1, OUT_MODE_NORMAL);
@@ -214,10 +209,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     addElement(StateDKPBroomUp, "Датчик ДКП щетка верх", 8, 9, IN_MODE_NORMAL);
 
     readSystemConfigure();
-
-
-
-
     qDebug() << "can " << can_device << " " << j1939_device;
 
     ui->label_date->setFont(QFont("Mont",15));
@@ -244,15 +235,11 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     createTimers();// создаем таймер для обслуживания общих узлов
     connect (&goHomeTimer, SIGNAL(timeout()), this, SLOT(resetDevices()));
 
-    engine = new Engine(canj1939, this);// создаем виджет двигателя
-    //globals = new GlobalSettings();
-
     // создаем виджеты щеток и прочих модулей
     broomCentral = new CentralBroom(can0, NULL, settings, view, this);
     frontRail = new FrontRail(can0, NULL, settings, view, this);
     backMagnet = new BackMagnet(can0, NULL, settings, view, this);
     blower = new Blower(can0, NULL, settings, view, this);
-
     resetDevices();
     //can0->setState(StateBoardsPowerOut, true);
     showWorkMode();
@@ -283,6 +270,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 MainWindow::~MainWindow(){
     delete ui;
 }
+
 void MainWindow::createFormsAndHide(){
     serviceGPIOServiceIntervalLeftForm = new ServiceGPIOServiceIntervalLeftForm(this);
     serviceGPIOServiceIntervalLeftForm->hide();
@@ -370,10 +358,8 @@ void MainWindow::setDefaultValues(){
     serviceSetingsName->setStyleSheet("color: white");
 
     //---------------------------------------------
-
-    engineCoolantTemp = -40;
-    vehicleSpeed = 0;
-    vehicleVoltage = 0;
+    // vehicleSpeed = 0;
+    // vehicleVoltage = 0;
 
     stopInProgress = false;
     waitOnStartAlarmed = false;
@@ -385,9 +371,8 @@ void MainWindow::setDefaultValues(){
     pauseActive = false;
 
     globals->setDefaults();
-    currentState->setDefaults();
+    //currentState->setDefaults();
 }
-
 
 void MainWindow::loadAndSetFonts(){
     QFontDatabase fontDB;
@@ -813,13 +798,9 @@ void MainWindow::readValues(){// у каждого модуля есть сво�
     cleanConfiguration.centralBroomUse = _settingsReader->readSettingsValue("CleanConfiguration/centralBroomUse").toBool();
     cleanConfiguration.blowUse = _settingsReader->readSettingsValue("CleanConfiguration/blowUse").toBool();
 
-    ventEdge = _settingsReader->readSettingsValue("Engine/rpm.VentEdge").toInt();// охлаждение двигателя
-    enableCleanSpeed = _settingsReader->readSettingsValue("Global/enableCleanSpeed").toInt();// пороги скорости
-    disableCleanSpeed = _settingsReader->readSettingsValue("Global/disableCleanSpeed").toInt();
     showCheckEngine = _settingsReader->readSettingsValue("Global/showCheckEngine").toBool();// сознаваться ли про чек энжын?
-
     buttonsLightLevelEdge = _settingsReader->readSettingsValue("Global/buttonsLightLevelEdge").toInt();
-    buttonsLightLevelEdge = 10; // TODO ????
+   // buttonsLightLevelEdge = 10; // TODO ????
 
     // значения моточасов которые будут расти (хранятся в секундах и сливаются на флэшку каждые 5 мотоминут)
     // когда работает вспомогательный двигатель
@@ -861,15 +842,12 @@ void MainWindow::readValues(){// у каждого модуля есть сво�
     disableTemperatureBlock = _settingsReader->readSettingsValue("Engine/disableTemperatureBlock").toBool();
     ignoreAllEmergency = _settingsReader->readSettingsValue("Engine/ignoreAllEmergency").toBool();
 
-
-
     for (int index = 0; index < 4; ++index){
         const QString suffix = QString::number(index + 1);
         hydraulicPressureK[index] = _settingsReader->readSettingsValue("Global/hydraulicPressure" + suffix + "K").toFloat();
         hydraulicPressureB[index] = _settingsReader->readSettingsValue("Global/hydraulicPressure" + suffix + "B").toFloat();
     }
 }
-
 
 void MainWindow::resetDevices(){
     //test
@@ -942,6 +920,7 @@ void MainWindow::canPOError(){
 //    qDebug() << "POError";
     resetDevices();//сбросить все команды и состояния
 }
+
 void MainWindow::incomeData(struct can_frame frame){
     if (frame.can_id == 0x00000AC0)// && (centralBroom->getState() == CentralBroom::BroomRotated || serviceForm->isVisible()))
     {// КВ
@@ -990,18 +969,19 @@ void MainWindow::canJ1939Error(){
     if (!ui->J1939Status->isVisible())
         ui->J1939Status->show();
     // сбрасываем значения
-    engine->rpm = 0;
-    engine->engineCoolantTemp = -40;
-    engine->coolantTempEverReceived = false;
+    engine->resetValues();
+    // engine->rpm = 0;
+    // engine->engineCoolantTemp = -40;
+    // engine->coolantTempEverReceived = false;
 }
 
 void MainWindow::canJ1939MainError(){
     if (!ui->J1939MainStatus->isVisible())
         ui->J1939MainStatus->show();
-
-    engineCoolantTemp = -40;
-    vehicleSpeed = 0;
-    vehicleVoltage = 0;
+    currentState->resetVehicleValues();
+    // engineCoolantTemp = -40;
+    // vehicleSpeed = 0;
+    // vehicleVoltage = 0;
 
 //    qDebug() << "J1939MainError";
 // //    resetDevices();//сбросить все команды и состояния
@@ -1030,14 +1010,15 @@ void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data){//
             temp = temp.arg(data[1], 2, 10, QChar('0'));
 //            if (ui->label_speed->text() != temp)
 //                ui->label_speed->setText(temp);
-            vehicleSpeed = data[1];
+            currentState->setVehicleSpeed(data[1]);
+            //vehicleSpeed = data[1];
         }
         speedCounter = 0;
     }
 
     if (pgn == 0xFEEE) //et1
     {
-        engineCoolantTemp = data[0] - 40;
+        currentState->setCoolantTmp(data[0] - 40);//engineCoolantTemp = data[0] - 40;
     }
 
     if (pgn == 0xF002){// скорость выходного вала трансмиссии
@@ -1070,7 +1051,7 @@ void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data){//
         temp = temp.arg((int)((float)volt_ / 20), 2, 10, QChar('0'));
 //        if (ui->label_voltage->text() != temp)
 //            ui->label_voltage->setText(temp);
-        vehicleVoltage = (float)volt_ / 20;
+        currentState->setVehicleVoltage ((float)volt_ / 20);
         voltageCounter = 0;
     }
 
@@ -1493,14 +1474,11 @@ void MainWindow::mainProgress(){
     }
 
     //защита по скорости - если едем слишком быстро надо выключать режим работы (скорость 50 условная - обозначает что нет данных от двигателя)
-    if (vehicleSpeed > disableCleanSpeed && vehicleSpeed != 199 && vehicleSpeed < 200 && startClean){
+    if (isSpeedTooHigh() && startClean){
         on_pushButton_startstop_clicked();
         view->addLogWarning("Превышена скорость уборки. Останавливаем уборку");
     }
 }
-
-
-
 
 void MainWindow::updateIndicatorPixmap(QLabel* label, const QString& colorName, const QString& baseName){
     const QString iconPath = ":/Images/Images/main/signs/sign_" + baseName + "_" + colorName + "_stub.png";
@@ -1541,28 +1519,6 @@ void MainWindow::updateEngineAndRollLocks(){
     // === КОНЕЦ ИСПРАВЛЕНИЯ ===
 
     preroll->checkEmergencies();
-    // waterAlarm = can0->getState(StateWaterSensor).toBool() && waterSensorEmergencyMode;
-    // airAlarm = can0->getState(StateAirFilterBad).toBool() && airFilterEmergencyMode;
-    // oilAlarm = can0->getState(StateOilFilterBad).toBool();
-
-    // starterLockedByEmergency = !ignoreAllEmergency && (waterAlarm || airAlarm || oilAlarm);
-    // rollLockedByEmergency = !ignoreAllEmergency && (waterAlarm || airAlarm || oilAlarm);
-
-    // if (needRollProcedure && !logNeedRollShown){
-    //     view->addLogWarning("Требуется прокрутка вспомогательного ДВС");
-    //     logNeedRollShown = true;
-    // }
-    // if (!needRollProcedure){
-    //     logNeedRollShown = false;
-    // }
-
-    // if (starterLockedByTemperature && !logNeedWarmShown){
-    //     view->addLogWarning("Требуется прогрев вспомогательного ДВС");
-    //     logNeedWarmShown = true;
-    // }
-    // if (!starterLockedByTemperature){
-    //     logNeedWarmShown = false;
-    // }
 }
 
 void MainWindow::updateSensorAndWarningIndicators(){
@@ -1702,9 +1658,6 @@ void MainWindow::updateFRM(){
     view->setStyle(ui->pushButton_frmMagnet, path + (workMode.frmMagnet? "m_on.png);":"m_off.png);"));
     can0->setState(StateFRMBackL2, workMode.frmMagnet);
 }
-
-
-
 
 void MainWindow::showStartClean(){
     if (gpioMatirx->keyPressed == GPIOInput::IN_STARTCLEAN){
@@ -2421,16 +2374,6 @@ void MainWindow::updateOrgansStates(){
     if(!startClean){
         return;
     }
-
-    // if(broomCentral->getState() == CentralBroom::){
-    //     if(workMode.centralBroomPress)
-    //     {
-    //         broomCentral->goPressDown();
-    //     }
-    // }
-
-    //qDebug()<<"Broom: "<<broomCentral->getState()<<"  Dump: "<<frontRail->getState();
-
     if (broomCentral->getState() >= CentralBroom::BroomFlowed){
         if (workMode.centralBroomFlow){
             broomCentral->setFlowActive(true);
@@ -2475,18 +2418,13 @@ void MainWindow::setBroomState(){
                    ui->label_centralBroomUpDown, ui->pushButton_centralBroomUp,
                    path + "up_on.png);", path + "off.png);",
                    [this](){broomCentral->setDirection(organsEnums::Up);;},
-                        //printOrganStatus(organsEnums::BroomBlock, organsEnums::Up, true);
                    [this](){broomCentral->setDirection(organsEnums::None);});
-
-                        //printOrganStatus(organsEnums::BroomBlock, organsEnums::Up, false);
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_DOWN,
                    ui->label_centralBroomUpDown, ui->pushButton_centralBroomDown,
                    path + "down_on.png);", path + "off.png);",
                    [this](){broomCentral->setDirection(organsEnums::Down);},
-                        //printOrganStatus(organsEnums::BroomBlock, organsEnums::Down, true);
                    [this](){broomCentral->setDirection(organsEnums::None);});
-                        //printOrganStatus(organsEnums::BroomBlock, organsEnums::Down, false);
 
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
@@ -2498,28 +2436,16 @@ void MainWindow::setBroomState(){
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_LEFT,
                    ui->label_centralBroom, ui->pushButton_centralBroomLeft,
                    path + "left_on.png);",
-                   defaultIcon,//!!!
-                   [this](){
-                       broomCentral->setDirection(organsEnums::Left);
-                       //printOrganStatus(organsEnums::BroomBlock, organsEnums::Left, true);
-                   },
-                   [this](){
-                       broomCentral->setDirection(organsEnums::None);
-                       //printOrganStatus(organsEnums::BroomBlock, organsEnums::Left, false);
-                   });
+                   defaultIcon,
+                   [this](){broomCentral->setDirection(organsEnums::Left);},
+                   [this](){broomCentral->setDirection(organsEnums::None);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_RIGHT,
                    ui->label_centralBroom, ui->pushButton_centralBroomRight,
                    path + "right_on.png);",
-                   defaultIcon,//!!!
-                   [this](){
-                       broomCentral->setDirection(organsEnums::Right);
-                       //printOrganStatus(organsEnums::BroomBlock, organsEnums::Right, true);
-                   },
-                   [this](){
-                       broomCentral->setDirection(organsEnums::None);
-                       //printOrganStatus(organsEnums::BroomBlock, organsEnums::Right, false);
-                   });
+                   defaultIcon,
+                   [this](){ broomCentral->setDirection(organsEnums::Right);},
+                   [this](){broomCentral->setDirection(organsEnums::None);});
 }
 
 //==============================Dump=================================================
@@ -2529,26 +2455,14 @@ void MainWindow::setDumpState(){
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_UP,
                    ui->label_dumpUpDown, ui->pushButton_dumpUp,
                    path + "up_off.png);", path + "off.png);",
-                   [this](){
-                        frontRail->setDirection(organsEnums::Up);
-                        //printOrganStatus(organsEnums::Dump, organsEnums::Up, true);
-    },
-                   [this](){
-                        frontRail->setDirection(organsEnums::None);
-                        //printOrganStatus(organsEnums::Dump, organsEnums::Up, false);
-                   });
+                   [this](){frontRail->setDirection(organsEnums::Up);},
+                   [this](){frontRail->setDirection(organsEnums::None);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_DOWN,
                 ui->label_dumpUpDown, ui->pushButton_dumpDown,
                 path + "down_off.png);", path + "off.png);",
-                [this](){
-                       frontRail->setDirection(organsEnums::Down);
-                       //printOrganStatus(organsEnums::Dump, organsEnums::Down, true);
-    },
-                [this](){
-                       frontRail->setDirection(organsEnums::None);
-                       //printOrganStatus(organsEnums::Dump, organsEnums::Down, false);
-    });
+                [this](){frontRail->setDirection(organsEnums::Down);},
+                [this](){frontRail->setDirection(organsEnums::None);});
 
 
     auto defaultIcon = workMode.frontDumpLeft? "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_left_on.png);":
@@ -2559,29 +2473,15 @@ void MainWindow::setDumpState(){
                     ui->label_dump, ui->pushButton_dumpLeft,
                    "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_left_on.png);",
                    defaultIcon,//!!!
-                   [this](){
-                       frontRail->setDirection(organsEnums::Left);
-                       //printOrganStatus(organsEnums::Dump, organsEnums::Left, true);
-                   },
-                   [this](){
-                       frontRail->setDirection(organsEnums::None);
-                       //printOrganStatus(organsEnums::Dump, organsEnums::Left, false);
-                   });
+                   [this](){frontRail->setDirection(organsEnums::Left);},
+                   [this](){frontRail->setDirection(organsEnums::None);});
 
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT,
                    ui->label_dump, ui->pushButton_dumpRight,
                    "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_right_on.png);",
                    defaultIcon,//!!!
-                   [this](){
-                        frontRail->setDirection(organsEnums::Right);
-                        //frontRail->goRight(true);
-                        //printOrganStatus(organsEnums::Dump, organsEnums::Right, true);
-
-                   },
-                   [this](){
-                       frontRail->setDirection(organsEnums::None);//goNone();
-                        //printOrganStatus(organsEnums::Dump, organsEnums::Right, false);
-                   });
+                   [this](){frontRail->setDirection(organsEnums::Right);},
+                   [this](){frontRail->setDirection(organsEnums::None);});
 }
 
 //==============================Blower===============================================
@@ -2885,42 +2785,19 @@ void MainWindow::resetPassword(){
     serviceGeneralPasswordLeftForm->goStep(0);
 }
 
-// void MainWindow:: updateEngineLeftForm(QLabel* needRPM, QLabel * label_canExternal1,
-//                                         QLabel * label_canInternal1, QLabel * label_temperatureExternal,
-//                                         QLabel label_voltageInternal,
-//                                         QPushButton* pushButton_ignition, QPushButton * pushButton_starter){
-//     QString path = "border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_";
-//     view->setText(needRPM, QString::number(_state->rpm_need/8));
-//     canForEngine->setEngineCommand(rpm_need);
-
-//     // обороты
-//     view->setText(needRPM, QString::number(engine->rpm));
-//     // if (ui->label_realRPM->text() != QString::number(engine->rpm))
-//     //     ui->label_realRPM->setText();
-
-//     // выходы
-//     starter->setStarterPressed(pushButton_starter->isDown());
-
-//     if (can0->getState(StateIgnitionOut).toBool() != pushButton_ignition->isChecked()){
-//         pushButton_ignition->setChecked(can0->getState(StateIgnitionOut).toBool());
-//         //qDebug()<<"Нажали стартер";
-//     }
-
-//     // входы
-//     view->setStyle(label_canExternal1, path + (canj1939->canFailStatus? "off.png);":"on.png);"));
-//     view->setStyle(label_canInternal1, path + (canj1939Main->canFailStatus? "off.png);":"on.png);"));
-
-//     QString text = QString::number(engine->engineCoolantTemp);
-//     view->setText(label_temperatureExternal, text + "C t ДВС");
-//     text = QString::number(engineCoolantTemp);
-//     view->setText(label_temperatureInternal, text + "C t ДВС");
-//     text = QString::number(vehicleVoltage, 'f', 1);
-//     view->setText(label_voltageInternal, text + text + "V U БОРТ");
-// }
-
 ViewController* MainWindow::getView(){ return view;}
 
 SettingsReader* MainWindow::getReader(){ return _settingsReader;}
+
+bool MainWindow::isSpeedTooHigh(){
+    auto speed = currentState->vehicleSpeed;
+    return (speed > globals->disableCleanSpeed && speed != 199 && speed < 200);
+}
+void MainWindow::invertIgnition(){
+    can0->setState(StateIgnitionOut, !can0->getState(StateIgnitionOut).toBool());
+}
+
+
 //================================preroll===============================
 
 // void MainWindow::processPrerollInService()

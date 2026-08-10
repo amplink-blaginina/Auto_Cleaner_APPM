@@ -32,6 +32,7 @@ public:
 
     // поиск своих параметров из CAN с надстройкой J1939
     bool parseCanJ1939(quint32 pgn, quint8 sa, QByteArray data);
+    void resetValues();
 public slots:
     // слот для получания данных из CAN
     void incomeData(quint32 pgn, quint8 sa, QByteArray data);

@@ -28,8 +28,6 @@ void ServiceOtherEngineLeftForm::updateVisual(){
 
     // обороты
     view ->setText(ui->label_realRPM, QString::number(mainWindow->engine->rpm));
-    // if (ui->label_realRPM->text() != QString::number(mainWindow->engine->rpm))
-    //     ui->label_realRPM->setText(QString::number(mainWindow->engine->rpm));
 
     // выходы
     mainWindow->starter->setStarterPressed(ui->pushButton_starter->isDown());
@@ -43,16 +41,17 @@ void ServiceOtherEngineLeftForm::updateVisual(){
     view->setStyle(ui->label_canExternal1, path + (mainWindow->canj1939->canFailStatus? "off.png);":"on.png);"));
     view->setStyle(ui->label_canInternal1, path + (mainWindow->canj1939Main->canFailStatus? "off.png);":"on.png);"));
 
+    auto curState = mainWindow->currentState;
     QString text = QString::number(mainWindow->engine->engineCoolantTemp);
     view->setText(ui->label_temperatureExternal, text + "C t ДВС");
-    text = QString::number(mainWindow->engineCoolantTemp);
+    text = QString::number(curState->engineCoolantTemp);
     view->setText(ui->label_temperatureInternal, text + "C t ДВС");
-    text = QString::number(mainWindow->vehicleVoltage, 'f', 1);
+    text = QString::number(curState->vehicleVoltage, 'f', 1);
     view->setText(ui->label_voltageInternal, text + text + "V U БОРТ");
 }
 
 void ServiceOtherEngineLeftForm::on_pushButton_ignition_clicked(){
-    ((MainWindow*)parent)->can0->setState(StateIgnitionOut, !((MainWindow*)parent)->can0->getState(StateIgnitionOut).toBool());
+    ((MainWindow*)parent)->invertIgnition();
 }
 
 void ServiceOtherEngineLeftForm::on_pushButton_lessRPM_clicked()

@@ -78,3 +78,9 @@ bool Engine::parseCanJ1939(quint32 pgn, quint8 sa, QByteArray data)
     }
     return true;
 }
+
+void Engine::resetValues(){
+    rpm = 0;
+    engineCoolantTemp = -40;
+    coolantTempEverReceived = false;
+}
