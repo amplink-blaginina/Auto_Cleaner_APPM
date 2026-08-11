@@ -130,7 +130,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     setDefaultWorkMode();
     qRegisterMetaType<struct can_frame>();
 
-    
     loadAndSetFonts();// загружаем сторонние шрифты
     removeBadSettings();// надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
 
@@ -343,15 +342,15 @@ void MainWindow::setDefaultValues(){
     hydroTempCrit = false;
     hydroTempWarn = false;
     chooseGabaritCount = 0;
-    startCleanTimeCounter = 0;
+    //startCleanTimeCounter = 0;
     centralBroomLeftTimeCounter = 0;
     centralBroomRightTimeCounter = 0;
     frontDumpLeftTimeCounter = 0;
     frontDumpRightTimeCounter = 0;
     blowerTimeCounter = 0;
-    frmTimeCounter = 0;
-    leftModeTimeCounter = 0;
-    rightModeTimeCounter = 0;
+    //frmTimeCounter = 0;
+    //leftModeTimeCounter = 0;
+    //rightModeTimeCounter = 0;
     KVControl = false;
     currentKV = 0;
 
@@ -367,8 +366,8 @@ void MainWindow::setDefaultValues(){
     cleanWrongSpeedAlarmed = false;
     buttonsLightLevel = 0;
 
-    hydroTempCounterToShow = 0;
-    pauseCleanTimeCounter = 0;
+    //hydroTempCounterToShow = 0;
+   // pauseCleanTimeCounter = 0;
     pauseActive = false;
 
     globals->setDefaults();
@@ -935,30 +934,30 @@ void MainWindow::incomeData(struct can_frame frame){
         }
     }
 }
-qint8 MainWindow::getFilteredTemp(){
-    hydroTempBuffer.removeFirst();
-    QList<qint8> sortBuffer = hydroTempBuffer;
-    for (int i = 0; i < hydroTempBuffer.size(); i++){
-        for (int j = i; j < hydroTempBuffer.size() - 1; j++){
-            if (sortBuffer[j] > sortBuffer[j + 1]){
-                qint8 tmp_val = sortBuffer[j];
-                sortBuffer[j] = sortBuffer[j + 1];
-                sortBuffer[j + 1] = tmp_val;
-            }
-        }
-    }
-    hydroTempMedianBuffer.append(sortBuffer[5]);
-    qint16 ret = 0;
-    if (hydroTempMedianBuffer.size() > 10){
-        hydroTempMedianBuffer.removeFirst();
-        for (int i = 0; i < hydroTempMedianBuffer.size(); i ++)
-            ret += hydroTempMedianBuffer[i];
-        ret = ret / 10;
-    }
-    else
-        ret = sortBuffer[5];
-    return ret;
-}
+//qint8 MainWindow::getFilteredTemp(){
+//     hydroTempBuffer.removeFirst();
+//     QList<qint8> sortBuffer = hydroTempBuffer;
+//     for (int i = 0; i < hydroTempBuffer.size(); i++){
+//         for (int j = i; j < hydroTempBuffer.size() - 1; j++){
+//             if (sortBuffer[j] > sortBuffer[j + 1]){
+//                 qint8 tmp_val = sortBuffer[j];
+//                 sortBuffer[j] = sortBuffer[j + 1];
+//                 sortBuffer[j + 1] = tmp_val;
+//             }
+//         }
+//     }
+//     hydroTempMedianBuffer.append(sortBuffer[5]);
+//     qint16 ret = 0;
+//     if (hydroTempMedianBuffer.size() > 10){
+//         hydroTempMedianBuffer.removeFirst();
+//         for (int i = 0; i < hydroTempMedianBuffer.size(); i ++)
+//             ret += hydroTempMedianBuffer[i];
+//         ret = ret / 10;
+//     }
+//     else
+//         ret = sortBuffer[5];
+//     return ret;
+// }
 
 void MainWindow::canJ1939Error(){
     if (!ui->J1939Status->isVisible())
@@ -1209,14 +1208,19 @@ void MainWindow::oneSecond(){// универсальный таймер для �
 
     if (can0->isActive()){
         // получим температуру гидрооборудования
-        qint16 hydro_temp = hydroTempK * can->getHydraOilTmp() + hydroTempB;
-        //qDebug() << frame.data[7];
-        hydroTempBuffer.append(hydro_temp);
-        if (hydroTempBuffer.size() > 10){// && hydroTempCounterToShow == 0)
-            //hydroTempCounterToShow = 10;
-            hydro_temp = getFilteredTemp();
-            ui->label_hydraulicTemperature->setText(QString::number(hydro_temp));
-        }
+        const qint16 hydro_temp = hydroTempK * can->getHydraOilTmp() + hydroTempB;
+        qint16 filtered;
+        if (hydroTempFilter.process(hydro_temp, filtered))
+            ui->label_hydraulicTemperature->setText(QString::number(filtered));
+
+        // qint16 hydro_temp = hydroTempK * can->getHydraOilTmp() + hydroTempB;
+        // //qDebug() << frame.data[7];
+        // hydroTempBuffer.append(hydro_temp);
+        // if (hydroTempBuffer.size() > 10){// && hydroTempCounterToShow == 0)
+        //     //hydroTempCounterToShow = 10;
+        //     hydro_temp = getFilteredTemp();
+        //     ui->label_hydraulicTemperature->setText(QString::number(hydro_temp));
+        // }
     }
 }
 
@@ -1681,60 +1685,97 @@ void MainWindow::updateFRM(){
     can0->setState(StateFRMBackL2, workMode.frmMagnet);
 }
 
+// void MainWindow::showStartClean(){
+//     if (gpioMatirx->keyPressed == GPIOInput::IN_STARTCLEAN){
+//         startCleanTimeCounter++;
+//     }
+//     else{
+//         if (startCleanTimeCounter > 1)
+//             on_pushButton_startstop_clicked();
+//         startCleanTimeCounter = 0;
+//     }
+// }
+
 void MainWindow::showStartClean(){
-    if (gpioMatirx->keyPressed == GPIOInput::IN_STARTCLEAN){
-        startCleanTimeCounter++;
+    if (startCleanKey.update(gpioMatirx->keyPressed == GPIOInput::IN_STARTCLEAN))
+        on_pushButton_startstop_clicked();
+}
+
+void MainWindow::showModeButton()
+{
+    const auto pressedKey = gpioMatirx->keyPressed;
+
+    if (modeLeftKey.update(pressedKey == GPIOInput::IN_MODE_LEFT))
+    {
+        if (workMode.sweepType == LightSweep)
+            on_pushButton_leafSweep_clicked();
+        else if (workMode.sweepType == MediumSweep)
+            on_pushButton_lightSweep_clicked();
+        else if (workMode.sweepType == HeavySweep)
+            on_pushButton_mediumSweep_clicked();
     }
-    else{
-        if (startCleanTimeCounter > 1)
-            on_pushButton_startstop_clicked();
-        startCleanTimeCounter = 0;
+
+    if (modeRightKey.update(pressedKey == GPIOInput::IN_MODE_RIGHT))
+    {
+        if (workMode.sweepType == LeafSweep)
+            on_pushButton_lightSweep_clicked();
+        else if (workMode.sweepType == LightSweep)
+            on_pushButton_mediumSweep_clicked();
+        else if (workMode.sweepType == MediumSweep)
+            on_pushButton_heavySweep_clicked();
     }
 }
 
-void MainWindow::showModeButton(){
-    if (gpioMatirx->keyPressed == GPIOInput::IN_MODE_LEFT){// нажали кнопку
-        leftModeTimeCounter++;
-    }
-    else{// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
-        if (leftModeTimeCounter > 1){
-            // отработаем нажатие
-            if (workMode.sweepType == LightSweep)
-                on_pushButton_leafSweep_clicked();
-            else if (workMode.sweepType == MediumSweep)
-                on_pushButton_lightSweep_clicked();
-            else if (workMode.sweepType == HeavySweep)
-                on_pushButton_mediumSweep_clicked();
-        }
-        leftModeTimeCounter = 0;
-    }
-    if (gpioMatirx->keyPressed == GPIOInput::IN_MODE_RIGHT){// нажали кнопку
-        rightModeTimeCounter++;
-    }
-    else{// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
-        if (rightModeTimeCounter > 1){
-            // отработаем нажатие
-            if (workMode.sweepType == LeafSweep)
-                on_pushButton_lightSweep_clicked();
-            else if (workMode.sweepType == LightSweep)
-                on_pushButton_mediumSweep_clicked();
-            else if (workMode.sweepType == MediumSweep)
-                on_pushButton_heavySweep_clicked();
-        }
-        rightModeTimeCounter = 0;
-    }
-}
+// void MainWindow::showModeButton(){
+//     if (gpioMatirx->keyPressed == GPIOInput::IN_MODE_LEFT){// нажали кнопку
+//         leftModeTimeCounter++;
+//     }
+//     else{// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+//         if (leftModeTimeCounter > 1){
+//             // отработаем нажатие
+//             if (workMode.sweepType == LightSweep)
+//                 on_pushButton_leafSweep_clicked();
+//             else if (workMode.sweepType == MediumSweep)
+//                 on_pushButton_lightSweep_clicked();
+//             else if (workMode.sweepType == HeavySweep)
+//                 on_pushButton_mediumSweep_clicked();
+//         }
+//         leftModeTimeCounter = 0;
+//     }
+//     if (gpioMatirx->keyPressed == GPIOInput::IN_MODE_RIGHT){// нажали кнопку
+//         rightModeTimeCounter++;
+//     }
+//     else{// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+//         if (rightModeTimeCounter > 1){
+//             // отработаем нажатие
+//             if (workMode.sweepType == LeafSweep)
+//                 on_pushButton_lightSweep_clicked();
+//             else if (workMode.sweepType == LightSweep)
+//                 on_pushButton_mediumSweep_clicked();
+//             else if (workMode.sweepType == MediumSweep)
+//                 on_pushButton_heavySweep_clicked();
+//         }
+//         rightModeTimeCounter = 0;
+//     }
+// }
+void MainWindow::showMatrixFRMButton()
+{
+    const bool frmPressed =
+        gpioMatirx->keyPressed == GPIOInput::IN_FRM;
 
-void MainWindow::showMatrixFRMButton(){
-    if (gpioMatirx->keyPressed == GPIOInput::IN_FRM){
-        frmTimeCounter++;
-    }
-    else{
-        if (frmTimeCounter > 1)
-            toggleAllFrm();
-        frmTimeCounter = 0;
-    }
+    if (frmKey.update(frmPressed))
+        toggleAllFrm();
 }
+// void MainWindow::showMatrixFRMButton(){
+//     if (gpioMatirx->keyPressed == GPIOInput::IN_FRM){
+//         frmTimeCounter++;
+//     }
+//     else{
+//         if (frmTimeCounter > 1)
+//             toggleAllFrm();
+//         frmTimeCounter = 0;
+//     }
+// }
 
 // нажали пуск - запускаем все выбранные устройства
 void MainWindow::on_pushButton_startstop_clicked(){
@@ -2070,35 +2111,81 @@ void MainWindow::showBlower(){
     }
 }
 
-void MainWindow::showPauseButton(){
-    if (gpioMatirx->keyPressed == GPIOInput::IN_PAUSE_HOME){
-        pauseCleanTimeCounter++;
-    }
-    else{// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
-        if (pauseCleanTimeCounter > 1 && startClean){
-            pauseActive = !pauseActive;
-            if (pauseActive){
-                view->addLogWarning("Пауза включена");
-                // поднимаем органы в промежуточное состояние
-                if (frontRail->choosed)
-                    frontRail->setNeedState(FrontRail::FrontRailBounced);
-                if (broomCentral->choosed)
-                    broomCentral->setNeedState(CentralBroom::BroomRotateIn);
-                if (backMagnet->choosed)
-                    backMagnet->setNeedState(BackMagnet::BackMagnetDownIn);
-                if (blower->choosed)
-                    blower->setNeedState(Blower::BlowerDownIn);
-            }
-            else{
-                view->addLog("Пауза снята");
-            }
-            showWorkMode();
+void MainWindow::showPauseButton()
+{
+    const bool pauseOrHomePressed =
+        gpioMatirx->keyPressed == GPIOInput::IN_PAUSE_HOME;
+
+    if (!pauseKey.update(pauseOrHomePressed))
+        return;
+
+    // Кнопка отпущена после корректного нажатия.
+    if (startClean)
+    {
+        pauseActive = !pauseActive;
+
+        if (pauseActive)
+        {
+            view->addLogWarning("Пауза включена");
+
+            // Переводим выбранные органы
+            // в промежуточное безопасное положение.
+            if (frontRail->choosed)
+                frontRail->setNeedState(FrontRail::FrontRailBounced);
+
+            if (broomCentral->choosed)
+                broomCentral->setNeedState(CentralBroom::BroomRotateIn);
+
+            if (backMagnet->choosed)
+                backMagnet->setNeedState(BackMagnet::BackMagnetDownIn);
+
+            if (blower->choosed)
+                blower->setNeedState(Blower::BlowerDownIn);
         }
-        if (pauseCleanTimeCounter > 1 && !startClean)
-            on_pushButton_homeState_clicked();
-        pauseCleanTimeCounter = 0;
+        else
+        {
+            view->addLog("Пауза снята");
+        }
+
+        showWorkMode();
+    }
+    else
+    {
+        // В режиме простоя эта же физическая кнопка
+        // отправляет органы в домашнее положение.
+        on_pushButton_homeState_clicked();
     }
 }
+
+// void MainWindow::showPauseButton(){
+//     if (gpioMatirx->keyPressed == GPIOInput::IN_PAUSE_HOME){
+//         pauseCleanTimeCounter++;
+//     }
+//     else{// отжата кнопка (и ее нажимали до этого) и это не длительное нажатие
+//         if (pauseCleanTimeCounter > 1 && startClean){
+//             pauseActive = !pauseActive;
+//             if (pauseActive){
+//                 view->addLogWarning("Пауза включена");
+//                 // поднимаем органы в промежуточное состояние
+//                 if (frontRail->choosed)
+//                     frontRail->setNeedState(FrontRail::FrontRailBounced);
+//                 if (broomCentral->choosed)
+//                     broomCentral->setNeedState(CentralBroom::BroomRotateIn);
+//                 if (backMagnet->choosed)
+//                     backMagnet->setNeedState(BackMagnet::BackMagnetDownIn);
+//                 if (blower->choosed)
+//                     blower->setNeedState(Blower::BlowerDownIn);
+//             }
+//             else{
+//                 view->addLog("Пауза снята");
+//             }
+//             showWorkMode();
+//         }
+//         if (pauseCleanTimeCounter > 1 && !startClean)
+//             on_pushButton_homeState_clicked();
+//         pauseCleanTimeCounter = 0;
+//     }
+// }
 
 //=============================================================
 //====================Buttons click handlers===================

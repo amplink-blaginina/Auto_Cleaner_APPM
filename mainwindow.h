@@ -14,6 +14,7 @@
 #include <globalsettings.h>
 #include <currentstate.h>
 #include <settingsstore.h>
+#include <DebouncedInput.h>
 
 #include <sys/socket.h>
 #include <net/if.h>
@@ -64,6 +65,7 @@
 #include "screenlog.h"
 
 //логгер (черный ящик)
+#include "MedianFilter.h"
 #include "logger.h"
 
 #include "log/MessageList.h"
@@ -161,7 +163,7 @@ public:
 
     bool stopInProgress;
 
-    qint8 getFilteredTemp();
+    //qint8 getFilteredTemp();
 
     void readValues();
     QVariant readSettingsValue(QString name);
@@ -209,15 +211,15 @@ public:
     bool inHomeState();
 
     CurrentState *currentState;
-    quint8 startCleanTimeCounter;
+    //quint8 startCleanTimeCounter;
     quint8 centralBroomLeftTimeCounter;
     quint8 centralBroomRightTimeCounter;
     quint8 frontDumpLeftTimeCounter;
     quint8 frontDumpRightTimeCounter;
     quint8 blowerTimeCounter;
-    quint8 frmTimeCounter;
-    quint8 leftModeTimeCounter;
-    quint8 rightModeTimeCounter;
+    //quint8 frmTimeCounter;
+    //quint8 leftModeTimeCounter;
+    //quint8 rightModeTimeCounter;
 
     void showCentralBroomLeft();
     void showCentralBroomRight();
@@ -232,6 +234,13 @@ public:
     QSettings *settings;
 
 
+    MedianFilter hydroTempFilter;// Фильтрация температуры гидравлики
+    // Антидребезг кнопок матричной клавиатуры
+    DebouncedInput startCleanKey;
+    DebouncedInput modeLeftKey;
+    DebouncedInput modeRightKey;
+    DebouncedInput frmKey;
+    DebouncedInput pauseKey;
 
     Engine *engine;
     CentralBroom *broomCentral;
@@ -264,9 +273,9 @@ public:
     bool hydroTempCrit;
     bool hydroTempWarn;
     quint8 fanAccelRate;
-    QList<qint8> hydroTempMedianBuffer;
-    QList<qint8> hydroTempBuffer;
-    int hydroTempCounterToShow;
+    //QList<qint8> hydroTempMedianBuffer;
+    //QList<qint8> hydroTempBuffer;
+    //int hydroTempCounterToShow;
     quint32 beamTimeCounter;
     //quint32 cleanOffTimeCounter;
     bool backControl;
@@ -279,7 +288,7 @@ public:
 
     bool Password_accepted;
 
-    int pauseCleanTimeCounter;
+    //int pauseCleanTimeCounter;
     bool pauseActive;
 
     StarterController *starter;

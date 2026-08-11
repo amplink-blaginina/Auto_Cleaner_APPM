@@ -86,6 +86,8 @@ HEADERS += \
     Controllers/prerollcontroller.h \
     Controllers/startercontroller.h \
     Controllers/viewcontroller.h \
+    DebouncedInput.h \
+    MedianFilter.h \
     blockform.h \
     can/mycanengine.h \
     configure.h \
