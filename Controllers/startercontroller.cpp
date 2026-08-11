@@ -131,14 +131,10 @@ void StarterController::showStarter(){
     if (rpm < 500 && engineStartedOk)
        _screenLog->printError("Двигатель заглох");
     checkPauseState();
-    // if (!inStarterPause()){
-    //     starterPauseActive = false;
-    //     starterPauseWarned = false;
-    // }
+    // // БЛОКИРОВКА: пока идёт прокрутка — кнопка стартера не управляет зажиганием
     const bool starterPressedEdge = isStarterClicked();
     //starterPressed && !starterPressedPrev;
 
-    // // БЛОКИРОВКА: пока идёт прокрутка — кнопка стартера не управляет зажиганием
     // if (rollRunActive || prerollSequenceActive)
     // {
     //     starterPressedPrev = starterPressed;
@@ -154,7 +150,6 @@ void StarterController::showStarter(){
 
     if (starterPressedEdge && engineRunning){//двигатель запущен и нажали кнопку стартера
         _can->setIgnition(false);// Повторное нажатие при работающем двигателе — глушим ДВС
-        //can0->setState(StateIgnitionOut, false);
         resetIgnitionTimer();
         engineStartedOk = false;
         starterPauseActive = true;
@@ -164,8 +159,7 @@ void StarterController::showStarter(){
     else if (starterPressed){// либо двигатель не запущен, либо нажали на кнопку стартера не только что, но всё ещё держим
         if(!starterPauseActive){//если не находимся в паузе после глушения ДВС
             //qDebug()<<" Зажигание 1";
-            //can0->setState(StateIgnitionOut, true);//осуществляем запуск
-            _can->setIgnition(true);
+            _can->setIgnition(true);//осуществляем запуск
         }
 
         if (!engineRunning){//если двигатель не запущен

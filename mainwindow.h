@@ -13,6 +13,7 @@
 #include <QDate>
 #include <globalsettings.h>
 #include <currentstate.h>
+#include <settingsstore.h>
 
 #include <sys/socket.h>
 #include <net/if.h>
@@ -416,7 +417,6 @@ private:
     void createButtons();
     bool isBroomDownPressed();
     bool isBroomUpPressed();
-    //void setOrgansButtonsState(CustomButtonGroup::Mode mode);
     void onBroomReleased();
     void onRailReleased();
     void onBlowerReleased();
@@ -441,6 +441,7 @@ private:
 
     ViewController *view;
     SettingsReader *_settingsReader;
+    SettingsStore *settingsStore = nullptr;
     void configureChannelTypes();
     void insertValues();
     bool isSpeedTooHigh();

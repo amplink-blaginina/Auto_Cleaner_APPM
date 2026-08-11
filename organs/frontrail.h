@@ -97,8 +97,6 @@ private:
     void goNone();
     void goUp();
     void goDown();
-    void goFlow();
-    void goNoFlow();
     void printMovement(organsEnums::Direction dir, bool state);
 signals:
 

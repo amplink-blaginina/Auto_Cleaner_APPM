@@ -35,12 +35,9 @@ void PrerollController::processPrerollInService(QPushButton* prerollButton,
         prerollStarterUnlocked = false;
         stopRollOutput();
         _can->setStarterAvailable(false);
-        //can0->setState(StateStarterAllow, false);
     }
-    // Обновляем статусную строку
 
-    updateRollStatusText(prerollStatusLabel);
-
+    updateRollStatusText(prerollStatusLabel);    // Обновляем статусную строку
 
     const bool prerollPressed = serviceEngineVisible && prerollButton != NULL && prerollButton->isDown();
     const bool prerollPressedEdge = prerollPressed && !prerollButtonPrev;
@@ -75,9 +72,6 @@ void PrerollController::processPrerollInService(QPushButton* prerollButton,
             stopRollOutput();
             _can->setStarterAvailable(false);
             _can->setIgnition(false);
-            //can0->setState(StateStarterAllow, false);
-            //can0->setState(StateIgnitionOut, false);
-
             _starter->resetIgnitionTimer();
         }
     }
@@ -121,7 +115,6 @@ void PrerollController::processPrerollInService(QPushButton* prerollButton,
             rollAttemptsUsed++;
             _starter->stopStarterOutput();
             _can->setRollStarter(true);
-            //can0->setState(StateStarterRoll, true);
            _screenLog->printWarning("Стартер прокрутка включен");
         }
     }
@@ -171,47 +164,47 @@ void PrerollController::processPrerollInService(QPushButton* prerollButton,
 void PrerollController::updateRollStatusText(QLabel* statusLabel){
     //QLabel* statusLabel = serviceOtherEngineLeftForm->findChild<QLabel*>("label_prerollStatus");
 
-    if (statusLabel != NULL)
-    {
-        QString statusText;
-        if (rollNeedReboot)
-            statusText = "Лимит попыток исчерпан. Требуется перезагрузка пульта.";
-        else if (rollRunActive)
-        {
-            const int elapsed = qAbs(rollRunStartedAt.secsTo(QDateTime::currentDateTime()));
-            statusText = QString("Прокрутка активна... %1 сек. | Попытка %2/%3")
-                             .arg(elapsed).arg(rollAttemptsUsed).arg(_globals ->getRollAttempts());
-        }
-        else if (inRollPause())
-            statusText = QString("Пауза между попытками: %1 сек.").arg(rollPauseSecondsLeft());
-        else if (prerollSequenceActive)
-            statusText = "Подготовка прокрутки (выключение зажигания)...";
-        else if (prerollStarterUnlocked)
-            statusText = "Готово — нажмите СТАРТЕР ПРОКРУТКА для прокрутки";
-        else if (rollBlocked()){
-            QStringList reasons;
-            if (rollLockedByTemperature)    reasons << "холодный двигатель (ждите теплореле)";
-            if (rollLockedByEmergency)      reasons << "аварийный режим";
-            statusText = "Прокрутка заблокирована: " + reasons.join(", ");
-            _view->setStyle(statusLabel,"color: red;");
-        }
-        else if (needRollProcedure)
-            statusText = "Требуется прокрутка. Нажмите ПРОКРУТКА для подготовки.";
-        else if (rollCompleted)
-            statusText = "Прокрутка успешно завершена";
-        else
-            statusText = "";
+    if (statusLabel == NULL){
+        return;}
 
-        if (rollBlocked() && !statusText.isEmpty()){
-            _view->setStyle(statusLabel,"color: red;");
-        }
-        else{
-            _view->setStyle(statusLabel,"color: yellow;");
-        }
-
-        if (statusLabel->text() != statusText)
-            statusLabel->setText(statusText);
+    QString statusText;
+    if (rollNeedReboot)
+        statusText = "Лимит попыток исчерпан. Требуется перезагрузка пульта.";
+    else if (rollRunActive){
+        const int elapsed = qAbs(rollRunStartedAt.secsTo(QDateTime::currentDateTime()));
+        statusText = QString("Прокрутка активна... %1 сек. | Попытка %2/%3")
+                         .arg(elapsed).arg(rollAttemptsUsed).arg(_globals ->getRollAttempts());
     }
+    else if (inRollPause())
+        statusText = QString("Пауза между попытками: %1 сек.").arg(rollPauseSecondsLeft());
+    else if (prerollSequenceActive)
+        statusText = "Подготовка прокрутки (выключение зажигания)...";
+    else if (prerollStarterUnlocked)
+        statusText = "Готово — нажмите СТАРТЕР ПРОКРУТКА для прокрутки";
+    else if (rollBlocked()){
+        QStringList reasons;
+        if (rollLockedByTemperature)    reasons << "холодный двигатель (ждите теплореле)";
+        if (rollLockedByEmergency)      reasons << "аварийный режим";
+        statusText = "Прокрутка заблокирована: " + reasons.join(", ");
+        _view->setStyle(statusLabel,"color: red;");
+    }
+    else if (needRollProcedure)
+        statusText = "Требуется прокрутка. Нажмите ПРОКРУТКА для подготовки.";
+    else if (rollCompleted)
+        statusText = "Прокрутка успешно завершена";
+    else
+        statusText = "";
+
+    if (rollBlocked() && !statusText.isEmpty()){
+        _view->setStyle(statusLabel,"color: red;");
+    }
+    else{
+        _view->setStyle(statusLabel,"color: yellow;");
+    }
+
+    if (statusLabel->text() != statusText)
+        statusLabel->setText(statusText);
+
 }
 
 bool PrerollController::rollBlocked() const{
@@ -229,16 +222,12 @@ bool PrerollController::inRollPause() const{
     if (!rollPauseActive)
         return false;
     return _globals->checkRollPause(rollPauseStartedAt);
-    // const int passed = qAbs(rollPauseStartedAt.secsTo(QDateTime::currentDateTime()));
-    // return passed < rollPauseSec;
 }
 
 int PrerollController::rollPauseSecondsLeft() const{
     if (!rollPauseActive)
         return 0;
     return _globals-> rollPauseSecondsLeft(rollPauseStartedAt);
-    // const int passed = qAbs(rollPauseStartedAt.secsTo(QDateTime::currentDateTime()));
-    // return qMax(0, rollPauseSec - passed);
 }
 
 void PrerollController::resetValues(){

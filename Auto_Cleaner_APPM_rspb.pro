@@ -77,7 +77,8 @@ SOURCES += \
     settings/settingselement.cpp \
     settings/settingsform.cpp \
     settings/settingsmainrightform.cpp \
-    settings/settingsreader.cpp
+    settings/settingsreader.cpp \
+    settings/settingsstore.cpp
 
 HEADERS += \
     Controllers/cancontroller.h \
@@ -93,8 +94,6 @@ HEADERS += \
     gpio/gpio_matrix.hpp \
     gpio/gpio_types.hpp \
     gpio/gpio_worker.hpp \
-    interface_button/custombutton.h \
-    interface_button/custombuttonsgroup.h \
     interface_button/interfacebutton.h \
     log/Delegate.h \
     log/Delegate_p.h \
@@ -130,7 +129,8 @@ HEADERS += \
     settings/settingselement.h \
     settings/settingsform.h \
     settings/settingsmainrightform.h \
-    settings/settingsreader.h
+    settings/settingsreader.h \
+    settings/settingsstore.h
 
 FORMS += \
     blockform.ui \

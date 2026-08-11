@@ -31,7 +31,7 @@
 QLocale EngLocale (QLocale::Russian);
 
 static int ptsInc = 0;
-QString programmVersionString = "AutoCleaner APPM v3.015";
+QString programmVersionString = "AutoCleaner APPM v3.017";
 
 //Changes
 // 3.001 - форкнулся от APPM2 imx6, удалил лишнее и накатил на нее все от разбери с 200 и 318D4
@@ -69,6 +69,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     can0 = NULL;
     settings = new QSettings(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini", QSettings::IniFormat);
     _settingsReader= new SettingsReader(settings);
+    settingsStore = new SettingsStore(settings);
 
     QString can_device = _settingsReader->readSettingsValue("Global/canDeivce").toString();
     QString j1939_device = _settingsReader->readSettingsValue("Global/j1939Deivce").toString();
@@ -751,41 +752,35 @@ void MainWindow::removeBadSettings(){
 }
 
 void MainWindow::saveSystemConfigure(){
-    // почтистим все конфиговое
-    if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
-        QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
+    settingsStore->commitGroup("Configuration", [this](QSettings *s){
+        s->remove(""); // почистим всё конфиговое
+        s->setValue("configurationVersion", systemConfigure.configurationVersion);
 
-    settings->beginGroup("Configuration");
-    settings->remove("");
-    settings->endGroup();
-    settings->setValue("Configuration/configurationVersion", systemConfigure.configurationVersion);
-    for (int i = 1; i < 9; i++)
-    {
-        settings->setValue("Configuration/Board" + QString::number(i) + "_boardType", systemConfigure.boardsType[i]);
-        for (int k = 0; k < 12; k++)
+        for (int i = 1; i < 9; i++)
         {
-            QString basePath = "Configuration/Board" + QString::number(i) + "_channel" + QString::number(k);
-            settings->setValue(basePath + "Type", systemConfigure.channelsType[i][k]);
-            settings->setValue(basePath + "ElementId", systemConfigure.id[i][k]);
-            settings->setValue(basePath + "MedianSize", systemConfigure.channelsMedianSize[i][k]);
-            settings->setValue(basePath + "LowPFM", systemConfigure.channelsLowPFM[i][k]);
-            settings->setValue(basePath + "HighPFM", systemConfigure.channelsHighPFM[i][k]);
-            settings->setValue(basePath + "PWMSize", systemConfigure.channelsPWMSize[i][k]);
-            settings->setValue(basePath + "ValueChangeSpeed", systemConfigure.channelsValueChangeSpeed[i][k]);
+            s->setValue("Board" + QString::number(i) + "_boardType", systemConfigure.boardsType[i]);
+            for (int k = 0; k < 12; k++)
+            {
+                const QString basePath = "Board" + QString::number(i) + "_channel" + QString::number(k);
+                s->setValue(basePath + "Type", systemConfigure.channelsType[i][k]);
+                s->setValue(basePath + "ElementId", systemConfigure.id[i][k]);
+                s->setValue(basePath + "MedianSize", systemConfigure.channelsMedianSize[i][k]);
+                s->setValue(basePath + "LowPFM", systemConfigure.channelsLowPFM[i][k]);
+                s->setValue(basePath + "HighPFM", systemConfigure.channelsHighPFM[i][k]);
+                s->setValue(basePath + "PWMSize", systemConfigure.channelsPWMSize[i][k]);
+                s->setValue(basePath + "ValueChangeSpeed", systemConfigure.channelsValueChangeSpeed[i][k]);
+            }
         }
-    }
-    foreach (int key, systemElements.keys())
-    {
-        QString basePath = "Configuration/Element" + QString::number(key);
-        settings->setValue(basePath + "_id", key);
-        settings->setValue(basePath + "_name", systemElements.value(key)->name);
-        settings->setValue(basePath + "_board", systemElements.value(key)->board);
-        settings->setValue(basePath + "_channel", systemElements.value(key)->channel);
-    }
-    settings->sync();
-    system("sync");
-    // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
-    removeBadSettings();
+
+        foreach (int key, systemElements.keys())
+        {
+            const QString basePath = "Element" + QString::number(key);
+            s->setValue(basePath + "_id", key);
+            s->setValue(basePath + "_name", systemElements.value(key)->name);
+            s->setValue(basePath + "_board", systemElements.value(key)->board);
+            s->setValue(basePath + "_channel", systemElements.value(key)->channel);
+        }
+    });
 }
 
 
@@ -1059,12 +1054,17 @@ void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data){//
         ui->J1939MainStatus->hide();
 }
 // void MainWindow::setSettings(QString engine, QString group, ){
-//     engineToday = TOCurValues["Engine"];
-//     settings->beginGroup("TOCur");
-//     settings->setValue("EngineToday", engineToday);
-//     settings->setValue("DateToday", dateToday);
-//     settings->endGroup();
-//     settings->sync();
+//     settingsStore->commitGroup("TOCur", [this](QSettings *s){
+//         s->setValue("EngineToday", TOCurValues["EngineToday"]);
+//         s->setValue("DateToday", dateToday);
+
+//     });
+//     // engineToday = TOCurValues["Engine"];
+//     // settings->beginGroup("TOCur");
+//     // settings->setValue("EngineToday", engineToday);
+//     // settings->setValue("DateToday", dateToday);
+//     // settings->endGroup();
+//     // settings->sync();
 // }
 
 void MainWindow::oneSecond(){// универсальный таймер для всяких нужд (раз в сек)
@@ -1119,13 +1119,18 @@ void MainWindow::oneSecond(){// универсальный таймер для �
     {// надо записать сегодняшний срез и сохранить его
         dateToday = DateAndTime.date();
         engineToday = TOCurValues["Engine"];
-        settings->beginGroup("TOCur");
-        settings->setValue("EngineToday", engineToday);
-        settings->setValue("DateToday", dateToday);
-        settings->endGroup();
-        settings->sync();
-        // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
-        removeBadSettings();
+        settingsStore->commitGroup("TOCur", [this](QSettings *s){
+            s->setValue("EngineToday", engineToday);
+            s->setValue("DateToday", dateToday);
+        });
+
+        // settings->beginGroup("TOCur");
+        // settings->setValue("EngineToday", engineToday);
+        // settings->setValue("DateToday", dateToday);
+        // settings->endGroup();
+        // settings->sync();
+        // // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
+        // removeBadSettings();
     }
     // отображаем моточасы
     QString temp = "%1";
@@ -1137,32 +1142,41 @@ void MainWindow::oneSecond(){// универсальный таймер для �
     if (TOCurValues["Engine"] - TOCurValues["EngineLast"] > 5 * 60)
     {// пора сохранить кой какие данные каждые 5 минут
         TOCurValues["EngineLast"] = TOCurValues["Engine"];
+
+        settingsStore->commitGroup("TOCur", [this](QSettings *s){
+            s->setValue("Engine", TOCurValues["Engine"]);
+        });
+
         // сохраняем настройки
         // перед этим удаляем lock файл - были случаи что lock файл блокировал запись настроек
-        if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
-            QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
-
-        settings->beginGroup("TOCur");
-        settings->setValue("Engine", TOCurValues["Engine"]);
-        settings->endGroup();
-        settings->sync();
+        // if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
+        //     QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
+        // settings->beginGroup("TOCur");
+        // settings->setValue("Engine", TOCurValues["Engine"]);
+        // settings->endGroup();
+        // settings->sync();
         // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
-        removeBadSettings();
+        //removeBadSettings();
     }
     if (TOCurValues["System"] - TOCurValues["SystemLast"] > 5 * 60)
     {// пора сохранить кой какие данные каждые 5 минут
         TOCurValues["SystemLast"] = TOCurValues["System"];
         // сохраняем настройки
         // перед этим удаляем lock файл - были случаи что lock файл блокировал запись настроек
-        if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
-            QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
 
-        settings->beginGroup("TOCur");
-        settings->setValue("System", TOCurValues["System"]);
-        settings->endGroup();
-        settings->sync();
+        settingsStore->commitGroup("TOCur", [this](QSettings *s){
+            s->setValue("System", TOCurValues["System"]);
+        });
+
+        // if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
+        //     QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
+
+        // settings->beginGroup("TOCur");
+        // settings->setValue("System", TOCurValues["System"]);
+        // settings->endGroup();
+        // settings->sync();
         // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
-        removeBadSettings();
+        //removeBadSettings();
     }
 
     bool to_test = false;
@@ -1252,17 +1266,25 @@ void MainWindow::mainProgress(){
                 view->addLogWarning("Нажали кнопку выключения ПВИ. Начинается выключение ПВИ ( удерживайте кнопку )");
             logger->setStop(true);
             //сохраним важные параметры
-            if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
-                QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
 
-            settings->beginGroup("TOCur");
-            settings->setValue("System", TOCurValues["System"]);
-            settings->setValue("Engine", TOCurValues["Engine"]);
-            settings->setValue("FrontEngine", TOCurValues["FrontEngine"]);
-            settings->endGroup();
-            settings->sync();
+            settingsStore->commitGroup("TOCur", [this](QSettings *s){
+                s->setValue("System", TOCurValues["System"]);
+                s->setValue("Engine", TOCurValues["Engine"]);
+                s->setValue("FrontEngine", TOCurValues["FrontEngine"]);
+            });
+
+
+            // if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
+            //     QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
+
+            // settings->beginGroup("TOCur");
+            // settings->setValue("System", TOCurValues["System"]);
+            // settings->setValue("Engine", TOCurValues["Engine"]);
+            // settings->setValue("FrontEngine", TOCurValues["FrontEngine"]);
+            // settings->endGroup();
+            // settings->sync();
             // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
-            removeBadSettings();
+            //removeBadSettings();
         }
     }
     else{
@@ -1746,10 +1768,9 @@ void MainWindow::settingsAskPassword(){
         connect(this,SIGNAL(Send_SecretPass_2_pass_form(int)),Password_window,SLOT(Recieve_secret_pass_name(int)));
         connect(Password_window,SIGNAL(Send_correct(int)),this,SLOT(passwordSettingsOk(int)));
 
-        settings->beginGroup("Global");
-        emit Send_Pass_2_pass_form(settings->value("password").toInt());
-        emit Send_SecretPass_2_pass_form(settings->value("secretPassword").toInt());
-        settings->endGroup();
+
+        emit Send_Pass_2_pass_form(_settingsReader->readSettingsValue("Global/password").toInt());
+        emit Send_SecretPass_2_pass_form(_settingsReader->readSettingsValue("Global/secretPassword").toInt());
         Password_window->show();
     }
     else{
@@ -1777,10 +1798,8 @@ void MainWindow::diagAskPassword(){
         connect(this,SIGNAL(Send_SecretPass_2_pass_form(int)),Password_window,SLOT(Recieve_secret_pass_name(int)));
         connect(Password_window,SIGNAL(Send_correct(int)),this,SLOT(passwordDiagOk(int)));
 
-        settings->beginGroup("Global");
-        emit Send_Pass_2_pass_form(settings->value("passwordDiag").toInt());
-        emit Send_SecretPass_2_pass_form(settings->value("secretPasswordDiag").toInt());
-        settings->endGroup();
+        emit Send_Pass_2_pass_form(_settingsReader->readSettingsValue("Global/passwordDiag").toInt());
+        emit Send_SecretPass_2_pass_form(_settingsReader->readSettingsValue("Global/secretPasswordDiag").toInt());
         Password_window->show();
     }
     else{
@@ -2385,19 +2404,19 @@ void MainWindow::updateOrgansStates(){
         }
     }
 
-    if (frontRail->getState() >= FrontRail::FrontRailFlowed){
-        if (workMode.frontDumpFlow){
-            view->addLog("!!!Отвал плавающий");
-            frontRail->setState(FrontRail::FrontRailFlowIn);
-            //frontRail->goFlow();
-        }
+    // if (frontRail->getState() >= FrontRail::FrontRailFlowed){
+    //     if (workMode.frontDumpFlow){
+    //         //view->addLog("!!!Отвал плавающий");
+    //         frontRail->setState(FrontRail::FrontRailFlowIn);
+    //         //frontRail->goFlow();
+    //     }
 
-        else{
-            view->addLog("!!!Отвал не плавающий");
-            frontRail->setState(FrontRail::FrontRailFlowOut);
-            //frontRail->goNoFlow();
-        }
-    }
+    //     else{
+    //         //view->addLog("!!!Отвал не плавающий");
+    //         frontRail->setState(FrontRail::FrontRailFlowOut);
+    //         //frontRail->goNoFlow();
+    //     }
+    // }
 }
 
 //==============================Sweep================================================

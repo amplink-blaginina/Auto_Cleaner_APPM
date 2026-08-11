@@ -167,15 +167,8 @@ void FrontRail::setState(FrontRailStates state_){
         //mainWindow->addLog("Плавающий режим отвала", MainWindow::InfoStatus);
     }
     if (state == FrontRail::FrontRailFlowed){// закончилось плавание
+        qDebug()<<"Отвал: Плавание закончено";
         setFlowActive(((MainWindow*)parent)->workMode.frontDumpFlow);
-        // if (((MainWindow*)parent)->workMode.frontDumpFlow){
-        //     goFlow();
-        //     logger->printLog("Плавающий режим отвала №2");
-        // }
-        // else{
-        //     goNoFlow();
-        //     logger->printLog("Не плавающий режим отвала");
-        // }
     }
     if (state == FrontRail::FrontRailFlowIn){// заканчиваем плавание
         setFlowActive(false);
@@ -255,6 +248,7 @@ void FrontRail::goDown(bool state){
 void FrontRail::goUp(){
     goUp(true);
 }
+
 void FrontRail::goUp(bool state){
     if(state){
         setFlowActive(false);
@@ -264,13 +258,6 @@ void FrontRail::goUp(bool state){
     printMovement(organsEnums::Up, state);
 }
 
-void FrontRail::goFlow(){
-    goFlow(true);
-}
-
-void FrontRail::goNoFlow(){
-    goFlow(false);
-}
 void FrontRail::goFlow(bool state){
     logger->addLogWarning(state?"Отвал: плавание активировано":"Отвал: плавание деактивировано");
     myCan->setState(StateValveC3, state);
