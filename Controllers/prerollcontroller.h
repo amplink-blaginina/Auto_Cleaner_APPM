@@ -21,35 +21,32 @@ public:
                       StarterController *starter, CurrentState *state,
                       ViewController *view);
 
-    bool rollLockedByTemperature;
-    bool rollLockedByEmergency;
-    bool needRollProcedure;
-    bool rollCompleted;
+    // bool rollLockedByTemperature;
+    // bool rollLockedByEmergency;
+    // bool needRollProcedure;
+    // bool rollCompleted;
 
-
-
-    bool rollInputPrev;
-    bool rollRunActive;
     QDateTime rollRunStartedAt;
-    bool rollPauseActive;
     QDateTime rollPauseStartedAt;
-    int rollAttemptsUsed;
-    bool rollNeedReboot;
-    bool rollPauseWarned;
-
-    bool logNeedRollShown;
-
-    bool prerollStarterButtonPrev;
-    bool prerollStarterUnlocked;
-    bool prerollButtonPrev;
-    bool prerollSequenceActive;
-    int prerollSequenceStep;
     QDateTime prerollStepStartedAt;
+
+    // bool rollInputPrev;
+    // bool rollRunActive;
+    // bool rollPauseActive;
+    //int rollAttemptsUsed;
+    //bool rollNeedReboot;
+   // bool rollPauseWarned;
+    // bool logNeedRollShown;
+
+    // bool prerollStarterButtonPrev;
+    // bool prerollStarterUnlocked;
+    // bool prerollButtonPrev;
+    // bool prerollSequenceActive;
+    // int prerollSequenceStep;
 
     void updateRollStatusText(QLabel *status);
     void stopRollOutput();
     bool rollBlocked() const;
-
     bool inRollPause() const;
 
     int rollPauseSecondsLeft() const;

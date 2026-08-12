@@ -53,7 +53,7 @@ public:
     QDateTime startActionTime;
 
     // таймауты на каждую длительную операцию
-    QMap<BlowerStates, int> timeouts;
+    QMap<BlowerStates, float> timeouts;
     // скорость вращения щетки под каждый тип смета
     QMap<int, int> speedForSweepType;
     // обороты двигателя под каждый тип смета

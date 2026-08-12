@@ -13,7 +13,7 @@ CentralBroom::CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *se
     parent = parent_;
     setState(BroomOff);
     setNeedState(BroomOff);
-    needSlided = false;
+    needGoLeft = false;
     settings = settings_;
     startClean = false;
     choosed = false;
@@ -31,28 +31,20 @@ void CentralBroom::readSettings(){
     speedForSweepType.clear();
     auto mainWindow = (MainWindow*)parent;
     auto reader = mainWindow->getReader();
-    rpmForSweepType.insert(MainWindow::LeafSweep, reader ->readSettingsValue("Engine/rpm.LeafSweep").toInt());
-    rpmForSweepType.insert(MainWindow::LightSweep, reader ->readSettingsValue("Engine/rpm.LightSweep").toInt());
-    rpmForSweepType.insert(MainWindow::MediumSweep, reader ->readSettingsValue("Engine/rpm.MediumSweep").toInt());
-    rpmForSweepType.insert(MainWindow::HeavySweep, reader ->readSettingsValue("Engine/rpm.HeavySweep").toInt());
-
-    timeouts.insert(BroomSlideOut, reader ->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toInt());
-    timeouts.insert(BroomSlideIn, reader ->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toInt());
-    timeouts.insert(BroomBounceOut, reader ->readSettingsValue("CentralBroom/timeouts.BroomBounceOut").toFloat());
 
     rpmForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("Engine/rpm.LeafSweep").toInt());
     rpmForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("Engine/rpm.LightSweep").toInt());
     rpmForSweepType.insert(MainWindow::MediumSweep, reader->readSettingsValue("Engine/rpm.MediumSweep").toInt());
     rpmForSweepType.insert(MainWindow::HeavySweep, reader->readSettingsValue("Engine/rpm.HeavySweep").toInt());
 
-    timeouts.insert(BroomSlideOut, reader->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toInt());
-    timeouts.insert(BroomSlideIn, reader->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toInt());
+    timeouts.insert(BroomSlideOut, reader->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toFloat());
+    timeouts.insert(BroomSlideIn, reader->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toFloat());
     timeouts.insert(BroomBounceOut, reader->readSettingsValue("CentralBroom/timeouts.BroomBounceOut").toFloat());
-    timeouts.insert(BroomDownOut, reader->readSettingsValue("CentralBroom/timeouts.BroomDownOut").toInt());
-    timeouts.insert(BroomDownIn, reader->readSettingsValue("CentralBroom/timeouts.BroomDownIn").toInt());
-    timeouts.insert(BroomFlowOut, reader->readSettingsValue("CentralBroom/timeouts.BroomFlowOut").toInt());
-    timeouts.insert(BroomRotateOut, reader->readSettingsValue("CentralBroom/timeouts.BroomRotateOut").toInt());
-    timeouts.insert(BroomRotateIn, reader->readSettingsValue("CentralBroom/timeouts.BroomRotateIn").toInt());
+    timeouts.insert(BroomDownOut, reader->readSettingsValue("CentralBroom/timeouts.BroomDownOut").toFloat());
+    timeouts.insert(BroomDownIn, reader->readSettingsValue("CentralBroom/timeouts.BroomDownIn").toFloat());
+    timeouts.insert(BroomFlowOut, reader->readSettingsValue("CentralBroom/timeouts.BroomFlowOut").toFloat());
+    timeouts.insert(BroomRotateOut, reader->readSettingsValue("CentralBroom/timeouts.BroomRotateOut").toFloat());
+    timeouts.insert(BroomRotateIn, reader->readSettingsValue("CentralBroom/timeouts.BroomRotateIn").toFloat());
 
     speedForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("CentralBroom/speeds.LeafSweep").toInt());
     speedForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("CentralBroom/speeds.LightSweep").toInt());
@@ -117,7 +109,7 @@ void CentralBroom::setState(BroomStates state_){
         return;
     }
     QString msg = &"BroomState: "[state_];
-    //logger->printTest(msg);
+    qDebug()<<msg;
     state = state_;
     auto mainWindow = (MainWindow*)parent;
 
@@ -132,25 +124,23 @@ void CentralBroom::setState(BroomStates state_){
     }
 
     if (state == CentralBroom::BroomBounceOut){// отскок — поворот в противоположную сторону
-        qDebug()<<"BroomBounceOut timer: "<<timeouts.value(BroomBounceOut, 0);
+        startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(BroomBounceOut, 0) > 0) {
-            startActionTime = QDateTime::currentDateTime();
             goNone();
-            goSlide(!needSlided);
-            logger->addLog("Щетка отскок");
+            goSlide(!needGoLeft);
+            logger->addLog("Щетка: отскок");
         }
     }
 
     //---------------------------------------------------------------------------
     if (state == CentralBroom::BroomFlowOut){// началось плавание
         goNone();
-        //logger->addLogWarning("**");
-        //setFlowActive(true);
     }
 
     if (state == CentralBroom::BroomFlowed){// закончилось плавание
+        qDebug()<<"broomFlowed!!!";
         if (!mainWindow->workMode.centralBroomFlow){
-            setFlowActive(false);
+            setFlowActive(((MainWindow*)parent)->workMode.centralBroomFlow);//false);
             //logger->addLog("Щетка не плавающая");
             //mainWindow->addLog("Щетка не плавающая", MainWindow::InfoStatus);
         }
@@ -178,7 +168,7 @@ void CentralBroom::setState(BroomStates state_){
     }
 
     if (state == CentralBroom::BroomSlideOut){
-        goSlide(needSlided);
+        goSlide(needGoLeft);
     }
 
     if (state == CentralBroom::BroomSlideIn){
@@ -193,8 +183,12 @@ void CentralBroom::goSlide(bool toLeft){
 
 void CentralBroom::goLeft(){setDirection(organsEnums::Left);}
 void CentralBroom::goRight(){setDirection(organsEnums::Right);}
-void CentralBroom::goUp(){setDirection(organsEnums::Up);}
-void CentralBroom::goDown(){setDirection(organsEnums::Down);}
+void CentralBroom::goUp(){
+    qDebug()<<"goUP!!!";
+    setDirection(organsEnums::Up);}
+void CentralBroom::goDown(){
+    qDebug()<<"goDOWN!!!";
+    setDirection(organsEnums::Down);}
 
 void CentralBroom::goLeft(bool state){
     printMovement(organsEnums::Left, state, isPressed);
@@ -220,8 +214,8 @@ void CentralBroom::goNone(){
     //stopPress();
 }
 
-
 void CentralBroom::goUp(bool state, bool isPressed){
+    qDebug()<<"###goUP!!!";
     if(isPressed){
         myCan->setState(StateValveF2, state);
     }
@@ -235,6 +229,8 @@ void CentralBroom::goUp(bool state, bool isPressed){
 }
 
 void CentralBroom::goDown(bool state, bool isPressed){
+    if(state)
+        qDebug()<<"###goDOWN!!!";
     if(isPressed){
         myCan->setState(StateValveF8, state);
     }
@@ -375,30 +371,30 @@ void CentralBroom::goFlow(bool state){
 
 void CentralBroom::goRotate(int speed_){
     myCan->setState(StateValveD1, speed_ / 2);
-    myCan->setState(StateValveA1, true);
+    //myCan->setState(StateValveA1, true);
 }
 
 void CentralBroom::goNoRotate(){
     myCan->setState(StateValveD1, 0);
 }
 
-void CentralBroom::increaseSpeed(){
-    int spd = myCan->getState(StateValveD1).toUInt() * 2;
-    if (spd + 10 < 100)
-        spd += 10;
-    else
-        spd = 100;
-    goRotate(spd);
-}
+// void CentralBroom::increaseSpeed(){
+//     int spd = myCan->getState(StateValveD1).toUInt() * 2;
+//     if (spd + 10 < 100)
+//         spd += 10;
+//     else
+//         spd = 100;
+//     goRotate(spd);
+// }
 
-void CentralBroom::decreaseSpeed(){
-    int spd = myCan->getState(StateValveD1).toUInt() * 2;
-    if (spd - 10 > 0)
-        spd -= 10;
-    else
-        spd = 0;
-    goRotate(spd);
-}
+// void CentralBroom::decreaseSpeed(){
+//     int spd = myCan->getState(StateValveD1).toUInt() * 2;
+//     if (spd - 10 > 0)
+//         spd -= 10;
+//     else
+//         spd = 0;
+//     goRotate(spd);
+// }
 
 CentralBroom::BroomStates CentralBroom::getState(){
     return state;
@@ -512,8 +508,8 @@ bool CentralBroom::testStateTimer(){// мощная функция провер�
     }
 
     if (state == CentralBroom::BroomSlideOut){
-        const bool sensorReached = needSlided ? myCan->getState(StateDKPBroomLeft).toBool() : myCan->getState(StateDKPBroomRight).toBool();
-        if(checkMovementAndStopOnTimeout(timeoutReached, sensorReached, needSlided? organsEnums::Left: organsEnums::Right)){
+        const bool sensorReached = needGoLeft ? myCan->getState(StateDKPBroomLeft).toBool() : myCan->getState(StateDKPBroomRight).toBool();
+        if(checkMovementAndStopOnTimeout(timeoutReached, sensorReached, needGoLeft? organsEnums::Left: organsEnums::Right)){
             dkpAndPositionTest = true;
         }
     }
@@ -566,128 +562,75 @@ void CentralBroom::progressLoop(){
     }
 }
 
-CentralBroom::BroomStates CentralBroom::stateUp()
-{// пытаемся прогрессировать статусом вверх (если что меняем направление статуса, если вдруг был понижающий прогресс)
-    switch (state) {
-    case BroomOff:
-        // начинаем опускание
-        setState(BroomSlideOut);
-        break;
-    case BroomDownOut:
-        // заканчиваем опускание по таймеру
-        if (testStateTimer())
-            setState(BroomDowned);
-        break;
-    case BroomDownIn:
-        // меняем направление на опускание (до этого поднимались)
-        setState(BroomDownOut);
-        break;
-    case BroomDowned:
-        // начинаем вращение или поворот
-        setState(BroomFlowOut);
-        break;
-    case BroomFlowIn:
-        setState(BroomFlowOut);
-        break;
-    case BroomFlowOut:
-        if (testStateTimer())
-            setState(BroomFlowed);
-        break;
-    case BroomFlowed:
-        // начинаем вращение или поворот
-        setState(BroomRotateOut);
-        break;
-    case BroomRotated:
-        // начинаем вращение или поворот
-        setState(BroomDownOut);
-        break;
-    case BroomRotateOut:
-        // заканчиваем раскрутку
-        if (testStateTimer())
-            setState(BroomRotated);
-        break;
-    case BroomRotateIn:
-        // меняем направление раскрутки ( до этого тормозились)
-        setState(BroomRotateOut);
-        break;
-    case BroomSlideOut:
-        // заканчиваем поворот щетки
-        if (testStateTimer())
-            setState(BroomSlided);
-        break;
-    case BroomSlideIn:
-        setState(BroomSlideOut);
-        break;
-    case BroomSlided:
-        setState(BroomBounceOut);
-        break;
-    case BroomBounceOut:
-        if (testStateTimer())
-            setState(BroomBounced);
-        break;
-    case BroomBounced:
-        setState(BroomRotateOut);
-        break;
-    default:
-        break;
+CentralBroom::BroomStates CentralBroom::getNextState(CentralBroom::BroomStates current){
+    switch (current) {
+    case BroomOff: return BroomSlideOut;// начинаем опускание
+    case BroomDownOut: return BroomDowned;// заканчиваем опускание по таймеру
+    case BroomDownIn:return BroomDownOut;// меняем направление на опускание (до этого поднимались)
+    case BroomDowned:return BroomFlowOut;// начинаем вращение или поворот
+    case BroomFlowIn:return BroomFlowOut;
+    case BroomFlowOut:return BroomFlowed;
+    case BroomFlowed:return BroomRotateOut; // начинаем вращение или поворот
+    case BroomRotated:return BroomDownOut;// начинаем вращение или поворот
+    case BroomRotateOut:return BroomRotated; // заканчиваем раскрутку
+    case BroomRotateIn:return BroomRotateOut;// меняем направление раскрутки ( до этого тормозились)
+    case BroomSlideOut:return BroomSlided;// заканчиваем поворот щетки
+    case BroomSlideIn:return BroomSlideOut;
+    case BroomSlided: return BroomBounceOut;
+    case BroomBounceOut:return BroomBounced;
+    case BroomBounced:return BroomRotateOut;
+    default: return current;}
+}
+
+CentralBroom::BroomStates CentralBroom::getPreviousState(CentralBroom::BroomStates current){
+    switch (current) {
+    case BroomDownOut: return BroomDownIn;// меняем направление на поднимание (до этого опускались)
+    case BroomDownIn:return BroomRotated;// заканчиваем подъем по таймеру и переходим в стостояние готовности к включению
+    case BroomDowned:return BroomDownIn;// начинаем поднимаение по таймеру
+    case BroomFlowIn:return BroomDowned;
+    case BroomFlowOut:return BroomFlowIn;
+    case BroomFlowed:return BroomFlowIn; // начинаем вращение или поворот
+    case BroomSlideOut:return BroomSlideIn;// заканчиваем поворот щетки
+    case BroomSlideIn:return BroomOff;
+    case BroomSlided: return BroomSlideIn;
+    case BroomRotateOut:return BroomRotateIn; // заканчиваем раскрутку
+    case BroomRotateIn:return BroomBounced;// меняем направление раскрутки ( до этого тормозились)
+    case BroomRotated:return BroomRotateIn;// начинаем вращение или поворот
+    case BroomBounceOut:return BroomBounced;
+    case BroomBounced:return BroomSlided;
+    default: return current;}
+}
+
+CentralBroom::BroomStates CentralBroom::stateUp(){// пытаемся прогрессировать статусом вверх (если что меняем направление статуса, если вдруг был понижающий прогресс)
+    if(state == BroomDownOut||
+        state == BroomFlowOut||
+        state == BroomRotated||
+        state == BroomSlided||
+        state == BroomBounced){
+        if(!testStateTimer()){
+            return state;
+        }
+    }
+    auto newState = getNextState(state);
+    if(newState != state){
+        setState(newState);
+        qDebug()<<"setState: "<<newState;
     }
     return state;
 }
 
 CentralBroom::BroomStates CentralBroom::stateDown()
 {// пытаемся прогрессировать статусом вниз (если что меняем направление статуса, если вдруг был повышающий прогресс)
-    switch (state) {
-    case BroomDownOut:
-        // меняем направление на поднимание (до этого опускались)
-        setState(BroomDownIn);
-        break;
-    case BroomDownIn:
-        // заканчиваем подъем по таймеру и переходим в стостояние готовности к включению
-        if (testStateTimer())
-            setState(BroomRotated);
-        break;
-    case BroomDowned:
-        // начинаем поднимаение по таймеру
-        setState(BroomDownIn);
-        break;
-    case BroomFlowIn:
-        setState(BroomDowned);
-        break;
-    case BroomFlowOut:
-        setState(BroomFlowIn);
-        break;
-    case BroomFlowed:
-        setState(BroomFlowIn);
-        break;
-    case BroomSlideOut:
-        setState(BroomSlideIn);
-        break;
-    case BroomSlideIn:
-        if (testStateTimer())
-            setState(BroomOff);
-        break;
-    case BroomSlided:
-        setState(BroomSlideIn);
-        break;
-    case BroomRotateOut:
-        setState(BroomRotateIn);
-        break;
-    case BroomRotateIn:
-        if (testStateTimer())
-            setState(BroomBounced);
-        break;
-    case BroomRotated:
-        setState(BroomRotateIn);
-        break;
-    case BroomBounceOut:
-        // прерываем отскок, считаем завершённым
-        setState(BroomBounced);
-        break;
-    case BroomBounced:
-        setState(BroomSlided);
-        break;
-    default:
-        break;
+
+    if(state == BroomDownIn||
+        state == BroomSlideIn||
+        state == BroomRotateIn){
+        if (!testStateTimer())
+            return state;
+    }
+    auto newState = getPreviousState(state);
+    if(state!=newState){
+        setState(newState);
     }
     return state;
 }

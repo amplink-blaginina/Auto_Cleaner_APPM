@@ -64,25 +64,23 @@ public:
     QDateTime startActionTime;
 
     // таймауты на каждую длительную операцию
-    QMap<BroomStates, int> timeouts;
+    QMap<BroomStates, float> timeouts;
     // скорость вращения щетки под каждый тип смета
     QMap<int, int> speedForSweepType;
     // обороты двигателя под каждый тип смета
     QMap<int, int> rpmForSweepType;
 
     bool startClean;
-    bool needSlided; // тут главный признак-будет ли эта щетка желать развернуться или нет (это поворот ВЛЕВО)
+    bool needGoLeft; // тут главный признак-будет ли эта щетка желать развернуться или нет (это поворот ВЛЕВО)
     bool isPressed;
     bool isFlowing;
     organsEnums::Direction direction;
 
-    // установка и получение состояния модуля
-    void setState(BroomStates state_);
-    BroomStates state; // стутус который мы предполагаем сейчас (лигические выводы)
 
+    void setState(BroomStates state_);// установка и получение состояния модуля
+    BroomStates state; // стутус который мы предполагаем сейчас (лигические выводы)
     BroomStates needState; // статус который мы желаем достичь
-    // установка и получение требуемого состояния модуля (к чему модуль движется так скажем)
-    void setNeedState(BroomStates state_);
+    void setNeedState(BroomStates state_);// установка и получение требуемого состояния модуля (к чему модуль движется так скажем)
     BroomStates getNeedState();
 
     BroomStates ableState; // статус который мы можем достичь
@@ -97,9 +95,6 @@ public:
     void goPressUp(bool state);
     void goPressDown(bool state);
     void stopPress();
-    // void goPressUp();
-    // void goPressDown();
-    //void goPress();
     void setPressActive(bool state);
     void setFlowActive(bool state);
 
@@ -126,14 +121,16 @@ private:
 
     void printMovement(organsEnums::Direction dir, bool state, bool isPressed);
 
-    void increaseSpeed();
-    void decreaseSpeed();
+    // void increaseSpeed();
+    // void decreaseSpeed();
     void goSlide(bool toLeft);
     bool isTimeoutReached();
     bool wereBusyAndTimeoutReached(bool timeoutReached, BroomStates state);
     bool checkMovementAndStopOnTimeout(bool timeoutReached, bool isSensorReached, organsEnums::Direction dir);
 
     void printMovement(int, bool, bool);
+    CentralBroom::BroomStates getNextState(CentralBroom::BroomStates current);
+    CentralBroom::BroomStates getPreviousState(CentralBroom::BroomStates current);
 };
 
 #endif // CENTRALBROOM_H

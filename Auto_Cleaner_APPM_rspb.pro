@@ -47,6 +47,7 @@ SOURCES += \
     log/MessageList.cpp \
     log/screenlog.cpp \
     logger.cpp \
+    maintenancetracker.cpp \
     mainwindow.cpp \
     can/mycan.cpp \
     can/mycanj1939.cpp \
@@ -102,6 +103,7 @@ HEADERS += \
     log/MessageList.h \
     log/screenlog.h \
     logger.h \
+    maintenancetracker.h \
     mainwindow.h \
     can/mycan.h \
     can/mycanj1939.h \

@@ -47,7 +47,7 @@ public:
     QDateTime startActionTime;
 
     // таймауты на каждую длительную операцию
-    QMap<BackMagnetStates, int> timeouts;
+    QMap<BackMagnetStates, float> timeouts;
 
     bool startClean;
 

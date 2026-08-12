@@ -24,8 +24,7 @@ void ServiceDevicesHydraulicsLeftForm::refreshSliders()
     ui->horizontalSlider_fanRotateRight->setValue(((MainWindow*)parent)->can0->getState(StateValveD3).toInt());
 }
 
-void ServiceDevicesHydraulicsLeftForm::updateVisual()
-{
+void ServiceDevicesHydraulicsLeftForm::updateVisual(){
     auto mainWindow = (MainWindow*)parent;
     if (mainWindow->can0->getState(StateValveC1).toBool() != ui->pushButton_broomFlow->isChecked())
         ui->pushButton_broomFlow->setChecked(mainWindow->can0->getState(StateValveC1).toBool());

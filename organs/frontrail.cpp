@@ -13,7 +13,7 @@ FrontRail::FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings
     logger= logger_;
     setState(FrontRailOff);
     setNeedState(FrontRailOff);
-    needSlided = false;
+    needGoLeft = false;
     settings = settings_;
     startClean = false;
     choosed = false;
@@ -29,6 +29,7 @@ void FrontRail::readSettings(){
     timeouts.clear();
     auto mainWin = (MainWindow*)parent;
     auto reader = mainWin->getReader();
+    qDebug()<<"Central readSettings Dump";
     // назначаем таймауты на длительные операции
     timeouts.insert(FrontRailSlideOut, reader->readSettingsValue("Dump/timeouts.DumpSlideOut").toFloat());
     timeouts.insert(FrontRailSlideIn, reader->readSettingsValue("Dump/timeouts.DumpSlideIn").toFloat());
@@ -177,12 +178,11 @@ void FrontRail::setState(FrontRailStates state_){
     if (state == FrontRail::FrontRailSlideOut){// начинается поворот на нужный угол
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailSlideOut, 0) > 0) {
-            setDirection(needSlided? organsEnums::Left: organsEnums::Right);
+            setDirection(needGoLeft? organsEnums::Left: organsEnums::Right);
             //logger->printLog("Отвал поворачивает");
         }
     }
-    if (state == FrontRail::FrontRailSlideIn)
-    {
+    if (state == FrontRail::FrontRailSlideIn){
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailSlideIn, 0) > 0) {
             setDirection(organsEnums::Right);
@@ -191,15 +191,14 @@ void FrontRail::setState(FrontRailStates state_){
             //logger->printLog("Отвал поворачивает");
         }
     }
-    if (state == FrontRail::FrontRailSlided)
-    {// повернулась куда надо
+    if (state == FrontRail::FrontRailSlided){// повернулась куда надо
         setDirection(organsEnums::None);
         //goNone();
     }
-    if (state == FrontRail::FrontRailBounceOut)    {// отскок — поворот в противоположную сторону
+    if (state == FrontRail::FrontRailBounceOut){// отскок — поворот в противоположную сторону
         startActionTime = QDateTime::currentDateTime();
         if (timeouts.value(FrontRailBounceOut, 0) > 0) {
-             setDirection(!needSlided? organsEnums::Left: organsEnums::Right);
+             setDirection(!needGoLeft? organsEnums::Left: organsEnums::Right);
             // goNone();
             // if (!needSlided)
             //     goLeft();
@@ -363,7 +362,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
     // щетка идет вбок, ждем концевик
     if (state == FrontRail::FrontRailSlideOut)
     {
-        const bool sensorReached = myCan->getState((needSlided ? StateDKPDumpLeft : StateDKPDumpRight)).toBool();
+        const bool sensorReached = myCan->getState((needGoLeft ? StateDKPDumpLeft : StateDKPDumpRight)).toBool();
         if (timeTest && !sensorReached){
             if (!railAlarmed){
                 logger->addLog("Отвал: достигнут тайм-аут");

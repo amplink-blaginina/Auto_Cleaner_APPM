@@ -67,6 +67,7 @@
 //логгер (черный ящик)
 #include "MedianFilter.h"
 #include "logger.h"
+#include "maintenancetracker.h"
 
 #include "log/MessageList.h"
 
@@ -451,6 +452,7 @@ private:
     ViewController *view;
     SettingsReader *_settingsReader;
     SettingsStore *settingsStore = nullptr;
+    MaintenanceTracker *maintenanceTracker = nullptr;
     void configureChannelTypes();
     void insertValues();
     bool isSpeedTooHigh();
@@ -517,8 +519,11 @@ private slots:
     void on_pushButton_frmMagnet_clicked();
     void on_pushButton_homeState_clicked();
 
+    void on_pushButton_centralBroomUp_pressed();
+    void on_pushButton_centralBroomUp_released();
     void on_pushButton_centralBroomDown_pressed();
     void on_pushButton_centralBroomDown_released();
+
     void on_pushButton_centralBroomLeft_pressed();
     void on_pushButton_centralBroomLeft_released();
     void on_pushButton_centralBroomRight_pressed();

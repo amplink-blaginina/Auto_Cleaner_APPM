@@ -71,6 +71,14 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     _settingsReader= new SettingsReader(settings);
     settingsStore = new SettingsStore(settings);
 
+    maintenanceTracker = new MaintenanceTracker(
+        _settingsReader,
+        settingsStore
+        );
+
+    maintenanceTracker->createRules();
+    maintenanceTracker->load();
+
     QString can_device = _settingsReader->readSettingsValue("Global/canDeivce").toString();
     QString j1939_device = _settingsReader->readSettingsValue("Global/j1939Deivce").toString();
 
@@ -106,8 +114,8 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     a->setApplicationName("AutoCleaner_APPM");
     a->setApplicationVersion(programmVersionString);
-    // Парсер командной строки
-    QCommandLineParser parser;
+
+    QCommandLineParser parser;// Парсер командной строки
     parser.setApplicationDescription("Запуск приложения с ключами");
     parser.addHelpOption();
     parser.addVersionOption();
@@ -138,9 +146,12 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
         QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini");
 
     _settingsReader->setDefaults();//дефолтные настройки
-    insertValues();
-
+    maintenanceTracker = new MaintenanceTracker(_settingsReader, settingsStore);
+    maintenanceTracker->createRules();
+    maintenanceTracker->load();
+    //insertValues();
     readValues();
+
     configureChannelTypes();
 
     addElement(StateValveA1, "Силовой клапан A1", 1, 0, OUT_MODE_NORMAL);
@@ -218,7 +229,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
 
     // закидываем настрокий конфигурацции для кана
-
     can0->fillSystemConfigure(&systemConfigure, &systemElements);
     logger->fillSystemConfigure(&can0->systemConfigure, &can0->systemElements);// тырим ее у кана потому что он расставляет важные параметры
 
@@ -424,108 +434,109 @@ void MainWindow::setDefaultSettings(){
 }
 
 void MainWindow::createButtons(){}
-void MainWindow::insertValues(){
+// void MainWindow::insertValues(){
 
-    TONameValues.insert("EngineOil", "Масло и охлаждающая жидкость двигателя");
-    TOAlarmValues.insert("EngineOil", 0);
-    TOSourceValues.insert("EngineOil", 0);
+//     TONameValues.insert("EngineOil", "Масло и охлаждающая жидкость двигателя");
+//     TOAlarmValues.insert("EngineOil", 0);
+//     TOSourceValues.insert("EngineOil", 0);
 
-    //    TONameValues.insert("PneumaticCheck", "Работа пневмосистемы");
-    //    TOAlarmValues.insert("PneumaticCheck", 0);
-    //    TOSourceValues.insert("PneumaticCheck", 1);
+//     //    TONameValues.insert("PneumaticCheck", "Работа пневмосистемы");
+//     //    TOAlarmValues.insert("PneumaticCheck", 0);
+//     //    TOSourceValues.insert("PneumaticCheck", 1);
 
-    //    TONameValues.insert("Hydraulic", "Гидравлика");
-    //    TOAlarmValues.insert("Hydraulic", 0);
-    //    TOSourceValues.insert("Hydraulic", 1);
+//     //    TONameValues.insert("Hydraulic", "Гидравлика");
+//     //    TOAlarmValues.insert("Hydraulic", 0);
+//     //    TOSourceValues.insert("Hydraulic", 1);
 
-    //    TONameValues.insert("Sharnirs", "Состояние шарниров");
-    //    TOAlarmValues.insert("Sharnirs", 0);
-    //    TOSourceValues.insert("Sharnirs", 1);
+//     //    TONameValues.insert("Sharnirs", "Состояние шарниров");
+//     //    TOAlarmValues.insert("Sharnirs", 0);
+//     //    TOSourceValues.insert("Sharnirs", 1);
 
-    //    TONameValues.insert("FanGear", "Клиноременная передача вентилятора");
-    //    TOAlarmValues.insert("FanGear", 0);
-    //    TOSourceValues.insert("FanGear", 1);
+//     //    TONameValues.insert("FanGear", "Клиноременная передача вентилятора");
+//     //    TOAlarmValues.insert("FanGear", 0);
+//     //    TOSourceValues.insert("FanGear", 1);
 
-    TONameValues.insert("HydraulicOilCheck", "Проверка масла гидросистемы");
-    TOAlarmValues.insert("HydraulicOilCheck", 0);
-    TOSourceValues.insert("HydraulicOilCheck", 1);
+//     TONameValues.insert("HydraulicOilCheck", "Проверка масла гидросистемы");
+//     TOAlarmValues.insert("HydraulicOilCheck", 0);
+//     TOSourceValues.insert("HydraulicOilCheck", 1);
 
-    //    TONameValues.insert("WorkCheck", "Работа органов и спецоборудования");
-    //    TOAlarmValues.insert("WorkCheck", 0);
-    //    TOSourceValues.insert("WorkCheck", 1);
+//     //    TONameValues.insert("WorkCheck", "Работа органов и спецоборудования");
+//     //    TOAlarmValues.insert("WorkCheck", 0);
+//     //    TOSourceValues.insert("WorkCheck", 1);
 
-    //    TONameValues.insert("WaterCheck", "Работа систем увлажнения");
-    //    TOAlarmValues.insert("WaterCheck", 0);
-    //    TOSourceValues.insert("WaterCheck", 1);
+//     //    TONameValues.insert("WaterCheck", "Работа систем увлажнения");
+//     //    TOAlarmValues.insert("WaterCheck", 0);
+//     //    TOSourceValues.insert("WaterCheck", 1);
 
-    //    TONameValues.insert("PneumaticJointCheck", "Герметичность соединений пневмосистемы");
-    //    TOAlarmValues.insert("PneumaticJointCheck", 0);
-    //    TOSourceValues.insert("PneumaticJointCheck", 1);
+//     //    TONameValues.insert("PneumaticJointCheck", "Герметичность соединений пневмосистемы");
+//     //    TOAlarmValues.insert("PneumaticJointCheck", 0);
+//     //    TOSourceValues.insert("PneumaticJointCheck", 1);
 
-    //    TONameValues.insert("FanWashing", "Промывка вентилятора");
-    //    TOAlarmValues.insert("FanWashing", 0);
-    //    TOSourceValues.insert("FanWashing", 1);
+//     //    TONameValues.insert("FanWashing", "Промывка вентилятора");
+//     //    TOAlarmValues.insert("FanWashing", 0);
+//     //    TOSourceValues.insert("FanWashing", 1);
 
-    TONameValues.insert("CarLubrication", "Смазка машины");
-    TOAlarmValues.insert("CarLubrication", 0);
-    TOSourceValues.insert("CarLubrication", 1);
+//     TONameValues.insert("CarLubrication", "Смазка машины");
+//     TOAlarmValues.insert("CarLubrication", 0);
+//     TOSourceValues.insert("CarLubrication", 1);
 
-    TONameValues.insert("CarTightening", "Затяжка резьбовых соединений");
-    TOAlarmValues.insert("CarTightening", 0);
-    TOSourceValues.insert("CarTightening", 1);
+//     TONameValues.insert("CarTightening", "Затяжка резьбовых соединений");
+//     TOAlarmValues.insert("CarTightening", 0);
+//     TOSourceValues.insert("CarTightening", 1);
 
-    //    TONameValues.insert("SomeCheck1", "Привод вентилятора, кард. вал, муфта, натяжение ремня");
-    //    TOAlarmValues.insert("SomeCheck1", 0);
-    //    TOSourceValues.insert("SomeCheck1", 1);
+//     //    TONameValues.insert("SomeCheck1", "Привод вентилятора, кард. вал, муфта, натяжение ремня");
+//     //    TOAlarmValues.insert("SomeCheck1", 0);
+//     //    TOSourceValues.insert("SomeCheck1", 1);
 
-    //    TONameValues.insert("BroomTightening", "Затяжка болтов гидромоторов щеток");
-    //    TOAlarmValues.insert("BroomTightening", 0);
-    //    TOSourceValues.insert("BroomTightening", 1);
+//     //    TONameValues.insert("BroomTightening", "Затяжка болтов гидромоторов щеток");
+//     //    TOAlarmValues.insert("BroomTightening", 0);
+//     //    TOSourceValues.insert("BroomTightening", 1);
 
-    //    TONameValues.insert("FanLubricant", "Состояние вентилятора, смазка подшипников");
-    //    TOAlarmValues.insert("FanLubricant", 0);
-    //    TOSourceValues.insert("FanLubricant", 1);
+//     //    TONameValues.insert("FanLubricant", "Состояние вентилятора, смазка подшипников");
+//     //    TOAlarmValues.insert("FanLubricant", 0);
+//     //    TOSourceValues.insert("FanLubricant", 1);
 
-    //    TONameValues.insert("HydraulicJointCheck", "Состояние соединений гидравлической системы");
-    //    TOAlarmValues.insert("HydraulicJointCheck", 0);
-    //    TOSourceValues.insert("HydraulicJointCheck", 1);
+//     //    TONameValues.insert("HydraulicJointCheck", "Состояние соединений гидравлической системы");
+//     //    TOAlarmValues.insert("HydraulicJointCheck", 0);
+//     //    TOSourceValues.insert("HydraulicJointCheck", 1);
 
-    //    TONameValues.insert("BackCoverSeal", "Уплотнение задней крышки");
-    //    TOAlarmValues.insert("BackCoverSeal", 0);
-    //    TOSourceValues.insert("BackCoverSeal", 1);
+//     //    TONameValues.insert("BackCoverSeal", "Уплотнение задней крышки");
+//     //    TOAlarmValues.insert("BackCoverSeal", 0);
+//     //    TOSourceValues.insert("BackCoverSeal", 1);
 
-    //    TONameValues.insert("OilFilterInHydroTank", "Фильтрующие элементы масляных фильтров в гидробаке");
-    //    TOAlarmValues.insert("OilFilterInHydroTank", 0);
-    //    TOSourceValues.insert("OilFilterInHydroTank", 1);
+//     //    TONameValues.insert("OilFilterInHydroTank", "Фильтрующие элементы масляных фильтров в гидробаке");
+//     //    TOAlarmValues.insert("OilFilterInHydroTank", 0);
+//     //    TOSourceValues.insert("OilFilterInHydroTank", 1);
 
-    //    TONameValues.insert("HydraulicOilChange", "Замена масла гидросистемы");
-    //    TOAlarmValues.insert("HydraulicOilChange", 0);
-    //    TOSourceValues.insert("HydraulicOilChange", 1);
+//     //    TONameValues.insert("HydraulicOilChange", "Замена масла гидросистемы");
+//     //    TOAlarmValues.insert("HydraulicOilChange", 0);
+//     //    TOSourceValues.insert("HydraulicOilChange", 1);
 
-    //    TONameValues.insert("ElectricCheck", "Работа электрооборудования");
-    //    TOAlarmValues.insert("ElectricCheck", 0);
-    //    TOSourceValues.insert("ElectricCheck", 1);
+//     //    TONameValues.insert("ElectricCheck", "Работа электрооборудования");
+//     //    TOAlarmValues.insert("ElectricCheck", 0);
+//     //    TOSourceValues.insert("ElectricCheck", 1);
 
-    //    TONameValues.insert("HydroTankWash", "Промыть водяной бак и коммуникацию");
-    //    TOAlarmValues.insert("HydroTankWash", 0);
-    //    TOSourceValues.insert("HydroTankWash", 1);
+//     //    TONameValues.insert("HydroTankWash", "Промыть водяной бак и коммуникацию");
+//     //    TOAlarmValues.insert("HydroTankWash", 0);
+//     //    TOSourceValues.insert("HydroTankWash", 1);
 
-    TONameValues.insert("EngineTO", "ТО двигателя");
-    TOAlarmValues.insert("EngineTO", 0);
-    TOSourceValues.insert("EngineTO", 1);
+//     TONameValues.insert("EngineTO", "ТО двигателя");
+//     TOAlarmValues.insert("EngineTO", 0);
+//     TOSourceValues.insert("EngineTO", 1);
 
-    //    TONameValues.insert("SleavesCheck", "Состояние всех рукавов");
-    //    TOAlarmValues.insert("SleavesCheck", 0);
-    //    TOSourceValues.insert("SleavesCheck", 1);
+//     //    TONameValues.insert("SleavesCheck", "Состояние всех рукавов");
+//     //    TOAlarmValues.insert("SleavesCheck", 0);
+//     //    TOSourceValues.insert("SleavesCheck", 1);
 
-    TONameValues.insert("PressureFilterChange", "Замена напорного фильтра");
-    TOAlarmValues.insert("PressureFilterChange", 0);
-    TOSourceValues.insert("PressureFilterChange", 1);
+//     TONameValues.insert("PressureFilterChange", "Замена напорного фильтра");
+//     TOAlarmValues.insert("PressureFilterChange", 0);
+//     TOSourceValues.insert("PressureFilterChange", 1);
 
-    //    TONameValues.insert("WaterCheck2", "Ревизия систем увлажнения");
-    //    TOAlarmValues.insert("WaterCheck2", 0);
-    //    TOSourceValues.insert("WaterCheck2", 1);
-}
+//     //    TONameValues.insert("WaterCheck2", "Ревизия систем увлажнения");
+//     //    TOAlarmValues.insert("WaterCheck2", 0);
+//     //    TOSourceValues.insert("WaterCheck2", 1);
+// }
+
 void MainWindow::configureChannelTypes(){
     systemConfigure.configurationVersion = 110;
 
@@ -795,25 +806,25 @@ void MainWindow::readValues(){// у каждого модуля есть сво�
     showCheckEngine = _settingsReader->readSettingsValue("Global/showCheckEngine").toBool();// сознаваться ли про чек энжын?
     buttonsLightLevelEdge = _settingsReader->readSettingsValue("Global/buttonsLightLevelEdge").toInt();
    // buttonsLightLevelEdge = 10; // TODO ????
+    maintenanceTracker->load();
+    // // значения моточасов которые будут расти (хранятся в секундах и сливаются на флэшку каждые 5 мотоминут)
+    // // когда работает вспомогательный двигатель
+    // TOCurValues["Engine"] = _settingsReader->readSettingsValue("TOCur/Engine").toUInt();
+    // TOCurValues["EngineLast"] = _settingsReader->readSettingsValue("TOCur/Engine").toUInt();
+    // // когда работает просто система (нажали старт)
+    // TOCurValues["System"] = _settingsReader->readSettingsValue("TOCur/System").toUInt();
+    // TOCurValues["SystemLast"] = _settingsReader->readSettingsValue("TOCur/System").toUInt();
 
-    // значения моточасов которые будут расти (хранятся в секундах и сливаются на флэшку каждые 5 мотоминут)
-    // когда работает вспомогательный двигатель
-    TOCurValues["Engine"] = _settingsReader->readSettingsValue("TOCur/Engine").toUInt();
-    TOCurValues["EngineLast"] = _settingsReader->readSettingsValue("TOCur/Engine").toUInt();
-    // когда работает просто система (нажали старт)
-    TOCurValues["System"] = _settingsReader->readSettingsValue("TOCur/System").toUInt();
-    TOCurValues["SystemLast"] = _settingsReader->readSettingsValue("TOCur/System").toUInt();
+    // engineToday = _settingsReader->readSettingsValue("TOCur/EngineToday").toUInt();
+    // dateToday = _settingsReader->readSettingsValue("TOCur/DateToday").toDate();
 
-    engineToday = _settingsReader->readSettingsValue("TOCur/EngineToday").toUInt();
-    dateToday = _settingsReader->readSettingsValue("TOCur/DateToday").toDate();
-
-    // тут лежат предельные параметры по ТО (сколько моточасов может работать орган)
-    // так же тут лежат значения последнего ТО по этой части (Cur)
-    foreach (QString key, TONameValues.keys())
-    {
-        TOValues[key] = _settingsReader->readSettingsValue("TO/" + key).toUInt();
-        TOCurValues[key] = _settingsReader->readSettingsValue("TOCur/" + key).toUInt();
-    }
+    // // тут лежат предельные параметры по ТО (сколько моточасов может работать орган)
+    // // так же тут лежат значения последнего ТО по этой части (Cur)
+    // foreach (QString key, TONameValues.keys())
+    // {
+    //     TOValues[key] = _settingsReader->readSettingsValue("TO/" + key).toUInt();
+    //     TOCurValues[key] = _settingsReader->readSettingsValue("TOCur/" + key).toUInt();
+    // }
 
     engineTempWarnEdge = _settingsReader->readSettingsValue("Global/engineTempWarnTime").toInt();
     engineTempGoodValue = _settingsReader->readSettingsValue("Global/engineTempGood").toInt();
@@ -2326,16 +2337,17 @@ void MainWindow::on_pushButton_centralBroomRight_released(){
     onBroomReleased();
 }
 
-// void MainWindow::on_pushButton_centralBroomUp_pressed(){
-//     if (startClean){
-//         broomCentral->goUp();}
-// }
-// void MainWindow::on_pushButton_centralBroomUp_released(){
-//     onBroomReleased();
-// }
+void MainWindow::on_pushButton_centralBroomUp_pressed(){
+    if (startClean){
+        broomCentral->setDirection(organsEnums::Up);}
+}
+void MainWindow::on_pushButton_centralBroomUp_released(){
+    onBroomReleased();
+}
 
 void MainWindow::on_pushButton_centralBroomDown_pressed(){
     if (startClean){
+        qDebug()<<"down";
         broomCentral->setDirection(organsEnums::Down);
     }
 }
@@ -2447,25 +2459,21 @@ void MainWindow::on_pushButton_homeState_clicked(){
 }
 
 //==============================CommonLogic==========================================
-void MainWindow::updateOrgansStates(){
-    // задаем режимы органам
+void MainWindow::updateOrgansStates(){// задаем режимы органам
     // щетка
     bool isBroomActive = workMode.centralBroomLeft||workMode.centralBroomRight;
     broomCentral->setNeedState(isBroomActive? CentralBroom::BroomFlowed: CentralBroom::BroomOff);
     broomCentral->choosed = isBroomActive;
-    broomCentral->needSlided = workMode.centralBroomLeft;
-
+    broomCentral->needGoLeft = workMode.centralBroomLeft;
     // отвал
     bool isDumpActive = workMode.frontDumpLeft||workMode.frontDumpRight;
     frontRail->setNeedState(isDumpActive? FrontRail::FrontRailFlowed: FrontRail::FrontRailOff);
     frontRail->choosed = isDumpActive;
-    frontRail->needSlided = workMode.frontDumpLeft;
-
+    frontRail->needGoLeft = workMode.frontDumpLeft;
     // дулка
     bool isBlowerActive = workMode.blowLeft||workMode.blowRight;
     blower->setNeedState(isBlowerActive? Blower::BlowerRotated: Blower::BlowerOff);
     blower->choosed = isBlowerActive;
-
     // магнит
     bool isMagnetActive = workMode.backMagnet;
     backMagnet->setNeedState(isMagnetActive? BackMagnet::BackMagnetDowned: BackMagnet::BackMagnetOff);
@@ -2480,16 +2488,17 @@ void MainWindow::updateOrgansStates(){
     if(!startClean){
         return;
     }
-    if (broomCentral->getState() >= CentralBroom::BroomFlowed){
-        if (workMode.centralBroomFlow){
-            broomCentral->setFlowActive(true);
-        }
-        else{
-            //broomCentral->setState(CentralBroom::BroomFlowIn);
-            broomCentral->setFlowActive(false);
-            //broomCentral->goNoFlow();
-        }
-    }
+
+    // if (broomCentral->getState() >= CentralBroom::BroomFlowed){
+    //     if (workMode.centralBroomFlow){
+    //         broomCentral->setFlowActive(true);
+    //     }
+    //     else{
+    //         //broomCentral->setState(CentralBroom::BroomFlowIn);
+    //         broomCentral->setFlowActive(false);
+    //         //broomCentral->goNoFlow();
+    //     }
+    // }
 
     // if (frontRail->getState() >= FrontRail::FrontRailFlowed){
     //     if (workMode.frontDumpFlow){
@@ -2523,14 +2532,14 @@ void MainWindow::setBroomState(){
     selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_UP,
                    ui->label_centralBroomUpDown, ui->pushButton_centralBroomUp,
                    path + "up_on.png);", path + "off.png);",
-                   [this](){broomCentral->setDirection(organsEnums::Up);;},
+                   [this](){broomCentral->setDirection(organsEnums::Up);},
                    [this](){broomCentral->setDirection(organsEnums::None);});
 
-    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_DOWN,
-                   ui->label_centralBroomUpDown, ui->pushButton_centralBroomDown,
-                   path + "down_on.png);", path + "off.png);",
-                   [this](){broomCentral->setDirection(organsEnums::Down);},
-                   [this](){broomCentral->setDirection(organsEnums::None);});
+    // selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_DOWN,
+    //                ui->label_centralBroomUpDown, ui->pushButton_centralBroomDown,
+    //                path + "down_on.png);", path + "off.png);",
+    //                [this](){broomCentral->setDirection(organsEnums::Down);},
+    //                [this](){broomCentral->setDirection(organsEnums::None);});
 
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
