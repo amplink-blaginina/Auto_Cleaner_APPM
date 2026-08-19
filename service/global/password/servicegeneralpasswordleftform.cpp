@@ -268,3 +268,7 @@ void ServiceGeneralPasswordLeftForm::stopWrongPassword()
         stringpasswrd.clear();
     }
 }
+void ServiceGeneralPasswordLeftForm::resetPassword(){
+    passwordVariable = "password";
+    goStep(0);
+}

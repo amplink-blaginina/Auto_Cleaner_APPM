@@ -921,7 +921,7 @@ outline: none;
     <widget class="QPushButton" name="pushButton_centralBroomUp">
      <property name="geometry">
       <rect>
-       <x>18</x>
+       <x>20</x>
        <y>98</y>
        <width>95</width>
        <height>39</height>
@@ -972,7 +972,7 @@ outline: none;
     <widget class="QPushButton" name="pushButton_centralBroomPress">
      <property name="geometry">
       <rect>
-       <x>228</x>
+       <x>226</x>
        <y>141</y>
        <width>91</width>
        <height>35</height>
@@ -1010,7 +1010,7 @@ outline: none;
     <widget class="QPushButton" name="pushButton_dumpUp">
      <property name="geometry">
       <rect>
-       <x>18</x>
+       <x>20</x>
        <y>14</y>
        <width>95</width>
        <height>39</height>
@@ -1083,7 +1083,7 @@ outline: none;
     <widget class="QPushButton" name="pushButton_dumpPress">
      <property name="geometry">
       <rect>
-       <x>228</x>
+       <x>226</x>
        <y>57</y>
        <width>91</width>
        <height>35</height>
@@ -1204,7 +1204,7 @@ outline: none;
     <widget class="QPushButton" name="pushButton_blowerRight">
      <property name="geometry">
       <rect>
-       <x>168</x>
+       <x>170</x>
        <y>179</y>
        <width>45</width>
        <height>79</height>
@@ -1223,7 +1223,7 @@ outline: none;
     <widget class="QPushButton" name="pushButton_blowerDown">
      <property name="geometry">
       <rect>
-       <x>18</x>
+       <x>20</x>
        <y>225</y>
        <width>91</width>
        <height>35</height>
@@ -1242,7 +1242,7 @@ outline: none;
     <widget class="QPushButton" name="pushButton_blowerLeft">
      <property name="geometry">
       <rect>
-       <x>120</x>
+       <x>122</x>
        <y>181</y>
        <width>45</width>
        <height>79</height>
@@ -1275,12 +1275,15 @@ outline: none;
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_backMagnet">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="geometry">
       <rect>
-       <x>224</x>
+       <x>226</x>
        <y>184</y>
        <width>97</width>
-       <height>73</height>
+       <height>76</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1296,7 +1299,7 @@ outline: none;
     <widget class="QPushButton" name="pushButton_blowerUp">
      <property name="geometry">
       <rect>
-       <x>16</x>
+       <x>20</x>
        <y>183</y>
        <width>95</width>
        <height>39</height>

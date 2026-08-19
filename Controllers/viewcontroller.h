@@ -7,11 +7,18 @@
 #include <screenlog.h>
 #include <QDebug>
 #include <logger.h>
+#include <qpushbutton.h>
 
 
 class ViewController:QObject{
         Q_OBJECT
 public:
+
+    enum BtnShapeType{
+        Full,
+        Vertical,
+        Horizontal
+    };
 
     enum LogStatus
     {
@@ -39,10 +46,16 @@ public:
     Logger *_logger;
     MessageList *getMessageList();
     void printMovementLog(organsEnums::Organ organ, organsEnums::Direction dir, QString additionalMsg);
+    void updateFRM(QPushButton *btn, bool state, QString key){
+        //QString frmPath = "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_";
+        setStyle(btn, frmPath + key + (state? "_on.png);": "_off.png);"));
+    }
 public slots:
     void messageListPressed();
 private:
     QWidget *_parent;
+    QString frmPath = "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_";
+
 
 };
 

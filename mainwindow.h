@@ -52,6 +52,7 @@
 #include <service/other/engine/serviceotherengineleftform.h>
 #include <service/other/light/serviceotherlightleftform.h>
 #include <service/other/intervals/servicegpioserviceintervalleftform.h>
+#include <Controllers/PhysicalButtonManager.h>
 #include <Controllers/cancontroller.h>
 #include <Controllers/prerollcontroller.h>
 #include <Controllers/startercontroller.h>
@@ -372,13 +373,6 @@ public:
     int frontRPMCounter;
     int frontRPM;
 
-
-
-
-
-
-
-
     bool showCheckEngine;
 
     MyCan *can0;
@@ -394,12 +388,12 @@ private:
     QTimer goHomeTimer;
     QFont font;
 
-
+    PhysicalButtonManager m_buttonManager;
     //std::unordered_map<std::pair<CleanConfiguration, Direction>, double> dict;
 
     //void addLog(QString text, LogStatus logStatus);
 
-    void updateEngineAndRollLocks();
+    void checkEngineAndRollLocks();
 
 
     void updateSensorAndWarningIndicators();
@@ -456,6 +450,9 @@ private:
     void configureChannelTypes();
     void insertValues();
     bool isSpeedTooHigh();
+    void setBroomPressed(bool);
+    void registerButtons();
+    void updateButtons();
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
@@ -470,7 +467,8 @@ public :
     void resetPassword();
     ViewController *getView();
     SettingsReader * getReader();
-    void invertIgnition();
+    //void invertIgnition();
+    void checkIgnition();
 public slots:
     //void messageListPressed();
     void settingsAskPassword();
@@ -519,10 +517,10 @@ private slots:
     void on_pushButton_frmMagnet_clicked();
     void on_pushButton_homeState_clicked();
 
-    void on_pushButton_centralBroomUp_pressed();
-    void on_pushButton_centralBroomUp_released();
-    void on_pushButton_centralBroomDown_pressed();
-    void on_pushButton_centralBroomDown_released();
+    // void on_pushButton_centralBroomUp_pressed();
+    // void on_pushButton_centralBroomUp_released();
+    // void on_pushButton_centralBroomDown_pressed();
+    // void on_pushButton_centralBroomDown_released();
 
     void on_pushButton_centralBroomLeft_pressed();
     void on_pushButton_centralBroomLeft_released();

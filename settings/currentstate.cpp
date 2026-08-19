@@ -3,9 +3,10 @@
 #include <qdatetime.h>
 #include <Controllers/gpiocontroller.h>
 
-CurrentState::CurrentState(SettingsReader *reader, GPIOController *gpio) {
+CurrentState::CurrentState(SettingsReader *reader, GPIOController *gpio, CanController *can0) {
     _reader = reader;
     _gpio = gpio;
+    _can = can0;
 }
 
 void CurrentState::setDefaults(){
@@ -58,6 +59,7 @@ void CurrentState::resetVehicleValues(){
 void CurrentState::setMode(quint8 mode){
     menuMode = mode;
 }
+
 void CurrentState::setSweepMode(){
     menuMode = SweepMode;
     superDiagMode = false;
@@ -83,6 +85,7 @@ void CurrentState::setCoolantTmp(int value){
 void CurrentState::setVehicleSpeed(int value){
     vehicleSpeed = value;
 }
+
 void CurrentState::setVehicleVoltage(float value){
     vehicleVoltage = value;
 }
@@ -106,9 +109,21 @@ int CurrentState::getDaysFromStart(){
 bool CurrentState::isSettingsMode(){
     return menuMode == SettingsMode;
 }
+
 bool CurrentState::isDiagMode(){
     return menuMode == DiagMode;
 }
+
 bool CurrentState::isDiagOrSettingsMode(){
-    return menuMode == DiagMode || menuMode == SettingsMode;
+    return isDiagMode() || isSettingsMode();
+}
+
+bool CurrentState::isIgnitionEnabled(){
+    return !_can->isDisabled();
+}
+bool CurrentState:: isAlarm(){
+    waterAlarm = _can->getState(StateWaterSensor) && waterSensorEmergencyMode;
+    airAlarm = _can->getState(StateAirFilterBad) && airFilterEmergencyMode;
+    oilAlarm = _can->getState(StateOilFilterBad);
+    return waterAlarm || airAlarm || oilAlarm;
 }

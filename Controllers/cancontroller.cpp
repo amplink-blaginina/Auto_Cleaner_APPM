@@ -14,12 +14,20 @@ void CanController::setIgnition(bool state){
     _can0->setState(StateIgnitionOut, state);
 }
 
+bool CanController::getIgnition(){
+    _can0->getState(StateIgnitionOut).toBool();
+}
+
 void CanController::setRollStarter(bool state){
     _can0->setState(StateStarterRoll, state);
 }
 
 bool CanController::getRollIn(){
     return _can0->getState(StateRollIn).toBool();
+}
+
+bool CanController::getHeatState(){
+    return _can0->getState(StateHeatRele).toBool();
 }
 
 bool CanController::getOilRele(){
@@ -43,4 +51,8 @@ bool CanController::getState(DeviceStates state){
 
 void CanController::fillSystemConfig(){
 
+}
+
+void CanController::invertIgnition(){
+    _can0->setState(StateIgnitionOut, !_can0->getState(StateIgnitionOut).toBool());
 }

@@ -4,6 +4,7 @@
 #include <logger.h>
 #include <qdatetime.h>
 #include <qobject.h>
+#include <qpushbutton.h>
 #include <qscroller.h>
 #include <sys/socket.h>
 
@@ -107,3 +108,5 @@ void ViewController::addLogError(QString msg){
 void ViewController::printMovementLog(organsEnums::Organ organ, organsEnums::Direction dir, QString additionalMsg) {
     screenLog->printMovementLog(organ, dir, additionalMsg);
 }
+
+

@@ -5,17 +5,14 @@
 
 ServiceOtherEngineLeftForm::ServiceOtherEngineLeftForm(QWidget *parent_) :
     QWidget(parent_),
-    ui(new Ui::ServiceOtherEngineLeftForm)
-{
+    ui(new Ui::ServiceOtherEngineLeftForm){
+
     ui->setupUi(this);
-
     parent = parent_;
-
     rpm_need=6400;//800
 }
 
-ServiceOtherEngineLeftForm::~ServiceOtherEngineLeftForm()
-{
+ServiceOtherEngineLeftForm::~ServiceOtherEngineLeftForm(){
     delete ui;
 }
 
@@ -26,14 +23,12 @@ void ServiceOtherEngineLeftForm::updateVisual(){
     view->setText(ui->label_needRPM, QString::number(rpm_need/8));
     mainWindow->canForEngine->setEngineCommand(rpm_need);
 
-    // обороты
-    view ->setText(ui->label_realRPM, QString::number(mainWindow->engine->rpm));
-
-    // выходы
-    mainWindow->starter->setStarterPressed(ui->pushButton_starter->isDown());
-
-    if (mainWindow->can0->getState(StateIgnitionOut).toBool() != ui->pushButton_ignition->isChecked()){
-        ui->pushButton_ignition->setChecked(mainWindow->can0->getState(StateIgnitionOut).toBool());
+    view ->setText(ui->label_realRPM, QString::number(mainWindow->engine->rpm));// обороты
+    mainWindow->starter->setStarterPressed(ui->pushButton_starter->isDown());// выходы
+//
+    auto getIgnition = mainWindow->can0->getState(StateIgnitionOut).toBool();
+    if (getIgnition != ui->pushButton_ignition->isChecked()){
+        ui->pushButton_ignition->setChecked(getIgnition);
         //qDebug()<<"Нажали стартер";
     }
 
@@ -51,7 +46,7 @@ void ServiceOtherEngineLeftForm::updateVisual(){
 }
 
 void ServiceOtherEngineLeftForm::on_pushButton_ignition_clicked(){
-    ((MainWindow*)parent)->invertIgnition();
+    ((MainWindow*)parent)->can->invertIgnition();
 }
 
 void ServiceOtherEngineLeftForm::on_pushButton_lessRPM_clicked()

@@ -5,7 +5,8 @@
 
 PrerollController::PrerollController(GlobalSettings *globals, Engine *engine,
                                      ScreenLog *screenLog, CanController *can,
-                                     StarterController *starter, CurrentState *state, ViewController *view){
+                                     StarterController *starter, CurrentState *state,
+                                     ViewController *view){
     _globals = globals;
     _engine = engine;
     _screenLog = screenLog;
@@ -15,80 +16,92 @@ PrerollController::PrerollController(GlobalSettings *globals, Engine *engine,
     _view = view;
 }
 
-void PrerollController::processPrerollInService(QPushButton* prerollButton,
-                                                QPushButton* starterPrerollButton,
-                                                QLabel* prerollStatusLabel,
-                                                bool isEngineFormVisible){//superDiagMode
+void PrerollController::setEngineForm(ServiceOtherEngineLeftForm *otherEngineForm){
+    _otherEngineForm = otherEngineForm;
+    _prerollBtn = _otherEngineForm->findChild<QPushButton*>("pushButton_preroll");
+    _starterPrerollBtn = _otherEngineForm->findChild<QPushButton*>("pushButton_starterPreroll");
+    _statusLbl = _otherEngineForm->findChild<QLabel*>("label_prerollStatus");
+
+    _isInited = _prerollBtn != NULL;
+}
+
+bool PrerollController::foundButtons(){
+    if(!_isInited){
+        return false;
+    }
+    return _prerollBtn != NULL;
+}
+
+void PrerollController::update(){
+    processPrerollInService(_otherEngineForm->isVisible());
+}
+
+void PrerollController::processPrerollInService(bool isEngineFormVisible){//superDiagMode
+    if(!_isInited){
+        return;
+    }
     const bool serviceEngineVisible = _state->isDiagMode() && isEngineFormVisible;
     _state->serviceIgnitionAutoRestoreBlocked = serviceEngineVisible || _state->prerollSequenceActive || _state->rollRunActive;
-    //qDebug()<<"engineVisible: " << serviceEngineVisible<<"   prerollSequence: " << prerollSequenceActive <<"    rollRun: " << rollRunActive;
-    if (starterPrerollButton != NULL)
-        starterPrerollButton->setEnabled(_state->prerollStarterUnlocked && !_state->rollNeedReboot && !rollBlocked());
+
+    _starterPrerollBtn->setEnabled(_state->prerollStarterUnlocked && !_state->rollNeedReboot && !rollBlocked());
 
     // Обновляем состояние кнопки ПРОКРУТКА (зафиксирована когда идёт подготовка или активна)
-    if (prerollButton != NULL)
-        prerollButton->setChecked(_state->prerollSequenceActive || _state->prerollStarterUnlocked);
+    _prerollBtn->setChecked(_state->prerollSequenceActive || _state->prerollStarterUnlocked);
 
     if(_starter->starterPressed){
-        qDebug()<<"### starterPressed";
         _state->prerollSequenceActive = false;
         _state->prerollStarterUnlocked = false;
         stopRollOutput();
         _can->setStarterAvailable(false);
     }
 
-    updateRollStatusText(prerollStatusLabel);    // Обновляем статусную строку
+    updateRollStatusText();    // Обновляем статусную строку
 
-    const bool prerollPressed = serviceEngineVisible && prerollButton != NULL && prerollButton->isDown();
+    const bool prerollPressed = serviceEngineVisible && _prerollBtn->isDown();
     const bool prerollPressedEdge = prerollPressed && !_state->prerollButtonPrev;
 
-    const bool prerollStarterPressed = serviceEngineVisible && starterPrerollButton != NULL && starterPrerollButton->isDown();
+    const bool prerollStarterPressed = serviceEngineVisible && _starterPrerollBtn->isDown();
     const bool prerollStarterPressedEdge = prerollStarterPressed && !_state->prerollStarterButtonPrev;
 
-    const bool rollInputPressed = _can->getRollIn();//can0->getState(StateRollIn).toBool();
+    const bool rollInputPressed = _can->getRollIn();
     const bool rollInputPressedEdge = rollInputPressed && !_state->rollInputPrev;
 
     if (prerollPressedEdge){
-       // qDebug()<<"### prerollPressed";
         if (_state->prerollSequenceActive || _state->prerollStarterUnlocked){
             // ОТМЕНА: выходим из режима прокрутки, восстанавливаем зажигание
             _state->prerollSequenceActive = false;
             _state->prerollStarterUnlocked = false;
             stopRollOutput();
             _can->setStarterAvailable(false);
-            //can0->setState(StateStarterAllow, false);
-            // restoreIgnitionAfterRoll();
+            _starter->restoreIgnition();
             _screenLog->printLog("Режим прокрутки отменён оператором");
         }
         else if (rollBlocked()){
-           _screenLog->printWarning("Прокрутка заблокирована");
+            _screenLog->printWarning("Прокрутка заблокирована");
         }
         else{
-           _screenLog->printWarning("Запуск алгоритма прокрутки");
+            _screenLog->printWarning("Запуск алгоритма прокрутки");
             _state->prerollSequenceActive = true;
             _state->prerollSequenceStep = 1;
             prerollStepStartedAt = QDateTime::currentDateTime();
             _state->prerollStarterUnlocked = false;
             stopRollOutput();
             _can->setStarterAvailable(false);
-            _can->setIgnition(false);
-            _starter->resetIgnitionTimer();
+            _starter->forceStopIgnition(); // намеренно глушим ДВС для подготовки к прокрутке
         }
     }
 
     if (_state->prerollSequenceActive){
-        //qDebug()<<"### prerollPrepeared";
         const int elapsed = qAbs(prerollStepStartedAt.secsTo(QDateTime::currentDateTime()));
         if (_state->prerollSequenceStep == 1 && elapsed >= 2){
             _can->setStarterAvailable(true);
-            //can0->setState(StateStarterAllow, true);
             _state->prerollSequenceStep = 2;
             prerollStepStartedAt = QDateTime::currentDateTime();
         }
         else if (_state->prerollSequenceStep == 2 && elapsed >= 1){
             _state->prerollStarterUnlocked = true;
             _state->prerollSequenceActive = false;
-           _screenLog->printLog("Прокрутка подготовлена");
+            _screenLog->printLog("Прокрутка подготовлена");
         }
     }
 
@@ -100,14 +113,14 @@ void PrerollController::processPrerollInService(QPushButton* prerollButton,
     const bool rollStartRequest = prerollStarterPressedEdge || rollInputPressedEdge;
     if (rollStartRequest && !_state->rollRunActive){
         if (rollBlocked()){
-           _screenLog->printWarning("Прокрутка заблокирована");
+            _screenLog->printWarning("Прокрутка заблокирована");
         }
         else if (inRollPause()){
             _screenLog->printWarning("Пауза между пусками " + QString::number(rollPauseSecondsLeft()) + " секунды осталось");
             _state->rollPauseWarned = true;
         }
         else if (!_state->prerollStarterUnlocked && !rollInputPressedEdge){
-           _screenLog->printWarning("Сначала выполните подготовку прокрутки");
+            _screenLog->printWarning("Сначала выполните подготовку прокрутки");
         }
         else{
             _state->rollRunActive = true;
@@ -115,12 +128,12 @@ void PrerollController::processPrerollInService(QPushButton* prerollButton,
             _state->rollAttemptsUsed++;
             _starter->stopStarterOutput();
             _can->setRollStarter(true);
-           _screenLog->printWarning("Стартер прокрутка включен");
+            _screenLog->printWarning("Стартер прокрутка включен");
         }
     }
 
     if (_state->rollRunActive){
-        const bool oilRele = !_can->getOilRele();//can0->getState(StateOilRele).toBool();
+        const bool oilRele = !_can->getOilRele();
         const int elapsedRoll = qAbs(rollRunStartedAt.secsTo(QDateTime::currentDateTime()));
         if (oilRele){
             stopRollOutput();
@@ -130,43 +143,36 @@ void PrerollController::processPrerollInService(QPushButton* prerollButton,
             _state->rollAttemptsUsed = 0;
             _state->prerollStarterUnlocked = false;
             _can->setStarterAvailable(false);
-            //can0->setState(StateStarterAllow, false);
             _state->rollCompleted = true;
             _state->needRollProcedure = false;
             _starter->starterLockedByRoll = false;
             _state->updateStartDate();
-            // _state->lastEngineStartDate = QDate::currentDate();
-            // _state->setValue("Engine/lastStartDate", lastEngineStartDate);
-            // _state->sync();
             // ВОССТАНАВЛИВАЕМ ЗАЖИГАНИЕ после успешной прокрутки
-            _can->setIgnition(true);
-           // can0->setState(StateIgnitionOut, true);
-            _starter->resetIgnitionTimer();
-
+            _starter->restoreIgnition();
 
             _view->addLog("Прокрутка завершена по реле масла");
         }
-        else if (_globals->rollWorkingLimitReached(rollRunStartedAt))//elapsedRoll >= rollMaxWorkSec)
+        else if (_globals->rollWorkingLimitReached(rollRunStartedAt))
         {
             stopRollOutput();
             _state->rollRunActive = false;
             _state->rollPauseActive = true;
             rollPauseStartedAt = QDateTime::currentDateTime();
             _view->addLogError("Долгая работа стартера");
-            if (_globals->rollAttemptsLimitReached(_state->rollAttemptsUsed)){//rollAttemptsUsed >= rollMaxAttempts
+            if (_globals->rollAttemptsLimitReached(_state->rollAttemptsUsed)){
                 _state->rollNeedReboot = true;
                 _view->addLogError("Достигнут лимит попыток прокрутки, требуется перезагрузка пульта");
             }
         }
     }
+
+    // Фиксируем состояние кнопок/входа для корректного определения фронта на следующем такте
+    _state->prerollButtonPrev = prerollPressed;
+    _state->prerollStarterButtonPrev = prerollStarterPressed;
+    _state->rollInputPrev = rollInputPressed;
 }
 
-void PrerollController::updateRollStatusText(QLabel* statusLabel){
-    //QLabel* statusLabel = serviceOtherEngineLeftForm->findChild<QLabel*>("label_prerollStatus");
-
-    if (statusLabel == NULL){
-        return;}
-
+void PrerollController::updateRollStatusText(){
     QString statusText;
     if (_state->rollNeedReboot)
         statusText = "Лимит попыток исчерпан. Требуется перезагрузка пульта.";
@@ -183,10 +189,10 @@ void PrerollController::updateRollStatusText(QLabel* statusLabel){
         statusText = "Готово — нажмите СТАРТЕР ПРОКРУТКА для прокрутки";
     else if (rollBlocked()){
         QStringList reasons;
-        if (_state->rollLockedByTemperature)    reasons << "холодный двигатель (ждите теплореле)";
-        if (_state->rollLockedByEmergency)      reasons << "аварийный режим";
+        if (_state->rollLockedByTemperature) reasons << "холодный двигатель (ждите теплореле)";
+        if (_state->rollLockedByEmergency) reasons << "аварийный режим";
         statusText = "Прокрутка заблокирована: " + reasons.join(", ");
-        _view->setStyle(statusLabel,"color: red;");
+        _view->setStyle(_statusLbl,"color: red;");
     }
     else if (_state->needRollProcedure)
         statusText = "Требуется прокрутка. Нажмите ПРОКРУТКА для подготовки.";
@@ -195,16 +201,10 @@ void PrerollController::updateRollStatusText(QLabel* statusLabel){
     else
         statusText = "";
 
-    if (rollBlocked() && !statusText.isEmpty()){
-        _view->setStyle(statusLabel,"color: red;");
-    }
-    else{
-        _view->setStyle(statusLabel,"color: yellow;");
-    }
+    _view->setStyle(_statusLbl, (rollBlocked() && !statusText.isEmpty())? "color: red;": "color: yellow;");
 
-    if (statusLabel->text() != statusText)
-        statusLabel->setText(statusText);
-
+    if (_statusLbl->text() != statusText)
+        _statusLbl->setText(statusText);
 }
 
 bool PrerollController::rollBlocked() const{
@@ -215,7 +215,6 @@ bool PrerollController::rollBlocked() const{
 
 void PrerollController::stopRollOutput(){
     _can->setRollStarter(false);
-    //can0->setState(StateStarterRoll, false);
 }
 
 bool PrerollController::inRollPause() const{
@@ -237,7 +236,7 @@ void PrerollController::resetValues(){
 
 void PrerollController::checkIfAwaitForRoll(int daysFromLastStart){
     _state->needRollProcedure = !_state->rollCompleted && !_state->disableRollRequirement &&
-                        _globals->isNeedRoolByDate(daysFromLastStart);
+                                _globals->isNeedRoolByDate(daysFromLastStart);
     _starter->starterLockedByRoll = _state->needRollProcedure;
 }
 
@@ -247,10 +246,7 @@ void PrerollController::lockByTemperature(bool state){
 }
 
 void PrerollController::checkEmergencies(){
-    _state->waterAlarm = _can->getState(StateWaterSensor) && _state->waterSensorEmergencyMode;
-    _state->airAlarm = _can->getState(StateAirFilterBad) && _state->airFilterEmergencyMode;
-    _state->oilAlarm = _can->getState(StateOilFilterBad);
-    bool isAlarm = _state->waterAlarm || _state->airAlarm || _state->oilAlarm;
+    bool isAlarm = _state->isAlarm();
 
     _starter->starterLockedByEmergency = !_state->ignoreAllEmergency && isAlarm;
     _state->rollLockedByEmergency = !_state->ignoreAllEmergency && isAlarm;

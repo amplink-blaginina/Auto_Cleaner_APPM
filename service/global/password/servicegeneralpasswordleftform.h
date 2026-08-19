@@ -33,6 +33,7 @@ public:
 
     QWidget* parent;
 
+    void resetPassword();
 private slots:
     void wrongPasswordFlash();
     void on_pushButton_1_clicked();

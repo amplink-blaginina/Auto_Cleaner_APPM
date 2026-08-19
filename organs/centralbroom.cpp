@@ -108,8 +108,7 @@ void CentralBroom::setState(BroomStates state_){
     if(state == state_){
         return;
     }
-    QString msg = &"BroomState: "[state_];
-    qDebug()<<msg;
+    qDebug()<<"BroomState "<<state_;
     state = state_;
     auto mainWindow = (MainWindow*)parent;
 
@@ -134,16 +133,20 @@ void CentralBroom::setState(BroomStates state_){
 
     //---------------------------------------------------------------------------
     if (state == CentralBroom::BroomFlowOut){// началось плавание
+        setFlowActive(true);
         goNone();
     }
 
     if (state == CentralBroom::BroomFlowed){// закончилось плавание
-        qDebug()<<"broomFlowed!!!";
-        if (!mainWindow->workMode.centralBroomFlow){
-            setFlowActive(((MainWindow*)parent)->workMode.centralBroomFlow);//false);
+        //qDebug()<<"setState broomFlowed!!!";
+       // if (!mainWindow->workMode.centralBroomFlow){
+        auto isFlowing = ((MainWindow*)parent)->workMode.centralBroomFlow;
+        setFlowActive(isFlowing);//false);
+        ((MainWindow*)parent)->setBroomFlowView(isFlowing);
             //logger->addLog("Щетка не плавающая");
             //mainWindow->addLog("Щетка не плавающая", MainWindow::InfoStatus);
-        }
+        //}
+
     }
     if (state == CentralBroom::BroomFlowIn){// заканчиваем плавание
         setFlowActive(false);
@@ -184,10 +187,10 @@ void CentralBroom::goSlide(bool toLeft){
 void CentralBroom::goLeft(){setDirection(organsEnums::Left);}
 void CentralBroom::goRight(){setDirection(organsEnums::Right);}
 void CentralBroom::goUp(){
-    qDebug()<<"goUP!!!";
+    //qDebug()<<"goUP!!!";
     setDirection(organsEnums::Up);}
 void CentralBroom::goDown(){
-    qDebug()<<"goDOWN!!!";
+    //qDebug()<<"goDOWN!!!";
     setDirection(organsEnums::Down);}
 
 void CentralBroom::goLeft(bool state){
@@ -215,12 +218,15 @@ void CentralBroom::goNone(){
 }
 
 void CentralBroom::goUp(bool state, bool isPressed){
-    qDebug()<<"###goUP!!!";
+    //qDebug()<<"###goUP!!!  pressed: "<<isPressed;
     if(isPressed){
         myCan->setState(StateValveF2, state);
     }
     else{
-        ((MainWindow*)parent)->setBroomFlowView(false);
+        if(state && !((MainWindow*)parent)->isOrgansTransitioning()){
+            ((MainWindow*)parent)->workMode.centralBroomFlow = false;
+            ((MainWindow*)parent)->setBroomFlowView(false);
+        }
         setFlowActive(false);//вырубаем плавающий режим, если начали движение порталом щётки вверх
         myCan->setState(StateValveF10, state);}
 
@@ -229,13 +235,16 @@ void CentralBroom::goUp(bool state, bool isPressed){
 }
 
 void CentralBroom::goDown(bool state, bool isPressed){
-    if(state)
-        qDebug()<<"###goDOWN!!!";
+    // if(state)
+    //     qDebug()<<"###goDOWN!!!";
     if(isPressed){
         myCan->setState(StateValveF8, state);
     }
     else{
-        ((MainWindow*)parent)->setBroomFlowView(false);
+        if(state && !((MainWindow*)parent)->isOrgansTransitioning()){
+            ((MainWindow*)parent)->setBroomFlowView(false);
+            ((MainWindow*)parent)->workMode.centralBroomFlow = false;
+        }
         setFlowActive(false);//вырубаем плавающий режим, если начали движение порталом щётки вниз
         myCan->setState(StateValveF4, state);}
     myCan->setState(StateValveA1, state);
@@ -270,7 +279,7 @@ void CentralBroom::setDirection(organsEnums::Direction dir){
     setDirection(dir, isPressed);
 }
 void CentralBroom::setDirection(organsEnums::Direction dir, bool pressed){
-    if(dir == direction)
+    if(dir == direction && pressed == isPressed)
         return;
 
     switch (direction) {
@@ -313,6 +322,7 @@ void CentralBroom::setDirection(organsEnums::Direction dir, bool pressed){
 }
 
 void CentralBroom::setPressActive(bool state){
+    qDebug()<<"### setPressed: "<<state;
     if(isPressed == state)
         return;
     if(direction!= organsEnums::None){
@@ -360,7 +370,7 @@ void CentralBroom::setFlowActive(bool state){
     //     setDirection(organsEnums::None);
     // }
     goFlow(state);
-    ((MainWindow*)parent)->setBroomFlowView(state);
+   // ((MainWindow*)parent)->setBroomFlowView(state);
 }
 
 void CentralBroom::goFlow(bool state){
@@ -478,7 +488,7 @@ bool CentralBroom::checkMovementAndStopOnTimeout(bool timeoutReached, bool isSen
 
 bool CentralBroom::testStateTimer(){// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)
     bool timeoutReached = isTimeoutReached();
-    bool dkpAndPositionTest = false;
+    bool movementFinished = false;
 
     //    if (state == CentralBroom::BroomDownOut && timeTest)
     //        dkpAndPositionTest = true;
@@ -488,39 +498,39 @@ bool CentralBroom::testStateTimer(){// мощная функция провер�
             state == CentralBroom::BroomFlowOut ||
             state == CentralBroom::BroomFlowIn ||
             state == CentralBroom::BroomBounceOut) {
-            dkpAndPositionTest = true;
+            movementFinished = true;
         }
     }
 
-    // проверяем концевики
-    if (state == CentralBroom::BroomDownOut){
+
+    if (state == CentralBroom::BroomDownOut){// проверяем концевики
         if (timeoutReached){
             logger->printMovementLog( organsEnums::BroomBlock, organsEnums::Down, " достигнут тайм-аут");
-            dkpAndPositionTest = true;
+            movementFinished = true;
         }
     }
-    // рейка идет вверх, ждем концевик
-    if (state == CentralBroom::BroomDownIn){
+
+    if (state == CentralBroom::BroomDownIn){// рейка идет вверх, ждем концевик
         const bool sensorReached = myCan->getState(StateDKPBroomUp).toBool();
         if(checkMovementAndStopOnTimeout(timeoutReached, sensorReached, organsEnums::Up)){
-            dkpAndPositionTest = true;
+            movementFinished = true;
         }
     }
 
     if (state == CentralBroom::BroomSlideOut){
         const bool sensorReached = needGoLeft ? myCan->getState(StateDKPBroomLeft).toBool() : myCan->getState(StateDKPBroomRight).toBool();
         if(checkMovementAndStopOnTimeout(timeoutReached, sensorReached, needGoLeft? organsEnums::Left: organsEnums::Right)){
-            dkpAndPositionTest = true;
+            movementFinished = true;
         }
     }
     if (state == CentralBroom::BroomSlideIn){
         const bool sensorReached = myCan->getState(StateDKPBroomRight).toBool();
         if(checkMovementAndStopOnTimeout(timeoutReached, sensorReached, organsEnums::Right)){
-            dkpAndPositionTest = true;
+            movementFinished = true;
         }
     }
 
-    if (dkpAndPositionTest){
+    if (movementFinished){
         broomAlarmed = false;
         return true;// достигнут концевик или нужное положение (мы молодцы)
     }
@@ -604,9 +614,9 @@ CentralBroom::BroomStates CentralBroom::getPreviousState(CentralBroom::BroomStat
 CentralBroom::BroomStates CentralBroom::stateUp(){// пытаемся прогрессировать статусом вверх (если что меняем направление статуса, если вдруг был понижающий прогресс)
     if(state == BroomDownOut||
         state == BroomFlowOut||
-        state == BroomRotated||
-        state == BroomSlided||
-        state == BroomBounced){
+        state == BroomRotateOut||
+        state == BroomSlideOut||
+        state == BroomBounceOut){
         if(!testStateTimer()){
             return state;
         }

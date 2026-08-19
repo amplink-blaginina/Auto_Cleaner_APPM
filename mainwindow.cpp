@@ -61,6 +61,67 @@ void MainWindow::createTimers()
     oneSecondTimer.start(1000);
 }
 
+void MainWindow::registerButtons(){
+
+    m_buttonManager.registerButton(GPIOInput::IN_BROOM_UP,{
+                   .onPressed = [this](){emit broomCentral->setDirection(organsEnums::Up);},
+                   .onReleased = [this](){emit broomCentral->setDirection(organsEnums::None);}});
+
+    m_buttonManager.registerButton(GPIOInput::IN_BROOM_DOWN,{
+                   .onPressed = [this](){broomCentral->setDirection(organsEnums::Down);},
+                   .onReleased = [this](){broomCentral->setDirection(organsEnums::None);}});
+
+    m_buttonManager.registerButton( GPIOInput::IN_BROOM_LEFT,{
+                   .onPressed = [this](){broomCentral->setDirection(organsEnums::Left);},
+                   .onReleased = [this](){broomCentral->setDirection(organsEnums::None);}});
+
+    m_buttonManager.registerButton( GPIOInput::IN_BROOM_RIGHT,{
+                   .onPressed = [this](){ broomCentral->setDirection(organsEnums::Right);},
+                   .onReleased = [this](){broomCentral->setDirection(organsEnums::None);}});
+
+    m_buttonManager.registerButton(GPIOInput::IN_DUMP_UP,{
+                   .onPressed = [this](){frontRail->setDirection(organsEnums::Up);},
+                   .onReleased = [this](){frontRail->setDirection(organsEnums::None);}});
+
+    m_buttonManager.registerButton( GPIOInput::IN_DUMP_DOWN,{
+                   .onPressed = [this](){frontRail->setDirection(organsEnums::Down);},
+                   .onReleased = [this](){frontRail->setDirection(organsEnums::None);}});
+
+    m_buttonManager.registerButton(GPIOInput::IN_DUMP_LEFT,{
+                   .onPressed = [this](){frontRail->setDirection(organsEnums::Left);},
+                   .onReleased = [this](){frontRail->setDirection(organsEnums::None);}});
+
+    m_buttonManager.registerButton(GPIOInput::IN_DUMP_RIGHT,{
+                   .onPressed = [this](){frontRail->setDirection(organsEnums::Right);},
+                   .onReleased = [this](){frontRail->setDirection(organsEnums::None);}});
+
+    m_buttonManager.registerButton(GPIOInput::IN_BLOW_UP,{
+                   .onPressed = [this](){
+                       blower->goUp();
+                       printOrganStatus(organsEnums::Blower, organsEnums::Up, true);},
+                   .onReleased = [this](){
+                       blower->goOff();
+                       printOrganStatus(organsEnums::Blower, organsEnums::Up, false);}});
+
+    m_buttonManager.registerButton(GPIOInput::IN_BLOW_DOWN,{
+                   .onPressed = [this](){
+                       blower->goDown();
+                       printOrganStatus(organsEnums::Blower, organsEnums::Down, true);},
+                   .onReleased = [this](){
+                       blower->goOff();
+                       printOrganStatus(organsEnums::Blower, organsEnums::Down, false);}});
+
+
+    m_buttonManager.registerButton(GPIOInput::IN_BLOW_LEFT,{
+                   .onPressed = [this](){blower->goSlide(false);printOrganStatus(organsEnums::Blower, organsEnums::Left, true);},
+                   .onReleased = [this](){blower->goNone();printOrganStatus(organsEnums::Blower, organsEnums::Left, false);}});
+
+    m_buttonManager.registerButton(GPIOInput::IN_BLOW_RIGHT,{
+                   .onPressed = [this](){blower->goSlide(true); printOrganStatus(organsEnums::Blower, organsEnums::Right, true);},
+                   .onReleased = [this](){blower->goNone(); printOrganStatus(organsEnums::Blower, organsEnums::Right, false);}});
+
+}
+
 MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -91,7 +152,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     globals = new GlobalSettings(_settingsReader);
     logger = new Logger(NULL);// инит логгера (черный ящик)
 
-
     //Инит CAN и GPIO
     can0 = new MyCan(can_device, logger, true, NULL);//can0
     canForEngine = new MyCanEngine(j1939_device, logger, false, NULL);
@@ -104,11 +164,13 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     gpioMatirx = new GPIOMatrix();
     can = new CanController(can0);
     _gpio = new GPIOController(gpio, gpioMatirx);
-    currentState = new CurrentState(_settingsReader, _gpio);
+    currentState = new CurrentState(_settingsReader, _gpio, can);
     view = new ViewController(this, logger);
     ui->logLayout->addWidget(view->getMessageList());
     starter = new StarterController(globals, currentState, engine, view->screenLog, can, _gpio);
     preroll = new PrerollController(globals, engine, view->screenLog, can, starter, currentState, view);
+
+    registerButtons();
 
     QApplication* a = qobject_cast<QApplication*>(QApplication::instance());
 
@@ -249,7 +311,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     //can0->setState(StateBoardsPowerOut, true);
     showWorkMode();
 
-    starter->startIgnition();
+    starter->setIgnition(true);
 
     connect(can0, SIGNAL(canPOError()), this, SLOT(canPOError()));
     connect(can0, SIGNAL(canDataReady(struct can_frame)), this, SLOT(incomeData(struct can_frame)));
@@ -280,6 +342,7 @@ void MainWindow::createFormsAndHide(){
     serviceGPIOServiceIntervalLeftForm->hide();
 
     serviceOtherEngineLeftForm = new ServiceOtherEngineLeftForm(this);
+    preroll->setEngineForm(serviceOtherEngineLeftForm);
     serviceOtherEngineLeftForm->hide();
 
     serviceOtherLightLeftForm = new ServiceOtherLightLeftForm(this);
@@ -868,11 +931,12 @@ void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data){//
 void MainWindow::oneSecond(){// универсальный таймер для всяких нужд (раз в сек)
     can0->setState(State24Volt, true);
 
-    QDateTime DateAndTime=QDateTime::currentDateTime().addMonths(0);
-    QString string_current_date = EngLocale.dayName(DateAndTime.date().dayOfWeek(),QLocale::ShortFormat);
-    string_current_date += " "+ QString::number(DateAndTime.date().day(),10);
-    string_current_date += " "+ EngLocale.monthName(DateAndTime.date().month(),QLocale::ShortFormat);
-    string_current_date += " "+ QString::number(DateAndTime.date().year(),10);
+    QDateTime DateAndTime = QDateTime::currentDateTime().addMonths(0);
+    auto date = DateAndTime.date();
+    QString string_current_date = EngLocale.dayName(date.dayOfWeek(),QLocale::ShortFormat);
+    string_current_date += " "+ QString::number(date.day(), 10);
+    string_current_date += " "+ EngLocale.monthName(date.month(),QLocale::ShortFormat);
+    string_current_date += " "+ QString::number(date.year(), 10);
     ui->label_date->setText(string_current_date);
     ui->label_time->setText(DateAndTime.time().toString());
 
@@ -909,7 +973,7 @@ void MainWindow::oneSecond(){// универсальный таймер для �
 
     // узнаем моточасы за сегодня
     if (DateAndTime.date() != dateToday){// надо записать сегодняшний срез и сохранить его
-        dateToday = DateAndTime.date();
+        dateToday = date;
         engineToday = TOCurValues["Engine"];
         settingsStore->commitGroup("TOCur", [this](QSettings *s){
             s->setValue("EngineToday", engineToday);
@@ -997,17 +1061,8 @@ bool MainWindow::inHomeState(){
 }
 
 // тут проверяются узлы которые являются общими для всех (например насос воды используется 8 блоками, поэтому тут проверяем если он долго никому не нужен то выключаем воду)
-
-void MainWindow::mainProgress(){
-    if (ui->pushButton_backMagnet->isDown())
-        qDebug() << "down";
-
-    buttonsLightCheck();// проверка подсветки
-
-    // test
-    ui->label_key->setText("Кнопка: " + QString::number((int)gpioMatirx->keyPressed));
-
-    if (can->isDisabled()){// вырубили зажигание-надо готовиться к остановке (или нажали кнопку пви)
+void MainWindow::checkIgnition(){
+    if (!currentState->isIgnitionEnabled()){//can->isDisabled()){// вырубили зажигание-надо готовиться к остановке (или нажали кнопку пви)
         // сделаем флуш всего
         if (!stopInProgress){
             stopInProgress = true;
@@ -1030,13 +1085,18 @@ void MainWindow::mainProgress(){
             view->addLogWarning("Выключение ПВИ отменено");
         stopInProgress = false;
     }
+}
 
-    updateEngineAndRollLocks();
+void MainWindow::mainProgress(){
+    buttonsLightCheck();// проверка подсветки
 
-    QPushButton* prerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_preroll");
-    QPushButton* starterPrerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_starterPreroll");
-    QLabel* statusLabel = serviceOtherEngineLeftForm->findChild<QLabel*>("label_prerollStatus");
-    preroll->processPrerollInService(prerollButton, starterPrerollButton, statusLabel, serviceOtherEngineLeftForm->isVisible());
+    // test
+    ui->label_key->setText("Кнопка: " + QString::number((int)gpioMatirx->keyPressed));
+
+    checkIgnition();
+    checkEngineAndRollLocks();
+
+    preroll->update();
 
     if (currentState->isDiagMode()){
         updateSensorAndWarningIndicators();
@@ -1096,8 +1156,8 @@ void MainWindow::mainProgress(){
         }
     }
 
-    // отрисуем в статусной строке общие параметры (насосы, распределители и пр.)
-    showStatus();
+
+    showStatus();// отрисуем в статусной строке общие параметры (насосы, распределители и пр.)
 
     // цикл обслуживания командных gpio
     // смотрим нажат ли кто и реагируем соответствующе
@@ -1113,6 +1173,7 @@ void MainWindow::mainProgress(){
     // отображаем и отрабатываем нажатие кнопок на экране во время работ
     bool transitioning = isOrgansTransitioning();
     if (!transitioning){
+       // updateButtons();
         if (organsWereTransitioning && !pauseActive){
             if (startClean)
                 view->addLog("Органы разложены — управление разблокировано");
@@ -1124,6 +1185,7 @@ void MainWindow::mainProgress(){
         if (startClean){
             setBroomState();
         }
+
         showCentralBroomLeft();
         showCentralBroomRight();
         // отвал - при неактивной проге выбирают лево право отвал. при активной двигает отвалом (при удержании isDown)
@@ -1141,9 +1203,8 @@ void MainWindow::mainProgress(){
             view->addLogWarning("Нажата аварийная кнопка");
         if (startClean)
             on_pushButton_startstop_clicked();
-        can->setIgnition(false);
-        //can0->setState(StateIgnitionOut, false);
-        starter->resetIgnitionTimer();//ignitionOffTimer = 0;
+        starter->setIgnition(false);
+        starter->resetIgnitionTimer();
     }
 
     //защита по скорости - если едем слишком быстро надо выключать режим работы (скорость 50 условная - обозначает что нет данных от двигателя)
@@ -1153,14 +1214,15 @@ void MainWindow::mainProgress(){
     }
 }
 
+
 void MainWindow::updateIndicatorPixmap(QLabel* label, const QString& colorName, const QString& baseName){
     const QString iconPath = ":/Images/Images/main/signs/sign_" + baseName + "_" + colorName + "_stub.png";
     label->setPixmap(QPixmap(iconPath));
 }
 
-void MainWindow::updateEngineAndRollLocks(){
+void MainWindow::checkEngineAndRollLocks(){
 
-    const bool heatRelayActive = can0->getState(StateHeatRele).toBool();// Теплореле: активно (true) = двигатель достаточно прогрет
+    const bool isEngineWarmEnough = can->getHeatState();// Теплореле: активно (true) = двигатель достаточно прогрет
     const bool engineTempValid = engine->coolantTempEverReceived
                                  && (engine->online <= ENGINE_ONLINE_EDGE * 10);// Температура учитывается только при живом CAN
     const bool engineCold = engineTempValid && (globals->isEngineCold(engine->engineCoolantTemp));// Температура двигателя: учитываем только если движок уже хоть раз прислал данные
@@ -1171,24 +1233,17 @@ void MainWindow::updateEngineAndRollLocks(){
     // Если при включении температура уже удовлетворительна — блокировки нет
     // === ИСПРАВЛЕННАЯ ЛОГИКА ТЕМПЕРАТУРНОЙ БЛОКИРОВКИ ===
     if (!disableTemperatureBlock){
-
-        if (engineCold && !heatRelayActive){// БЛОКИРОВКА: двигатель холоден по CAN и теплореле ещё не замкнуто
-            preroll->lockByTemperature(true);
-        }
-
-        else if (heatRelayActive){// РАЗБЛОКИРОВКА: ТОЛЬКО когда сработало физическое теплореле
-            preroll->lockByTemperature(false);
-        }
-
+        if (engineCold && !isEngineWarmEnough){// БЛОКИРОВКА: двигатель холоден по CAN и теплореле ещё не замкнуто
+            preroll->lockByTemperature(true);}
+        else if (isEngineWarmEnough){// РАЗБЛОКИРОВКА: ТОЛЬКО когда сработало физическое теплореле
+            preroll->lockByTemperature(false);}
         else{// РАЗБЛОКИРОВКА: данные с CAN недостоверны (пропал) или двигатель уже прогрет
-            preroll->lockByTemperature(false);
-        }
+            preroll->lockByTemperature(false);}
         // Если по CAN уже "тепло", но теплореле ещё не замкнулось —
         // блокировка остаётся висеть (не сбрасываем здесь!)
     }
     else{
-        preroll->lockByTemperature(false);
-    }
+        preroll->lockByTemperature(false);}
     // === КОНЕЦ ИСПРАВЛЕНИЯ ===
 
     preroll->checkEmergencies();
@@ -1273,7 +1328,7 @@ void MainWindow::updateSensorAndWarningIndicators(){
 }
 
 void MainWindow::showStatus(){
-    updateEngineAndRollLocks();
+    checkEngineAndRollLocks();
 
     // wait_on_start
     showStatus(ui->label_wait_on_start,
@@ -1319,16 +1374,16 @@ void MainWindow::showPultOffIgnition(){
 
 void MainWindow::updateFRM(){
     QString path = "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_";
+    view->updateFRM(ui->pushButton_frmKung, workMode.frmKung, "k");
     // frm кунг
-    view->setStyle(ui->pushButton_frmKung, path + (workMode.frmKung? "k_on.png);": "k_off.png);"));
     can0->setState(StateKungL5, workMode.frmKung);
 
     // frm щетка
-    view->setStyle(ui->pushButton_frmBroom, path + (workMode.frmBroom? "h_on.png);":"h_off.png);"));
+    view->updateFRM(ui->pushButton_frmBroom, workMode.frmBroom, "h");
     can0->setState(StateFRMBroomL1, workMode.frmBroom);
 
     // frm магнит
-    view->setStyle(ui->pushButton_frmMagnet, path + (workMode.frmMagnet? "m_on.png);":"m_off.png);"));
+    view->updateFRM(ui->pushButton_frmMagnet, workMode.frmMagnet, "m");
     can0->setState(StateFRMBackL2, workMode.frmMagnet);
 }
 
@@ -1341,8 +1396,7 @@ void MainWindow::showModeButton()
 {
     const auto pressedKey = gpioMatirx->keyPressed;
 
-    if (modeLeftKey.update(pressedKey == GPIOInput::IN_MODE_LEFT))
-    {
+    if (modeLeftKey.update(pressedKey == GPIOInput::IN_MODE_LEFT)){
         if (workMode.sweepType == LightSweep)
             on_pushButton_leafSweep_clicked();
         else if (workMode.sweepType == MediumSweep)
@@ -1351,8 +1405,7 @@ void MainWindow::showModeButton()
             on_pushButton_mediumSweep_clicked();
     }
 
-    if (modeRightKey.update(pressedKey == GPIOInput::IN_MODE_RIGHT))
-    {
+    if (modeRightKey.update(pressedKey == GPIOInput::IN_MODE_RIGHT)){
         if (workMode.sweepType == LeafSweep)
             on_pushButton_lightSweep_clicked();
         else if (workMode.sweepType == LightSweep)
@@ -1578,7 +1631,22 @@ void  MainWindow::showCentralBroomLeft(){
     }
 }
 
-void  MainWindow::showCentralBroomRight(){
+// void  MainWindow::updateBroomLeft(){
+//     m_buttonManager.update(
+//         GPIOInput::IN_BROOM_LEFT),
+//         isButtonPressed(kStartGpio);
+//         );
+// }
+
+// bool GPIOController::isButtonPressed(unsigned int gpioLine)
+// {
+//     const bool rawLevel = readGpio(gpioLine);
+
+//     constexpr bool activeLow = true;
+//     return activeLow ? !rawLevel : rawLevel;
+// }
+
+void MainWindow::showCentralBroomRight(){
     if ((startClean && ui->pushButton_centralBroomRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_BROOM_RIGHT)    {// нажали кнопку
         centralBroomRightTimeCounter++;
         if (startClean)
@@ -1616,6 +1684,14 @@ void MainWindow::showDumpLeft(){
         }
         frontDumpLeftTimeCounter = 0;
     }
+}
+
+void MainWindow::updateButtons(){
+    const bool dumpRightPressed = (startClean && ui->pushButton_dumpRight->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_RIGHT;
+    m_buttonManager.update(GPIOInput::IN_DUMP_RIGHT, dumpRightPressed);
+    const bool dumpLeftPressed = (startClean && ui->pushButton_dumpLeft->isDown()) || gpioMatirx->keyPressed == GPIOInput::IN_DUMP_LEFT;
+    m_buttonManager.update(GPIOInput::IN_DUMP_LEFT, dumpLeftPressed);
+
 }
 
 void MainWindow::showDumpRight(){
@@ -1809,11 +1885,21 @@ void MainWindow::on_pushButton_dumpRight_released(){
 
 void MainWindow::on_pushButton_dumpFlow_clicked(){
     workMode.frontDumpFlow = !workMode.frontDumpFlow;
-    frontRail->setFlowActive(workMode.frontDumpFlow);
+    if(startClean){
+        frontRail->setFlowActive(workMode.frontDumpFlow);}
     showWorkMode();
 }
 
 //------------------------------------------------------------------------
+void MainWindow::on_pushButton_centralBroomFlow_clicked(){
+    workMode.centralBroomFlow = !workMode.centralBroomFlow;
+    bool newState = workMode.centralBroomFlow;
+    setBroomFlowView(newState);
+    if(startClean){
+        broomCentral->setFlowActive(newState);}
+    showWorkMode();
+}
+
 void MainWindow::onBroomReleased(){
     if (startClean){
         broomCentral->setDirection(organsEnums::None);
@@ -1849,39 +1935,24 @@ void MainWindow::on_pushButton_centralBroomRight_pressed(){
         broomCentral->setDirection(organsEnums::Right);
     }
 }
+
 void MainWindow::on_pushButton_centralBroomRight_released(){
     onBroomReleased();
 }
 
-void MainWindow::on_pushButton_centralBroomUp_pressed(){
-    if (startClean){
-        broomCentral->setDirection(organsEnums::Up);}
-}
-void MainWindow::on_pushButton_centralBroomUp_released(){
-    onBroomReleased();
-}
-
-void MainWindow::on_pushButton_centralBroomDown_pressed(){
-    if (startClean){
-        qDebug()<<"down";
-        broomCentral->setDirection(organsEnums::Down);
-    }
-}
-void MainWindow::on_pushButton_centralBroomDown_released(){
-    onBroomReleased();
-}
-
-void MainWindow::on_pushButton_centralBroomFlow_clicked(){
-    bool newState = !workMode.centralBroomFlow;
-    setBroomFlowView(newState);
-    broomCentral->setFlowActive(newState);
+void MainWindow::setBroomPressed(bool state){
+    workMode.centralBroomPress = state;
+    broomCentral->setPressActive(state);
     showWorkMode();
 }
+
 void MainWindow::on_pushButton_centralBroomPress_clicked(){
-    workMode.centralBroomPress = !workMode.centralBroomPress;
-    broomCentral->setPressActive(workMode.centralBroomPress);
+    setBroomPressed(!workMode.centralBroomPress);
+    // workMode.centralBroomPress = !workMode.centralBroomPress;
+    // broomCentral->setPressActive(workMode.centralBroomPress);
     showWorkMode();
 }
+
 //------------------------------------------------------------------------
 void MainWindow::onBlowerReleased(){
     if(startClean){
@@ -1901,8 +1972,7 @@ void MainWindow::on_pushButton_blowerUp_released(){
 
 void MainWindow::on_pushButton_blowerDown_pressed(){
     if(startClean){
-        blower->goDown();
-    }
+        blower->goDown();}
 }
 
 void MainWindow::on_pushButton_blowerDown_released(){
@@ -1910,17 +1980,15 @@ void MainWindow::on_pushButton_blowerDown_released(){
 }
 
 void MainWindow::on_pushButton_blowerLeft_clicked(){
-    if (!startClean)    {
+    if (!startClean){
         workMode.blowLeft = !workMode.blowLeft;
         workMode.blowRight = false;
-        showWorkMode();
-    }
+        showWorkMode();}
 }
 
 void MainWindow::on_pushButton_blowerLeft_pressed(){
     if(startClean){
-        blower->goSlide(true);
-    }
+        blower->goSlide(true);}
 }
 void MainWindow::on_pushButton_blowerLeft_released(){
     onBlowerReleased();
@@ -1930,13 +1998,12 @@ void MainWindow::on_pushButton_blowerRight_clicked(){
     if (!startClean){
         workMode.blowRight = !workMode.blowRight;
         workMode.blowLeft = false;
-        showWorkMode();
-    }
+        showWorkMode();}
 }
+
 void MainWindow::on_pushButton_blowerRight_pressed(){
     if(startClean){
-        blower->goSlide(true);
-    }
+        blower->goSlide(true);}
 }
 
 void MainWindow::on_pushButton_blowerRight_released(){
@@ -1952,10 +2019,12 @@ void MainWindow::on_pushButton_frmKung_clicked(){
     workMode.frmKung = !workMode.frmKung;
     showWorkMode();
 }
+
 void MainWindow::on_pushButton_frmBroom_clicked(){
     workMode.frmBroom = !workMode.frmBroom;
     showWorkMode();
 }
+
 void MainWindow::on_pushButton_frmMagnet_clicked(){
     workMode.frmMagnet = !workMode.frmMagnet;
     showWorkMode();
@@ -2047,11 +2116,11 @@ void MainWindow::setBroomState(){
                    [this](){broomCentral->setDirection(organsEnums::Up);},
                    [this](){broomCentral->setDirection(organsEnums::None);});
 
-    // selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_DOWN,
-    //                ui->label_centralBroomUpDown, ui->pushButton_centralBroomDown,
-    //                path + "down_on.png);", path + "off.png);",
-    //                [this](){broomCentral->setDirection(organsEnums::Down);},
-    //                [this](){broomCentral->setDirection(organsEnums::None);});
+    selectBtnState(gpioMatirx->keyPressed == GPIOInput::IN_BROOM_DOWN,
+                   ui->label_centralBroomUpDown, ui->pushButton_centralBroomDown,
+                   path + "down_on.png);", path + "off.png);",
+                   [this](){broomCentral->setDirection(organsEnums::Down);},
+                   [this](){broomCentral->setDirection(organsEnums::None);});
 
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
@@ -2154,8 +2223,8 @@ void MainWindow::setBlowerState(){
                    ui->label_blower, ui->pushButton_blowerRight,
                    path + "right_on.png);",
                    defaultIcon,
-                   [this](){blower->goSlide(true);printOrganStatus(organsEnums::Blower, organsEnums::Right, true);},
-                   [this](){blower->goNone();printOrganStatus(organsEnums::Blower, organsEnums::Right, false);});
+                   [this](){blower->goSlide(true); printOrganStatus(organsEnums::Blower, organsEnums::Right, true);},
+                   [this](){blower->goNone(); printOrganStatus(organsEnums::Blower, organsEnums::Right, false);});
 
 }
 
@@ -2163,7 +2232,6 @@ void MainWindow::setBlowerState(){
 void MainWindow::printOrganStatus(organsEnums::Organ organ, organsEnums::Direction direction, bool state){
     view->screenLog->printMovementLog(organ, direction, (state? "":" завершено"));
 }
-
 
 //==============================UI===================================================
 
@@ -2239,7 +2307,7 @@ void MainWindow::updateButtonsActiveState(){
 }
 
 void MainWindow::setBroomFlowView(bool state){
-    workMode.centralBroomFlow = state;
+    //workMode.centralBroomFlow = state;
     updateBroomBtnsView();
 }
 
@@ -2249,50 +2317,39 @@ void MainWindow::setDumpFlowView(bool state){
 }
 
 void MainWindow::setBroomPressView(bool state){
-    workMode.centralBroomPress = state;
+    setBroomPressed(state);
+    // workMode.centralBroomPress = state;
+    // broomCentral->setPressActive(state);
     updateBroomBtnsView();
 }
 
 void MainWindow::updateBroomBtnsView(){
-    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
-
-    if (workMode.centralBroomLeft){
-        view->setStyle(ui->label_centralBroom, path + "left_on.png);");
-    }
-    else{
-        if (workMode.centralBroomRight)
-            view->setStyle(ui->label_centralBroom, path + "right_on.png);");
-        else
-            view->setStyle(ui->label_centralBroom, "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_off.png);");
-
-    }
+    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBrooms";
+    path += workMode.centralBroomLeft?"Below_left_on.png);":(workMode.centralBroomRight?"Below_right_on.png);":"Front_off.png);");
+    view->setStyle(ui->label_centralBroom, path);
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
-    if(workMode.centralBroomFlow){
-        view->setStyle(ui->label_centralBroomFloatPress, path + (workMode.centralBroomPress? "on.png);": "up_on.png);"));
-    }
-    else{
-        view->setStyle(ui->label_centralBroomFloatPress, path + (workMode.centralBroomPress? "down_on.png);": "off.png);"));
-    }
-
+    path += workMode.centralBroomFlow?(workMode.centralBroomPress? "on.png);": "up_on.png);"):(workMode.centralBroomPress? "down_on.png);": "off.png);");
+    view->setStyle(ui->label_centralBroomFloatPress, path);
 }
-void MainWindow::updateDumpBtnsView(){
+
+void MainWindow::updateDumpBtnsView(){// передний отвал
     QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
     view->setStyle(ui->label_dumpUpDown, path + (ui->pushButton_dumpDown->isEnabled()? "off.png);": "blocked.png);"));
 
-    // передний отвал
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_";
-    if (workMode.frontDumpLeft && !workMode.frontDumpRight)
-        view->setStyle(ui->label_dump, path + "left_on.png);");
-    else if (!workMode.frontDumpLeft && workMode.frontDumpRight )
-        view->setStyle(ui->label_dump, path + "right_on.png);");
-    else if (!workMode.frontDumpLeft && !workMode.frontDumpRight )
-        view->setStyle(ui->label_dump, path + "off.png);");
+
+    if (workMode.frontDumpLeft){
+        if(!workMode.frontDumpRight){
+            view->setStyle(ui->label_dump, path + "left_on.png);");}
+    }
+    else{
+        view->setStyle(ui->label_dump, path + (workMode.frontDumpRight? "right_on.png);":"off.png);"));
+    }
 
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_";
-    view->setStyle(ui->label_dumpFloatPress, path + (workMode.frontDumpFlow? "on_down_blocked.png);": "off_down_blocked.png);"));
-
-
+    path += workMode.frontDumpFlow? "on_down_blocked.png);": "off_down_blocked.png);";
+    view->setStyle(ui->label_dumpFloatPress, path);
 }
 
 void MainWindow::updateButtonsIcons(){
@@ -2311,12 +2368,8 @@ void MainWindow::updateButtonsIcons(){
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_";
     view->setStyle(ui->label_centralBroomUpDown, path + (ui->pushButton_centralBroomDown->isEnabled()? "off.png);":"blocked.png);"));
 
-
-    // задняя щетка
-    updateBroomBtnsView();
-
-    // отвал
-    updateDumpBtnsView();
+    updateBroomBtnsView(); // задняя щетка
+    updateDumpBtnsView();// отвал
 
     // магнит
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_magnet_";
@@ -2324,12 +2377,16 @@ void MainWindow::updateButtonsIcons(){
 
     // дулка
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
-    if (workMode.blowLeft && !workMode.blowRight )
-        view->setStyle(ui->label_blower, path + "left_on.png);");
-    else if (!workMode.blowLeft && workMode.blowRight)
-        view->setStyle(ui->label_blower, path + "right_on.png);");
-    else if (!workMode.blowLeft && !workMode.blowRight)
-                view->setStyle(ui->label_blower, path + "off.png);");
+    if (workMode.blowLeft){
+        if( !workMode.blowRight )
+            view->setStyle(ui->label_blower, path + "left_on.png);");
+    }
+    else{
+        if ( workMode.blowRight)
+            view->setStyle(ui->label_blower, path + "right_on.png);");
+        else
+            view->setStyle(ui->label_blower, path + "off.png);");
+    }
 
     // старт стоп
     path = "outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_";
@@ -2345,34 +2402,33 @@ void MainWindow::selectBtnState(bool gpioPressed, QLabel *lbl, QPushButton *btn,
                                 std::function<void()> onPressHandler,
                                 std::function<void()> onReleaseHandler){
 
-    bool wasDown = btn->property("wasDown").toBool();
-    if (btn->isDown() || gpioPressed){
-        if(!wasDown){
-            btn->setProperty("wasDown", true);
-            setBtnState(lbl, onPath, onPressHandler);}
-    }
-    else if (wasDown){
-        btn->setProperty("wasDown", false);
+    bool wasPressed = btn->property("wasDown").toBool();
+    bool isPressed = btn->isDown() || gpioPressed;
+    if(wasPressed ==isPressed)
+        return;
+
+    btn->setProperty("wasDown", isPressed);
+    if(isPressed)
+        setBtnState(lbl, onPath, onPressHandler);
+    else
         setBtnState(lbl, offPath, onReleaseHandler);
-    }
 }
 
 void MainWindow::selectBtnState(bool gpioPressed, QPushButton *btn, QString onPath, QString offPath,
                                 std::function<void()> onPressHandler,
                                 std::function<void()> onReleaseHandler){
 
-    bool wasDown = btn->property("wasDown").toBool();
+    bool wasPressed = btn->property("wasDown").toBool();
+    bool isPressed = btn->isDown() || gpioPressed;
 
-    if(wasDown){
-        btn->setProperty("wasDown", false);
+    if(wasPressed == isPressed)
+        return;
+    btn->setProperty("wasDown", isPressed);
+
+    if(isPressed)
+        setBtnState(btn, onPath, onPressHandler);
+    else
         setBtnState(btn, offPath, onReleaseHandler);
-    }
-    else{
-        if(btn->isDown() || gpioPressed){
-            btn->setProperty("wasDown", true);
-            setBtnState(btn, onPath, onPressHandler);
-        }
-    }
 }
 
 void MainWindow::showStatus(QLabel *label, bool check) {
@@ -2408,180 +2464,14 @@ void MainWindow::showStatus(QLabel *label, bool check, QString messageOn, QStrin
 }
 
 void MainWindow::resetPassword(){
-    serviceGeneralPasswordLeftForm->passwordVariable = "password";
-    serviceGeneralPasswordLeftForm->goStep(0);
+    serviceGeneralPasswordLeftForm->resetPassword();
 }
 
-ViewController* MainWindow::getView(){ return view;}
+ViewController* MainWindow::getView(){return view;}
 
-SettingsReader* MainWindow::getReader(){ return _settingsReader;}
+SettingsReader* MainWindow::getReader(){return _settingsReader;}
 
 bool MainWindow::isSpeedTooHigh(){
     auto speed = currentState->vehicleSpeed;
     return (speed > globals->disableCleanSpeed && speed != 199 && speed < 200);
 }
-void MainWindow::invertIgnition(){
-    can0->setState(StateIgnitionOut, !can0->getState(StateIgnitionOut).toBool());
-}
-
-
-//================================preroll===============================
-
-// void MainWindow::processPrerollInService()
-// {
-//     QPushButton* prerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_preroll");
-//     QPushButton* starterPrerollButton = serviceOtherEngineLeftForm->findChild<QPushButton*>("pushButton_starterPreroll");
-
-//     const bool serviceEngineVisible = superDiagMode && serviceOtherEngineLeftForm->isVisible();
-//     serviceIgnitionAutoRestoreBlocked = serviceEngineVisible || prerollSequenceActive || rollRunActive;
-//     //qDebug()<<"engineVisible: " << serviceEngineVisible<<"   prerollSequence: " << prerollSequenceActive <<"    rollRun: " << rollRunActive;
-//     if (starterPrerollButton != NULL)
-//         starterPrerollButton->setEnabled(prerollStarterUnlocked && !rollNeedReboot && !rollBlocked());
-
-//     // Обновляем состояние кнопки ПРОКРУТКА (зафиксирована когда идёт подготовка или активна)
-//     if (prerollButton != NULL)
-//         prerollButton->setChecked(prerollSequenceActive || prerollStarterUnlocked);
-
-//     if(starterPressed){
-//         qDebug()<<"### starterPressed";
-//         prerollSequenceActive = false;
-//         prerollStarterUnlocked = false;
-//         stopRollOutput();
-//         can0->setState(StateStarterAllow, false);
-//     }
-//     // Обновляем статусную строку
-//     updateRollStatusText();
-
-
-//     const bool prerollPressed = serviceEngineVisible && prerollButton != NULL && prerollButton->isDown();
-//     const bool prerollPressedEdge = prerollPressed && !prerollButtonPrev;
-
-//     const bool prerollStarterPressed = serviceEngineVisible && starterPrerollButton != NULL && starterPrerollButton->isDown();
-//     const bool prerollStarterPressedEdge = prerollStarterPressed && !prerollStarterButtonPrev;
-
-//     const bool rollInputPressed = can0->getState(StateRollIn).toBool();
-//     const bool rollInputPressedEdge = rollInputPressed && !rollInputPrev;
-
-//     if (prerollPressedEdge)
-//     {
-//         qDebug()<<"### prerollPressed";
-//         if (prerollSequenceActive || prerollStarterUnlocked)
-//         {
-//             // ОТМЕНА: выходим из режима прокрутки, восстанавливаем зажигание
-//             prerollSequenceActive = false;
-//             prerollStarterUnlocked = false;
-//             stopRollOutput();
-//             can0->setState(StateStarterAllow, false);
-//             // restoreIgnitionAfterRoll();
-//             screenLog->printLog("Режим прокрутки отменён оператором");
-//         }
-//         else if (rollBlocked())
-//         {
-//             view->addLogWarning("Прокрутка заблокирована");
-//         }
-//         else
-//         {
-//             view->addLogWarning("Запуск алгоритма прокрутки");
-//             prerollSequenceActive = true;
-//             prerollSequenceStep = 1;
-//             prerollStepStartedAt = QDateTime::currentDateTime();
-//             prerollStarterUnlocked = false;
-//             stopRollOutput();
-//             can0->setState(StateStarterAllow, false);
-//             can0->setState(StateIgnitionOut, false);
-//             ignitionOffTimer = 0;
-//         }
-//     }
-
-//     if (prerollSequenceActive)
-//     {
-//         qDebug()<<"### prerollPrepeared";
-//         const int elapsed = qAbs(prerollStepStartedAt.secsTo(QDateTime::currentDateTime()));
-//         if (prerollSequenceStep == 1 && elapsed >= 2)
-//         {
-//             can0->setState(StateStarterAllow, true);
-//             prerollSequenceStep = 2;
-//             prerollStepStartedAt = QDateTime::currentDateTime();
-//         }
-//         else if (prerollSequenceStep == 2 && elapsed >= 1)
-//         {
-//             prerollStarterUnlocked = true;
-//             prerollSequenceActive = false;
-//             screenLog->printLog("Прокрутка подготовлена");
-//         }
-//     }
-
-//     if (rollPauseActive && !inRollPause()){
-//         rollPauseActive = false;
-//         rollPauseWarned = false;
-//     }
-
-//     const bool rollStartRequest = prerollStarterPressedEdge || rollInputPressedEdge;
-//     if (rollStartRequest && !rollRunActive)
-//     {
-//         if (rollBlocked()){
-//             view->addLogWarning("Прокрутка заблокирована");
-//         }
-//         else if (inRollPause()){
-//             view->addLogWarning("Пауза между пусками " + QString::number(rollPauseSecondsLeft()) + " секунды осталось");
-//             rollPauseWarned = true;
-//         }
-//         else if (!prerollStarterUnlocked && !rollInputPressedEdge){
-//             view->addLogWarning("Сначала выполните подготовку прокрутки");
-//         }
-//         else{
-//             rollRunActive = true;
-//             rollRunStartedAt = QDateTime::currentDateTime();
-//             rollAttemptsUsed++;
-//             stopStarterOutput();
-//             can0->setState(StateStarterRoll, true);
-//             view->addLogWarning("Стартер прокрутка включен");
-//         }
-//     }
-
-//     if (rollRunActive)    {
-//         const bool oilRele = !can0->getState(StateOilRele).toBool();
-//         const int elapsedRoll = qAbs(rollRunStartedAt.secsTo(QDateTime::currentDateTime()));
-//         if (oilRele)
-//         {
-//             stopRollOutput();
-//             rollRunActive = false;
-//             rollPauseActive = false;
-//             rollNeedReboot = false;
-//             rollAttemptsUsed = 0;
-//             prerollStarterUnlocked = false;
-//             can0->setState(StateStarterAllow, false);
-//             rollCompleted = true;
-//             needRollProcedure = false;
-//             starterLockedByRoll = false;
-//             lastEngineStartDate = QDate::currentDate();
-//             settings->setValue("Engine/lastStartDate", lastEngineStartDate);
-//             settings->sync();
-//             // ВОССТАНАВЛИВАЕМ ЗАЖИГАНИЕ после успешной прокрутки
-//             can0->setState(StateIgnitionOut, true);
-//             ignitionOffTimer = 0;
-
-//             addLog("Прокрутка завершена по реле масла", InfoStatus);
-//         }
-//         else if (globals->rollWorkingLimitReached(rollRunStartedAt))//elapsedRoll >= rollMaxWorkSec)
-//         {
-//             stopRollOutput();
-//             rollRunActive = false;
-//             rollPauseActive = true;
-//             rollPauseStartedAt = QDateTime::currentDateTime();
-//             addLog("Долгая работа стартера", FatalStatus);
-//             if (globals->rollAttemptsLimitReached(rollAttemptsUsed)){//rollAttemptsUsed >= rollMaxAttempts
-//                 rollNeedReboot = true;
-//                 addLog("Достигнут лимит попыток прокрутки, требуется перезагрузка пульта", FatalStatus);
-//             }
-//         }
-//     }
-// }
-// void MainWindow::restoreIgnitionAfterRoll(){// Восстанавливаем зажигание немедленно
-
-//     can0->setState(StateIgnitionOut, true);
-//     ignitionOffTimer = 0;
-//     // Если сервисный экран закрыт — разрешаем авто-восстановление работать штатно
-//     // Если открыт — оно всё равно заблокировано, но зажигание уже включено
-//     screenLog->printLog("Зажигание восстановлено после прокрутки");
-// }

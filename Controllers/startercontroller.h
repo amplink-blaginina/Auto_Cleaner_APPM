@@ -21,47 +21,50 @@ public:
                       CanController *can0,
                       GPIOController *gpio);
 
-    void showStarter();
-    bool starterStarted;
     QDateTime starterStartedTime;
+    QDateTime starterPauseStartedAt;
 
-    bool starterStartedAlarmed;
-    bool starterBroomAlarmed;
-    bool starterBunkerAlarmed;
-
-    bool engineStartedOk = false;
-
-    quint32 ignitionOffTimer;
-
-    bool starterPressed = false;
-    void setStarterPressed(bool state);
-
+    int starterAttemptsUsed;
     bool starterLockedByRoll;
     bool starterLockedByTemperature;
     bool starterLockedByEmergency;
-
-    bool starterPauseActive;
-    QDateTime starterPauseStartedAt;
-    int starterAttemptsUsed;
     bool starterNeedReboot;
     bool starterPressedPrev;
     bool starterPauseWarned;
+    bool starterStarted;
+    bool starterStartedAlarmed;
+    bool starterBroomAlarmed;
+    bool starterBunkerAlarmed;
+    bool starterPauseActive;
+    bool starterPressed = false;
+    bool engineStartedOk = false;
+    quint32 ignitionOffTimer;
 
-    bool isStarterPressed();
-    bool inStarterPause() const;
-    bool isStarterClicked();
+
+
     int starterPauseSecondsLeft() const;
+    bool inStarterPause() const;
+    bool starterBlocked() const;
+    void setStarterPressed(bool state);
+    void showStarter();
     void setDefaults();
     void resetValues();
     void checkPauseState();
     void stopStarterOutput();
-    bool starterBlocked() const;
-
-    QString getFatalStatusMessage();
-
     void resetIgnitionTimer();
     void increaseIgnitionTimer();
-    void startIgnition();
+    void setIgnition(bool state);
+    void TurnOffTheEngine();
+    void restoreIgnition();
+    void forceStopIgnition();
+    bool isStarterReleased();
+    bool isStarterPressed();
+    bool isStarterClicked();
+    QString getFatalStatusMessage();
+
+
+    //void startIgnition();
+
 private:
     GlobalSettings *_globals;
     Engine *_engine;
@@ -69,6 +72,11 @@ private:
     CanController *_can;
     GPIOController *_gpio;
     CurrentState *_state;
+    bool engineWasRunning;
+    bool intentionalShutdown;
+    bool checkAttemptsLimitReached();
+    void handleStarterTimeout();
+    bool checkAbleToStart();
 };
 
 #endif // STARTERCONTROLLER_H

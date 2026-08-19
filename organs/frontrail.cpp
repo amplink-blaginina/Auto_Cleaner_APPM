@@ -236,8 +236,13 @@ void FrontRail::goNone(){
 }
 void FrontRail::goDown(){goDown(true);}
 void FrontRail::goDown(bool state){
-    if(state){
-        setFlowActive(false);
+    // if(state){
+    //     setFlowActive(false);
+    // }
+    if(state && !((MainWindow*)parent)->isOrgansTransitioning()){
+        qDebug()<<"###goDOWN!!!";
+        ((MainWindow*)parent)->setDumpFlowView(false);
+        ((MainWindow*)parent)->workMode.frontDumpFlow = false;
     }
     myCan->setState(StateValveF7, state);
     myCan->setState(StateValveA1, state);
@@ -249,8 +254,15 @@ void FrontRail::goUp(){
 }
 
 void FrontRail::goUp(bool state){
-    if(state){
-        setFlowActive(false);
+    // if(state){
+    //     setFlowActive(false);
+    //     ((MainWindow*)parent)->setDumpFlowView(state);
+    // }
+
+    if(state && !((MainWindow*)parent)->isOrgansTransitioning()){
+        qDebug()<<"###goUP!!!";
+        ((MainWindow*)parent)->setDumpFlowView(false);
+        ((MainWindow*)parent)->workMode.frontDumpFlow = false;
     }
     myCan->setState(StateValveF1, state);
     myCan->setState(StateValveA1, state);
@@ -268,7 +280,7 @@ void FrontRail::setFlowActive(bool state){
         return;
     isFlowing = state;
     goFlow(state);
-    ((MainWindow*)parent)->setDumpFlowView(state);
+   // ((MainWindow*)parent)->setDumpFlowView(state);
 }
 
 

@@ -11,6 +11,9 @@
 #include <qdatetime.h>
 #include <screenlog.h>
 #include <ui_mainwindow.h>
+//#include <ui_serviceotherengineleftform.h>
+
+#include <other/engine/serviceotherengineleftform.h>
 
 
 class PrerollController
@@ -21,39 +24,17 @@ public:
                       StarterController *starter, CurrentState *state,
                       ViewController *view);
 
-    // bool rollLockedByTemperature;
-    // bool rollLockedByEmergency;
-    // bool needRollProcedure;
-    // bool rollCompleted;
-
     QDateTime rollRunStartedAt;
     QDateTime rollPauseStartedAt;
     QDateTime prerollStepStartedAt;
 
-    // bool rollInputPrev;
-    // bool rollRunActive;
-    // bool rollPauseActive;
-    //int rollAttemptsUsed;
-    //bool rollNeedReboot;
-   // bool rollPauseWarned;
-    // bool logNeedRollShown;
-
-    // bool prerollStarterButtonPrev;
-    // bool prerollStarterUnlocked;
-    // bool prerollButtonPrev;
-    // bool prerollSequenceActive;
-    // int prerollSequenceStep;
-
-    void updateRollStatusText(QLabel *status);
+    void updateRollStatusText();
     void stopRollOutput();
     bool rollBlocked() const;
     bool inRollPause() const;
 
     int rollPauseSecondsLeft() const;
-    void processPrerollInService(QPushButton *preroll,
-                                 QPushButton *prerollStarter,
-                                 QLabel *prerollStatusLabel,
-                                 bool isEngineFormVisible);
+    void processPrerollInService(bool isEngineFormVisible);
     void onStarterPressed();
 
     void resetValues();
@@ -63,12 +44,21 @@ public:
     void checkIfAwaitForRoll(int daysFromLastStart);
     void lockByTemperature(bool state);
     void checkEmergencies();
+    void update();
+    void setEngineForm(ServiceOtherEngineLeftForm *otherEngineForm);
 private:
     GlobalSettings *_globals;
     Engine *_engine;
     ScreenLog *_screenLog;
     CanController *_can;
     StarterController *_starter;
+
+    ServiceOtherEngineLeftForm *_otherEngineForm;
+    QPushButton *_prerollBtn;
+    QPushButton *_starterPrerollBtn;
+    QLabel *_statusLbl;
+    bool foundButtons();
+    bool _isInited = false;
 };
 
 #endif // PREROLLCONTROLLER_H

@@ -82,6 +82,7 @@ SOURCES += \
     settings/settingsstore.cpp
 
 HEADERS += \
+    Controllers/PhysicalButtonManager.h \
     Controllers/cancontroller.h \
     Controllers/gpiocontroller.h \
     Controllers/prerollcontroller.h \

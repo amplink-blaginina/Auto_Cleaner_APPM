@@ -6,6 +6,7 @@
 
 #include <qdatetime.h>
 
+#include <Controllers/cancontroller.h>
 #include <Controllers/gpiocontroller.h>
 class CurrentState
 {
@@ -18,8 +19,10 @@ public:
         SettingsMode   = 4
     };
 
-    CurrentState(SettingsReader *reader, GPIOController *gpio);
+    CurrentState(SettingsReader *reader, GPIOController *gpio, CanController *can0);
     void setMode(quint8 mode);
+
+
 
     // bool waterAlarm;
     // bool airAlarm;
@@ -94,6 +97,9 @@ public:
     void setCoolantTmp(int value);//QByteRef
     void setVehicleSpeed(int value);
     void setVehicleVoltage(float value);
+    bool isIgnitionEnabled();
+    CanController *_can;
+    bool isAlarm();
 private:
     QDate lastEngineStartDate;
     quint8 menuMode;

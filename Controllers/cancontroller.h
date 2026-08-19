@@ -19,6 +19,9 @@ public:
     bool isDisabled();
     bool isBoard0IN();
     void fillSystemConfig();
+    bool getHeatState();
+    void invertIgnition();
+    bool getIgnition();
 private:
     MyCan *_can0;
 };
