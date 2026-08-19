@@ -82,6 +82,7 @@ SOURCES += \
     settings/settingsstore.cpp
 
 HEADERS += \
+    BoolStateWatcher.h \
     Controllers/PhysicalButtonManager.h \
     Controllers/cancontroller.h \
     Controllers/gpiocontroller.h \

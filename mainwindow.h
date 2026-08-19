@@ -66,6 +66,7 @@
 #include "screenlog.h"
 
 //логгер (черный ящик)
+#include "BoolStateWatcher.h"
 #include "MedianFilter.h"
 #include "logger.h"
 #include "maintenancetracker.h"
@@ -325,12 +326,12 @@ public:
 
 
     bool logNeedWarmShown;
-    bool waterSensorActivePrev;
-    bool airFilterActivePrev;
-    bool oilFilterActivePrev;
-    bool heatRelayActivePrev;
-    bool waterSensorTimeStarted;
-    bool airFilterTimeStarted;
+    // bool waterSensorActivePrev;
+    // bool airFilterActivePrev;
+    // bool oilFilterActivePrev;
+    // bool heatRelayActivePrev;
+    // bool waterSensorTimeStarted;
+    // bool airFilterTimeStarted;
     quint32 waterSensorStartedAt;
     quint32 airFilterStartedAt;
 
@@ -453,6 +454,11 @@ private:
     void setBroomPressed(bool);
     void registerButtons();
     void updateButtons();
+    void configureFilters();
+    BoolStateWatcher m_oilFilterWatcher;
+    BoolStateWatcher m_waterSensorWatcher;
+    BoolStateWatcher m_airFilterWatcher;
+    BoolStateWatcher m_heatRelayWatcher;
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);

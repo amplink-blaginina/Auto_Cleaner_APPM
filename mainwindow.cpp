@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "BoolStateWatcher.h"
 #include "ui_mainwindow.h"
 
 #include <QLayoutItem>
@@ -122,6 +123,63 @@ void MainWindow::registerButtons(){
 
 }
 
+void MainWindow::configureFilters(){
+    m_waterSensorWatcher = BoolStateWatcher{
+        {
+            .onActivated = [this] {
+                  view->addLogWarning("Вода в топливе текущие");
+                  waterSensorStartedAt = TOCurValues["Engine"];},
+            .onDeactivated = [] {},
+            .whileActive = [this] {
+                  const bool waterRed = (TOCurValues["Engine"] - waterSensorStartedAt >= (quint32)(globals->waterSensorRedHours * 3600));
+                  updateIndicatorPixmap(ui->label_waterInFuel, waterRed ? "red" : "yellow", "water_in_fuel");
+                  ui->label_waterInFuel->show();},
+            .whileInactive = [this] {
+                ui->label_waterInFuel->hide();}
+        }
+    };
+
+
+    m_oilFilterWatcher = BoolStateWatcher{
+        {
+            .onActivated = [this] {view->addLogError("Засорение масляного фильтра");},
+            .onDeactivated = [this] {view->addLog("Сигнал засорения масляного фильтра снят");},
+            .whileActive = [this] {
+                updateIndicatorPixmap( ui->label_oilFilter, "red", "oil_filter" );
+                ui->label_oilFilter->show();
+                can0->setState(StateIgnitionOut, false);
+                starter->resetIgnitionTimer();},
+            .whileInactive = [this] { ui->label_oilFilter->hide();}
+        }
+    };
+
+    m_airFilterWatcher = BoolStateWatcher{
+        {
+            .onActivated = [this]{
+                view->addLogWarning("Засорение воздушного фильтра");
+                airFilterStartedAt = TOCurValues["Engine"];},
+            .onDeactivated = []{},
+            .whileActive = [this]{
+                const bool airRed = (TOCurValues["Engine"] - airFilterStartedAt >= (quint32)(globals->airFilterRedHours * 3600));
+                updateIndicatorPixmap(ui->label_airFilter, airRed ? "red" : "yellow", "air_filter");
+                ui->label_airFilter->show();},
+            .whileInactive = [this]{ ui->label_airFilter->hide();}
+        }
+    };
+
+    m_heatRelayWatcher = BoolStateWatcher{
+        {
+           .onActivated = [this]{view->addLogWarning("Требуется прогрев вспомогательного ДВС");},
+           .onDeactivated = []{},
+           .whileActive = [this]{
+               updateIndicatorPixmap(ui->label_engineLowTemperature, "yellow", "engine_low_temperature");
+               ui->label_engineLowTemperature->show();
+           },
+           .whileInactive = [this]{ui->label_engineLowTemperature->hide();}
+        }
+    };
+}
+
 MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -210,6 +268,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     readValues();
 
     configureChannelTypes();
+    configureFilters();
 
     addElement(StateValveA1, "Силовой клапан A1", 1, 0, OUT_MODE_NORMAL);
     addElement(StateValveF1, "(F1)Подъем отвала", 1, 1, OUT_MODE_NORMAL);
@@ -1173,7 +1232,7 @@ void MainWindow::mainProgress(){
     // отображаем и отрабатываем нажатие кнопок на экране во время работ
     bool transitioning = isOrgansTransitioning();
     if (!transitioning){
-       // updateButtons();
+        updateButtons();
         if (organsWereTransitioning && !pauseActive){
             if (startClean)
                 view->addLog("Органы разложены — управление разблокировано");
@@ -1256,75 +1315,80 @@ void MainWindow::updateSensorAndWarningIndicators(){
     const bool heatRelay = !can0->getState(StateHeatRele).toBool();
     const bool lowTemperature = engine->online <= ENGINE_ONLINE_EDGE * 10 && engine->engineCoolantTemp < globals->lowTempRequireWarm;
 
-    if (waterSensor && !waterSensorActivePrev){
-        view->addLogWarning("Вода в топливе текущие");
-        waterSensorStartedAt = TOCurValues["Engine"];
-        waterSensorTimeStarted = true;
-    }
-    else if (!waterSensor){
-        waterSensorTimeStarted = false;
-    }
-    const bool waterRed = waterSensor && waterSensorTimeStarted
-            && (TOCurValues["Engine"] - waterSensorStartedAt >= (quint32)(globals->waterSensorRedHours * 3600));
-    if (waterSensor){
-        updateIndicatorPixmap(ui->label_waterInFuel, waterRed ? "red" : "yellow", "water_in_fuel");
-        ui->label_waterInFuel->show();
-    }
-    else{
-        ui->label_waterInFuel->hide();
-    }
+    m_waterSensorWatcher.update(waterSensor);
+    m_airFilterWatcher.update(airFilter);
+    m_oilFilterWatcher.update(oilFilter);
+    m_heatRelayWatcher.update(heatRelay || lowTemperature);
 
-    if (airFilter){
-        if(!airFilterActivePrev){
-            view->addLogWarning("Засорение воздушного фильтра");
-            airFilterStartedAt = TOCurValues["Engine"];
-            airFilterTimeStarted = true;
-        }
-    }
-    else{
-        airFilterTimeStarted = false;
-    }
+//     if (waterSensor && !waterSensorActivePrev){
+//         view->addLogWarning("Вода в топливе текущие");
+//         waterSensorStartedAt = TOCurValues["Engine"];
+//         waterSensorTimeStarted = true;
+//     }
+//     else if (!waterSensor){
+//         waterSensorTimeStarted = false;
+//     }
+//     const bool waterRed = waterSensor && waterSensorTimeStarted
+//             && (TOCurValues["Engine"] - waterSensorStartedAt >= (quint32)(globals->waterSensorRedHours * 3600));
+//     if (waterSensor){
+//         updateIndicatorPixmap(ui->label_waterInFuel, waterRed ? "red" : "yellow", "water_in_fuel");
+//         ui->label_waterInFuel->show();
+//     }
+//     else{
+//         ui->label_waterInFuel->hide();
+//     }
+// /
+//     if (airFilter){
+//         if(!airFilterActivePrev){
+//             view->addLogWarning("Засорение воздушного фильтра");
+//             airFilterStartedAt = TOCurValues["Engine"];
+//             airFilterTimeStarted = true;
+//         }
+//     }
+//     else{
+//         airFilterTimeStarted = false;
+//     }
 
-    const bool airRed = airFilter && airFilterTimeStarted
-            && (TOCurValues["Engine"] - airFilterStartedAt >= (quint32)(globals->airFilterRedHours * 3600));
-    if (airFilter){
-        updateIndicatorPixmap(ui->label_airFilter, airRed ? "red" : "yellow", "air_filter");
-        ui->label_airFilter->show();
-    }
-    else{
-        ui->label_airFilter->hide();
-    }
+//     const bool airRed = airFilter && airFilterTimeStarted
+//             && (TOCurValues["Engine"] - airFilterStartedAt >= (quint32)(globals->airFilterRedHours * 3600));
+//     if (airFilter){
+//         updateIndicatorPixmap(ui->label_airFilter, airRed ? "red" : "yellow", "air_filter");
+//         ui->label_airFilter->show();
+//     }
+//     else{
+//         ui->label_airFilter->hide();
+//     }
+// /
+//     if (oilFilter && !oilFilterActivePrev){
+//         view->addLogError("Засорение масляного фильтра");
+//     }
+//     if (oilFilter){
+//         updateIndicatorPixmap(ui->label_oilFilter, "red", "oil_filter");
+//         ui->label_oilFilter->show();
+//         can0->setState(StateIgnitionOut, false);
+//         //ignitionOffTimer = 0;
+//         starter->resetIgnitionTimer();
+//     }
+//     else{
+//         ui->label_oilFilter->hide();
+//     }
 
-    if (oilFilter && !oilFilterActivePrev){
-        view->addLogError("Засорение масляного фильтра");
-    }
-    if (oilFilter){
-        updateIndicatorPixmap(ui->label_oilFilter, "red", "oil_filter");
-        ui->label_oilFilter->show();
-        can0->setState(StateIgnitionOut, false);
-        //ignitionOffTimer = 0;
-        starter->resetIgnitionTimer();
-    }
-    else{
-        ui->label_oilFilter->hide();
-    }
+    // if (heatRelay && !heatRelayActivePrev){
+    //     view->addLogWarning("Требуется прогрев вспомогательного ДВС");
+    // }
 
-    if (heatRelay && !heatRelayActivePrev){
-        view->addLogWarning("Требуется прогрев вспомогательного ДВС");
-    }
+    // if (heatRelay || lowTemperature){
+    //     updateIndicatorPixmap(ui->label_engineLowTemperature, "yellow", "engine_low_temperature");
+    //     ui->label_engineLowTemperature->show();
+    // }
+    // else{
+    //     ui->label_engineLowTemperature->hide();
+    // }
 
-    if (heatRelay || lowTemperature){
-        updateIndicatorPixmap(ui->label_engineLowTemperature, "yellow", "engine_low_temperature");
-        ui->label_engineLowTemperature->show();
-    }
-    else{
-        ui->label_engineLowTemperature->hide();
-    }
-
-    waterSensorActivePrev = waterSensor;
-    airFilterActivePrev = airFilter;
-    oilFilterActivePrev = oilFilter;
-    heatRelayActivePrev = heatRelay;
+    // waterSensorActivePrev = waterSensor;
+    // airFilterActivePrev = airFilter;
+    // oilFilterActivePrev = oilFilter;
+    // heatRelayActivePrev = heatRelay;
 }
 
 void MainWindow::showStatus(){
