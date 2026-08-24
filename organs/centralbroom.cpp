@@ -142,7 +142,7 @@ void CentralBroom::setState(BroomStates state_){
        // if (!mainWindow->workMode.centralBroomFlow){
         auto isFlowing = ((MainWindow*)parent)->workMode.centralBroomFlow;
         setFlowActive(isFlowing);//false);
-        ((MainWindow*)parent)->setBroomFlowView(isFlowing);
+        //((MainWindow*)parent)->setBroomFlowView(isFlowing);
             //logger->addLog("Щетка не плавающая");
             //mainWindow->addLog("Щетка не плавающая", MainWindow::InfoStatus);
         //}
@@ -218,16 +218,21 @@ void CentralBroom::goNone(){
 }
 
 void CentralBroom::goUp(bool state, bool isPressed){
-    //qDebug()<<"###goUP!!!  pressed: "<<isPressed;
+    qDebug()<<"###goUP!!!  pressed: "<<isPressed;
     if(isPressed){
         myCan->setState(StateValveF2, state);
     }
-    else{
-        if(state && !((MainWindow*)parent)->isOrgansTransitioning()){
-            ((MainWindow*)parent)->workMode.centralBroomFlow = false;
-            ((MainWindow*)parent)->setBroomFlowView(false);
+    else{        // if(state && !((MainWindow*)parent)->isOrgansTransitioning()){
+        //     ((MainWindow*)parent)->workMode.centralBroomFlow = false;
+        //     ((MainWindow*)parent)->setBroomFlowView(false);
+        // }
+        qDebug()<<"!!! *";
+        if(state){
+            qDebug()<<"!!! **";
+            ((MainWindow*)parent)->tryToDisableBroomFlow();
         }
-        setFlowActive(false);//вырубаем плавающий режим, если начали движение порталом щётки вверх
+
+        //setFlowActive(false);//вырубаем плавающий режим, если начали движение порталом щётки вверх
         myCan->setState(StateValveF10, state);}
 
     myCan->setState(StateValveA1, state);
@@ -236,16 +241,21 @@ void CentralBroom::goUp(bool state, bool isPressed){
 
 void CentralBroom::goDown(bool state, bool isPressed){
     // if(state)
-    //     qDebug()<<"###goDOWN!!!";
+         qDebug()<<"###goDOWN!!!";
     if(isPressed){
         myCan->setState(StateValveF8, state);
     }
     else{
-        if(state && !((MainWindow*)parent)->isOrgansTransitioning()){
-            ((MainWindow*)parent)->setBroomFlowView(false);
-            ((MainWindow*)parent)->workMode.centralBroomFlow = false;
+        qDebug()<<"!!! *";
+        if(state){
+            qDebug()<<"!!! **";
+            ((MainWindow*)parent)->tryToDisableBroomFlow();
         }
-        setFlowActive(false);//вырубаем плавающий режим, если начали движение порталом щётки вниз
+        // if(state && !((MainWindow*)parent)->isOrgansTransitioning()){
+        //     ((MainWindow*)parent)->setBroomFlowView(false);
+        //     ((MainWindow*)parent)->workMode.centralBroomFlow = false;
+        // }
+        //setFlowActive(false);//вырубаем плавающий режим, если начали движение порталом щётки вниз
         myCan->setState(StateValveF4, state);}
     myCan->setState(StateValveA1, state);
     printMovement(organsEnums::Down, state, isPressed);
@@ -279,9 +289,10 @@ void CentralBroom::setDirection(organsEnums::Direction dir){
     setDirection(dir, isPressed);
 }
 void CentralBroom::setDirection(organsEnums::Direction dir, bool pressed){
+    qDebug()<<"!!! direction: "<< dir;
     if(dir == direction && pressed == isPressed)
         return;
-
+    qDebug()<<"!!! "<< dir;
     switch (direction) {
         case organsEnums::Up:
             goUp(false, isPressed);
@@ -316,6 +327,7 @@ void CentralBroom::setDirection(organsEnums::Direction dir, bool pressed){
             goRight(true);
             break;
         default:
+            goNone();
             break;
     //printMovement(dir, true, pressed);
     }
@@ -339,7 +351,7 @@ void CentralBroom::setPressActive(bool state){
             break;}
     }
     isPressed = state;
-    ((MainWindow*)parent)->setBroomPressView(state);
+    //((MainWindow*)parent)->setBroomPressView(state);
     logger->addLogWarning(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
 }
 
@@ -359,6 +371,7 @@ void CentralBroom::setPressActive(bool state){
 // }
 
 void CentralBroom::setFlowActive(bool state){
+    qDebug()<<"###flow!!!  "<<state;
     if(isFlowing == state)
         return;
     isFlowing = state;

@@ -140,12 +140,11 @@ void Blower::setState(BlowerStates state_)
     if (state == Blower::BlowerRotateIn)
     {// остановка
         startActionTime = QDateTime::currentDateTime();
-        goRotate(0);
+        setTargetRotationSpeed(0);
     }
 }
 
-void Blower::goOff()
-{
+void Blower::goOff(){
     myCan->setState(StateValveE7, false);
     myCan->setState(StateValveE3, false);
     myCan->setState(StateValveE1, false);
@@ -154,25 +153,22 @@ void Blower::goOff()
 }
 
 void Blower::goRotate(quint8 speed){
+    qDebug()<<"RotationSpeed: "<<speed;
     myCan->setState(StateValveD3, speed);
 }
 
-void Blower::goSlide(bool turn_right)
-{
-    if (turn_right)
-    {
+void Blower::goSlide(bool turn_right){
+    if (turn_right){
         myCan->setState(StateValveA1, true);
         myCan->setState(StateValveE7, true);
     }
-    else
-    {
+    else{
         myCan->setState(StateValveA1, true);
         myCan->setState(StateValveE3, true);
     }
 }
 
-void Blower::goUp()
-{
+void Blower::goUp(){
     myCan->setState(StateValveA1, true);
     myCan->setState(StateValveE1, true);
 }
@@ -211,10 +207,10 @@ Blower::BlowerStates Blower::getNeedState(){
 void Blower::checkNeedState(){// утанавливает максимальную границу до которой может дойти щетка (при текущих параметрах)
     if (needState != BlowerOff)
     {
-        if (!startClean)        {// пуск отжат или никакой режим смета не выбран или если щетки не выдвинуты
+        if (!startClean){// пуск отжат или никакой режим смета не выбран или если щетки не выдвинуты
             ableState = BlowerOff;// можно только продолжать пытаться включиться (используется такой странный статус потому что надо показать постоянно желание включиться даже если не нажали пуск например)
         }
-        else        {
+        else{
             ableState = BlowerRotated;
         }
     }
@@ -277,6 +273,26 @@ void Blower::checkFriendVars(){
     rightBlow = ((MainWindow*)parent)->workMode.blowRight;
 }
 
+void Blower::setTargetRotationSpeed(float speed){
+    targetRotationSpeed = speed;
+}
+
+void Blower::changeRotationSpeed(){
+    if(currentRotationSpeed < targetRotationSpeed){
+        currentRotationSpeed += speedRotationStep;
+        if (currentRotationSpeed>targetRotationSpeed){
+            currentRotationSpeed = targetRotationSpeed;
+        }
+    }
+    else if(currentRotationSpeed>targetRotationSpeed){
+        currentRotationSpeed-=speedRotationStep;
+        if(currentRotationSpeed<0){
+            currentRotationSpeed = 0;
+        }
+    }
+    goRotate(currentRotationSpeed);
+}
+
 void Blower::progressLoop(){
     // проверяет соседние модули и собирает информацию о их состояниях (нажатые кнопки, обороты, статусы и пр.)
     checkFriendVars();
@@ -287,7 +303,8 @@ void Blower::progressLoop(){
         //обороты движка
         ((MainWindow*)parent)->canForEngine->setEngineCommand(rpmForSweepType.value(((MainWindow*)parent)->workMode.sweepType) * 8);
         // скорость щеток
-        goRotate(speedForSweepType.value(((MainWindow*)parent)->workMode.sweepType));
+        setTargetRotationSpeed(speedForSweepType.value(((MainWindow*)parent)->workMode.sweepType));
+        //goRotate();
     }
 
     if (state < needState && state < ableState){// нужно прогрессировать вверх (выдвигать, мыть и гусей не забыть)
@@ -306,8 +323,13 @@ void Blower::progressLoop(){
             qDebug() << "Blower state " << toString(state);
         }
     }
+
+    changeRotationSpeed();
 }
 
+bool Blower::isRotating(){
+    return currentRotationSpeed > 0;
+}
 Blower::BlowerStates Blower::stateUp(){// пытаемся прогрессировать статусом вверх (если что меняем направление статуса, если вдруг был понижающий прогресс)
     switch (state) {
     case BlowerOff:

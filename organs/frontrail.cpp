@@ -239,10 +239,13 @@ void FrontRail::goDown(bool state){
     // if(state){
     //     setFlowActive(false);
     // }
-    if(state && !((MainWindow*)parent)->isOrgansTransitioning()){
-        qDebug()<<"###goDOWN!!!";
-        ((MainWindow*)parent)->setDumpFlowView(false);
-        ((MainWindow*)parent)->workMode.frontDumpFlow = false;
+    // if(state && !((MainWindow*)parent)->isDumpTransitioning()){
+    //     qDebug()<<"###goDOWN!!!";
+    //     ((MainWindow*)parent)->setDumpFlowView(false);
+    //     ((MainWindow*)parent)->workMode.frontDumpFlow = false;
+    // }
+    if(state){
+        ((MainWindow*)parent)->tryToDisableDumpFlow();
     }
     myCan->setState(StateValveF7, state);
     myCan->setState(StateValveA1, state);
@@ -259,14 +262,17 @@ void FrontRail::goUp(bool state){
     //     ((MainWindow*)parent)->setDumpFlowView(state);
     // }
 
-    if(state && !((MainWindow*)parent)->isOrgansTransitioning()){
-        qDebug()<<"###goUP!!!";
-        ((MainWindow*)parent)->setDumpFlowView(false);
-        ((MainWindow*)parent)->workMode.frontDumpFlow = false;
+    // if(state && !((MainWindow*)parent)->isDumpTransitioning()){
+    //     qDebug()<<"###goUP!!!";
+    //     ((MainWindow*)parent)->setDumpFlowView(false);
+    //     ((MainWindow*)parent)->workMode.frontDumpFlow = false;
+    // }
+    if(state){
+        ((MainWindow*)parent)->tryToDisableDumpFlow();
     }
     myCan->setState(StateValveF1, state);
     myCan->setState(StateValveA1, state);
-    printMovement(organsEnums::Up, state);
+    //printMovement(organsEnums::Up, state);
 }
 
 void FrontRail::goFlow(bool state){

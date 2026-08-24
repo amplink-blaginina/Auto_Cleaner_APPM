@@ -8,6 +8,7 @@ public:
     using Callback = std::function<void()>;
 
     struct Handlers {
+        //Callback onUpdate;       // вызывается каждый polling-цикл
         Callback onActivated;    // false -> true
         Callback onDeactivated;  // true -> false
         Callback whileActive;    // вызывается каждый polling-цикл, пока true
@@ -42,6 +43,7 @@ public:
             }
             return;
         }
+        //m_handlers.onUpdate();
 
         if (currentState && !m_previousState) {
             if (m_handlers.onActivated) {

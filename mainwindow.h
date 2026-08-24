@@ -170,6 +170,7 @@ public:
 
     void readValues();
     QVariant readSettingsValue(QString name);
+    //QMap<GPIOInput, bool> physBtnsStates;
     //QMap<QString, QVariant> defaultValues;
     QMap<QString, quint32> TOValues;
     QMap<QString, quint32> TOCurValues;
@@ -200,10 +201,8 @@ public:
     int backGearCounter;
 
     void showWorkMode();
-    void showStatus();
-    void showStatus(QLabel *label, bool check);
-    void showStatus(QLabel *label, bool check, QString message, bool showMsg = true);
-    void showStatus(QLabel *label, bool check, QString messageOn, QString messageOff);
+    void checkAndShowStatus();
+    void showStatus(QLabel *label, bool check, QString messageOn = NULL, QString messageOff = NULL);
     void showPultOffIgnition();
     void updateFRM();
 
@@ -224,8 +223,8 @@ public:
     //quint8 leftModeTimeCounter;
     //quint8 rightModeTimeCounter;
 
-    void showCentralBroomLeft();
-    void showCentralBroomRight();
+    void updateCentralBroomLeft();
+    void updateCentralBroomRight();
     void showDumpLeft();
     void showDumpRight();
     void showBlower();
@@ -317,14 +316,7 @@ public:
 
     bool engineRunStatePrev;
 
-
-
-
-
     bool serviceIgnitionAutoRestoreBlocked;
-
-
-
     bool logNeedWarmShown;
     // bool waterSensorActivePrev;
     // bool airFilterActivePrev;
@@ -382,6 +374,14 @@ public:
     MyCanJ1939 *canj1939Main;
 
 private:
+    QString blowerVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
+    QString blowerHorPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
+    QString dumpVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
+    QString dumpHorPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_";
+    QString broomVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_";
+    QString broomHorPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
+    //"background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_off.png);";
+
     Ui::MainWindow *ui;
     QTimer mainProgressTimer;
     QTimer repaintTimer;
@@ -452,19 +452,52 @@ private:
     void insertValues();
     bool isSpeedTooHigh();
     void setBroomPressed(bool);
-    void registerButtons();
-    void updateButtons();
+    void registerPhysButtons();
+    void updatePhysButtons();
     void configureFilters();
     BoolStateWatcher m_oilFilterWatcher;
     BoolStateWatcher m_waterSensorWatcher;
     BoolStateWatcher m_airFilterWatcher;
     BoolStateWatcher m_heatRelayWatcher;
+    void configureButtons();
+
+    BoolStateWatcher m_broomUpWatcher;
+    BoolStateWatcher m_broomDownWatcher;
+    BoolStateWatcher m_broomLeftWatcher;
+    BoolStateWatcher m_broomRightWatcher;
+    BoolStateWatcher m_dumpUpWatcher;
+    BoolStateWatcher m_dumpDownWatcher;
+    BoolStateWatcher m_dumpLeftWatcher;
+    BoolStateWatcher m_dumpRightWatcher;
+    BoolStateWatcher m_blowUpWatcher;
+    BoolStateWatcher m_blowDownWatcher;
+    BoolStateWatcher m_blowLeftWatcher;
+    BoolStateWatcher m_blowRightWatcher;
+    BoolStateWatcher m_dumpFlowWatcher;
+    BoolStateWatcher m_broomFlowWatcher;
+
+    void updateButtonsUniversal();
+    //void configureButtons();
+    void setBtnView(bool isPressed, QLabel *lbl, QPushButton *btn, QString onPath, QString offPath);
+    QString getBlowerDefaultIcon();
+    QString getDumpDefaultIcon();
+    QString getBroomDefaultIcon();
+    void setVertButtonsView(bool state);
+    BoolStateWatcher m_broomPressWatcher;
+    void setBroomFlow(bool state);
+    void setDumpFlow(bool state);
+    void configureMovementStart(QPushButton *btn, QLabel *lbl, QString path, std::function<bool ()> isBusy, std::function<void ()> handler);
+    void configureMovementStop(QPushButton *btn, QLabel *lbl, QString path, std::function<bool ()> isBusy, std::function<void ()> handler);
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
     void Send_SecretPass_2_pass_form(int);
     void Pass_close();
 public :
+    bool isBroomTransitioning();
+    bool isDumpTransitioning();
+    bool isMagnetTransitioning();
+    bool isBlowTransitioning();
     QString getMovementText(organsEnums::Direction direction);
     void setBroomFlowView(bool state);
     void setBroomPressView(bool state);
@@ -475,6 +508,8 @@ public :
     SettingsReader * getReader();
     //void invertIgnition();
     void checkIgnition();
+    void tryToDisableBroomFlow();
+    void tryToDisableDumpFlow();
 public slots:
     //void messageListPressed();
     void settingsAskPassword();
@@ -502,50 +537,32 @@ private slots:
     void on_pushButton_leafSweep_clicked();
     void on_pushButton_mediumSweep_clicked();
     void on_pushButton_heavySweep_clicked();
-
-    void on_pushButton_dumpUp_released();
-    void on_pushButton_centralBroomLeft_clicked();
-    void on_pushButton_centralBroomRight_clicked();
     void on_pushButton_settings_clicked();
 
+    void on_pushButton_centralBroomUp_clicked();
+    void on_pushButton_centralBroomDown_clicked();
+    void on_pushButton_centralBroomLeft_clicked();
+    void on_pushButton_centralBroomRight_clicked();
+
+    void on_pushButton_dumpUp_clicked();
+    void on_pushButton_dumpDown_clicked();
     void on_pushButton_dumpLeft_clicked();
     void on_pushButton_dumpRight_clicked();
-    void on_pushButton_dumpFlow_clicked();
 
+    void on_pushButton_blowerUp_clicked();
+    void on_pushButton_blowerDown_clicked();
+    void on_pushButton_blowerLeft_clicked();
+    void on_pushButton_blowerRight_clicked();
+
+    void on_pushButton_dumpFlow_clicked();
     void on_pushButton_centralBroomFlow_clicked();
     void on_pushButton_centralBroomPress_clicked();
 
-    void on_pushButton_blowerLeft_clicked();
-    void on_pushButton_blowerRight_clicked();
     void on_pushButton_backMagnet_clicked();
     void on_pushButton_frmKung_clicked();
     void on_pushButton_frmBroom_clicked();
     void on_pushButton_frmMagnet_clicked();
     void on_pushButton_homeState_clicked();
 
-    // void on_pushButton_centralBroomUp_pressed();
-    // void on_pushButton_centralBroomUp_released();
-    // void on_pushButton_centralBroomDown_pressed();
-    // void on_pushButton_centralBroomDown_released();
-
-    void on_pushButton_centralBroomLeft_pressed();
-    void on_pushButton_centralBroomLeft_released();
-    void on_pushButton_centralBroomRight_pressed();
-    void on_pushButton_centralBroomRight_released();
-    void on_pushButton_dumpDown_pressed();
-    void on_pushButton_dumpDown_released();
-    void on_pushButton_dumpLeft_pressed();
-    void on_pushButton_dumpLeft_released();
-    void on_pushButton_dumpRight_pressed();
-    void on_pushButton_dumpRight_released();
-    void on_pushButton_dumpUp_pressed();
-    void on_pushButton_blowerRight_pressed();
-    void on_pushButton_blowerRight_released();
-    void on_pushButton_blowerLeft_pressed();
-    void on_pushButton_blowerLeft_released();
-    void on_pushButton_blowerDown_released();
-    void on_pushButton_blowerDown_pressed();
-    void on_pushButton_blowerUp_released();
-    void on_pushButton_blowerUp_pressed();
 };
 #endif // MAINWINDOW_H

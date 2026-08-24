@@ -83,11 +83,18 @@ public:
     BlowerStates getAbleState();
 
     void goNone();
+    bool isRotating();
 public slots:
     // слот для получания данных из CAN
     void progressLoop();
 signals:
-
+private:
+    float targetRotationSpeed = 0;
+    float currentRotationSpeed =0;
+    float speedRotationStep = 1;
+    //float maxSpeed = 10;
+    void changeRotationSpeed();
+    void setTargetRotationSpeed(float speed);
 };
 
 #endif // BLOWER_H

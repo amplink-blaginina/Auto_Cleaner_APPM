@@ -6,14 +6,6 @@
 #include <functional>
 #include <unordered_map>
 
-// enum class PhysicalButtonId {
-//     EmergencyStop,
-//     Start,
-//     Stop,
-//     CentralBroom,
-//     SideBroom
-// };
-
 struct PhysicalButtonIdHash {
     std::size_t operator()(GPIOInput id) const noexcept{
         return static_cast<std::size_t>(id);
