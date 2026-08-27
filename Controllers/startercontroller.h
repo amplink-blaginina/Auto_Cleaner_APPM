@@ -40,8 +40,6 @@ public:
     bool engineStartedOk = false;
     quint32 ignitionOffTimer;
 
-
-
     int starterPauseSecondsLeft() const;
     bool inStarterPause() const;
     bool starterBlocked() const;
@@ -61,9 +59,6 @@ public:
     bool isStarterPressed();
     bool isStarterClicked();
     QString getFatalStatusMessage();
-
-
-    //void startIgnition();
 
 private:
     GlobalSettings *_globals;
