@@ -231,8 +231,8 @@ void StarterController::showStarter(){
         starterNeedReboot = false;
         starterAttemptsUsed = 0;
     }
-    engineWasRunning = engineRunning;
 
+    engineWasRunning = engineRunning;
     starterPressedPrev = starterPressed;
 }
 

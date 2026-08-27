@@ -14,7 +14,6 @@ MyCan::MyCan(QString canName_, Logger * logger_, bool ableToRestart_, QObject *p
     ableToRestart = ableToRestart_;
     failConfigureCounter = 0;
     haveSystemConfig = false;
-
     waterPumpInversion = false;
 
     // основная команда управления (управляет логикой и самой БУ_ЦП)
@@ -276,7 +275,6 @@ void MyCan::CAN_reset(){
     emit canError();
     firstInit = true;
     firstInitCounter = 0;
-
     incomeFailCounter = 0;
     sendFailCounter = 0;
 //    incomeGOFailCounter = 0;
@@ -304,7 +302,7 @@ void MyCan::CAN_clear_frames(){
 }
 
 void MyCan::makeMedian(quint8* val, QList<QList<quint8>> &bRaw, QList<QList<quint8>> &bSmooth){
-    for (int k = 0; k < 8; k++ )    {
+    for (int k = 0; k < 8; k++ ){
         bRaw[k].append(val[k]);
         if (bRaw[k].count() > MEDIAN_FILTER_SIZE)
             bRaw[k].removeFirst();
@@ -333,14 +331,14 @@ void MyCan::canTimerTimeoutRecv(){
         CAN_clear_frames();
         nbytes = read(sock,&frame,sizeof(struct can_frame));
         //qDebug() << "CAN read error:" << strerror(errno);
-        if (nbytes!=-1)
-        {
+        if (nbytes!=-1){
             //qDebug() << canName << " income bytes " << nbytes;
             frame.can_id&=0x3FFFFFFF;
             emit canDataReady(frame);
             incomeFailCounter = 0;
-            if (frame.can_id == 0x0000B500 || frame.can_id == 0x0000B100 || frame.can_id == 0x0000B200 || frame.can_id == 0x0000B300 || frame.can_id == 0x0000B400)
-            {
+            if (frame.can_id == 0x0000B500 || frame.can_id == 0x0000B100 ||
+                frame.can_id == 0x0000B200 || frame.can_id == 0x0000B300 ||
+                frame.can_id == 0x0000B400){
                 PO_ok = true;
                 GO_ok = true;
             }
@@ -351,8 +349,7 @@ void MyCan::canTimerTimeoutRecv(){
             #define CAN_OUT_CONFIGURE_EXTERNAL_ID 0x0000C200
             // тут решаем сами - может начать конфигурироваться без пожелания плат (потому что мы знаем что не конфигурировались)
             configureMutex.lock();
-            if (!BUCPConfigured && !configureStarted && haveSystemConfig)
-            {
+            if (!BUCPConfigured && !configureStarted && haveSystemConfig){
                 BUCPConfigured = false;
                 BUCPConfigureStep = 0;
                 // высылаем первую командешку и составим список всех команд что мы пошлем
@@ -376,8 +373,7 @@ void MyCan::canTimerTimeoutRecv(){
 
             if (frame.can_id == 0x0000B100)
             {// пришла команда от БУЦ с параметрами плат и желанием конфигурироваться (эта команда приходит всегда) там же 4 входа и выхода
-                if (!configureStarted && frame.data[0] & 0x01 && haveSystemConfig)
-                {// конфигурировать не начинали и ее хотят
+                if (!configureStarted && frame.data[0] & 0x01 && haveSystemConfig){// конфигурировать не начинали и ее хотят
                     BUCPConfigured = false;
                     BUCPConfigureStep = 0;
                     // высылаем первую командешку и составим список всех команд что мы пошлем
@@ -421,8 +417,7 @@ void MyCan::canTimerTimeoutRecv(){
                         frameConfig.can_dlc = 8;
                         memset(frameConfig.data, 0, 8);
                         frameConfig.data[0] = BUCPConfigureStep;
-                        if (BUCPConfigureStep == 1)
-                        {// остатки плат
+                        if (BUCPConfigureStep == 1){// остатки плат
                             frameConfig.data[1] = systemConfigure.boardsType[7];
                             frameConfig.data[2] = systemConfigure.boardsType[8];
                         }
@@ -475,7 +470,9 @@ void MyCan::canTimerTimeoutRecv(){
             stateMutex.unlock();
 
             // для черного ящика и для первой инициализации
-            if (frame.can_id == 0x0000B500 || frame.can_id == 0x0000B100 || frame.can_id == 0x0000B200 || frame.can_id == 0x0000B300 || frame.can_id == 0x0000B400)
+            if (frame.can_id == 0x0000B500 || frame.can_id == 0x0000B100 ||
+                frame.can_id == 0x0000B200 || frame.can_id == 0x0000B300 ||
+                frame.can_id == 0x0000B400)
             {
                 if (firstInitCounter > 10){
                 }
@@ -678,6 +675,7 @@ QVariant MyCan::getDataFromFrame(struct can_frame* frame, quint8 board_, quint8 
 
 QVariant MyCan::getOriginalState(quint8 board_, quint8 channel_){
     QMutexLocker l(&stateMutex);
+
     if (FAKE_OUT && (isBitOut(board_, channel_) || isByteOut(board_, channel_))){
         if (systemConfigure.channelsOutFrameId[board_][channel_] == 2 && BUCP2.can_id != 0){
             return getDataFromFrame(&BUCP2, board_, channel_);
@@ -687,19 +685,20 @@ QVariant MyCan::getOriginalState(quint8 board_, quint8 channel_){
         }
     }
     else{
-        if (systemConfigure.channelsFrameId[board_][channel_] == 2 && last0000B200.can_id != 0 && b2Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        auto frameId = systemConfigure.channelsFrameId[board_][channel_];
+        if (frameId == 2 && last0000B200.can_id != 0 && b2Smooth[0].count() == MEDIAN_FILTER_SIZE)
         {
             return getDataFromFrame(&last0000B200, board_, channel_);
         }
-        if (systemConfigure.channelsFrameId[board_][channel_] == 3 && last0000B300.can_id != 0 && b3Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (frameId == 3 && last0000B300.can_id != 0 && b3Smooth[0].count() == MEDIAN_FILTER_SIZE)
         {
             return getDataFromFrame(&last0000B300, board_, channel_);
         }
-        if (systemConfigure.channelsFrameId[board_][channel_] == 4 && last0000B400.can_id != 0 && b4Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (frameId == 4 && last0000B400.can_id != 0 && b4Smooth[0].count() == MEDIAN_FILTER_SIZE)
         {
             return getDataFromFrame(&last0000B400, board_, channel_);
         }
-        if (systemConfigure.channelsFrameId[board_][channel_] == 5 && last0000B500.can_id != 0 && b5Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (frameId == 5 && last0000B500.can_id != 0 && b5Smooth[0].count() == MEDIAN_FILTER_SIZE)
         {
             return getDataFromFrame(&last0000B500, board_, channel_);
         }
@@ -713,77 +712,78 @@ void MyCan::toggleState(DeviceStates dev){
 
 QVariant MyCan::getState(DeviceStates dev, bool is_raw){
     QMutexLocker l(&stateMutex);
+    bool isMedianFilterSize = b1Smooth[0].count() == MEDIAN_FILTER_SIZE;
     if (dev == Board2Type)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[2] & 0x0F;
     if (dev == Board1Type)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return (last0000B100.data[2] >> 4) & 0x0F;
     if (dev == Board4Type)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[3] & 0x0F;
     if (dev == Board3Type)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return (last0000B100.data[3] >> 4) & 0x0F;
     if (dev == Board6Type)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[4] & 0x0F;
     if (dev == Board5Type)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return (last0000B100.data[4] >> 4) & 0x0F;
     if (dev == Board8Type)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[5] & 0x0F;
     if (dev == Board7Type)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return (last0000B100.data[5] >> 4) & 0x0F;
     if (dev == Board1Configured)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[1] & 0x01;
     if (dev == Board2Configured)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[1] & 0x02;
     if (dev == Board3Configured)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[1] & 0x04;
     if (dev == Board4Configured)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[1] & 0x08;
     if (dev == Board5Configured)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[1] & 0x10;
     if (dev == Board6Configured)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[1] & 0x20;
     if (dev == Board7Configured)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[1] & 0x40;
     if (dev == Board8Configured)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[1] & 0x80;
     if (dev == Board0IN1)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[6] & 0x01;
     if (dev == Board0IN2 || dev == StateAlarmIn)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[6] & 0x02;
     if (dev == Board0IN3 || dev == StatePVIPowerIn)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[6] & 0x04;
     if (dev == Board0IN4)// || dev == StateStarterIn)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[6] & 0x08;
     if (dev == Board0OUT1)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[6] & 0x10;
     if (dev == Board0OUT2 || dev == StateIgnitionOut)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[6] & 0x20;
     if (dev == Board0OUT3)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[6] & 0x40;
     if (dev == Board0OUT4)
-        if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
+        if (last0000B100.can_id != 0 && isMedianFilterSize)
             return last0000B100.data[6] & 0x80;
 
     l.unlock();

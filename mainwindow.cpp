@@ -2168,8 +2168,7 @@ void MainWindow::updatePhysButtons(){
     m_buttonManager.update(GPIOInput::IN_BLOW_LEFT, gpioMatirx->keyPressed == GPIOInput::IN_BLOW_LEFT);
 }
 
-void MainWindow::showPauseButton()
-{
+void MainWindow::showPauseButton(){
     const bool pauseOrHomePressed =
         gpioMatirx->keyPressed == GPIOInput::IN_PAUSE_HOME;
 
@@ -2206,8 +2205,7 @@ void MainWindow::showPauseButton()
 
         showWorkMode();
     }
-    else
-    {
+    else{
         // В режиме простоя эта же физическая кнопка
         // отправляет органы в домашнее положение.
         on_pushButton_homeState_clicked();
@@ -2217,18 +2215,12 @@ void MainWindow::showPauseButton()
 void MainWindow::tryToDisableDumpFlow(){
     if(!isDumpTransitioning()){
         setDumpFlow(false);
-        // qDebug()<<"###goDOWN!!!";
-        // ((MainWindow*)parent)->setDumpFlowView(false);
-        // ((MainWindow*)parent)->workMode.frontDumpFlow = false;
     }
 }
 
 void MainWindow::tryToDisableBroomFlow(){
     if(!isBroomTransitioning()){
         setBroomFlow(false);
-        // m_broomFlowWatcher.update(true);
-        // workMode.centralBroomFlow = false;
-        // setBroomFlowView(false);
     }
 }
 
