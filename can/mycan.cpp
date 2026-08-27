@@ -4,8 +4,7 @@
 
 #define FAKE_OUT 0
 
-MyCan::MyCan(QString canName_, Logger * logger_, bool ableToRestart_, QObject *parent) : QObject(parent)
-{
+MyCan::MyCan(QString canName_, Logger * logger_, bool ableToRestart_, QObject *parent) : QObject(parent){
     logger = logger_;
     canName = canName_;
     incomeFailCounter = 0;
@@ -50,8 +49,7 @@ MyCan::MyCan(QString canName_, Logger * logger_, bool ableToRestart_, QObject *p
     last0000B400.can_id = 0;
     last0000B500.can_id = 0;
 
-    for (int i = 0; i < 8; i++)
-    {
+    for (int i = 0; i < 8; i++){
         b1Smooth.append(QList<quint8>());
         b1Raw.append(QList<quint8>());
         b2Smooth.append(QList<quint8>());
@@ -65,15 +63,13 @@ MyCan::MyCan(QString canName_, Logger * logger_, bool ableToRestart_, QObject *p
     }
 }
 
-void MyCan::fillSystemConfigure(SystemConfigure* srcC, QMap<int, SystemElement*>* srcE)
-{
+void MyCan::fillSystemConfigure(SystemConfigure* srcC, QMap<int, SystemElement*>* srcE){
     QMutexLocker l(&configureMutex);
 
     systemConfigure.clear();
 
     srcC->copy(&systemConfigure);
-    foreach (int key, srcE->keys())
-    {
+    foreach (int key, srcE->keys()){
         systemElements.insert(key, new SystemElement(srcE->value(key)));
     }
 
@@ -86,80 +82,62 @@ void MyCan::fillSystemConfigure(SystemConfigure* srcC, QMap<int, SystemElement*>
     quint8 frame_idx = 2;// команда B1 занята под общие нужды - начиаем с B2
     quint8 bit_idx = 0;
     quint8 byte_idx = 0;
-    for (int i = 1; i < 9; i++)
-    {
-        for (int k = 0; k < 12; k++)
-        {
-            if (isBitIn(i, k)
-                    || isBitOut(i, k))
-            {
+    for (int i = 1; i < 9; i++){
+        for (int k = 0; k < 12; k++){
+            if (isBitIn(i, k)|| isBitOut(i, k)){
                 systemConfigure.channelsBitId[i][k] = bit_idx;
                 bit_idx++;
                 systemConfigure.channelsByteId[i][k] = byte_idx;
                 systemConfigure.channelsFrameId[i][k] = frame_idx;
             }
-            if (bit_idx == 8)
-            {// перелезли через край
+            if (bit_idx == 8){// перелезли через край
                 bit_idx = 0;
                 byte_idx++;
             }
-            if (byte_idx == 8)
-            {// перелезли через край
+            if (byte_idx == 8){// перелезли через край
                 byte_idx = 0;
                 frame_idx++;
             }
         }
     }
     // проходимся по байтным параметрам
-    if (bit_idx != 0)
-    {// неровно вышли
+    if (bit_idx != 0){// неровно вышли
         bit_idx = 0;
         byte_idx++;
-        if (byte_idx == 8)
-        {// перелезли через край
+        if (byte_idx == 8){// перелезли через край
             byte_idx = 0;
             frame_idx++;
         }
     }
-    for (int i = 1; i < 9; i++)
-    {
-        for (int k = 0; k < 12; k++)
-        {
-            if (isByteIn(i, k)
-                    || isByteOut(i, k))
-            {
+    for (int i = 1; i < 9; i++){
+        for (int k = 0; k < 12; k++){
+            if (isByteIn(i, k)|| isByteOut(i, k)){
                 systemConfigure.channelsBitId[i][k] = bit_idx;
                 systemConfigure.channelsByteId[i][k] = byte_idx;
                 byte_idx++;
                 systemConfigure.channelsFrameId[i][k] = frame_idx;
             }
-            if (byte_idx == 8)
-            {// перелезли через край
+            if (byte_idx == 8){// перелезли через край
                 byte_idx = 0;
                 frame_idx++;
             }
         }
     }
     // проходимся по двубайтным параметрам
-    if (byte_idx >= 7)
-    {// неровно вышли
+    if (byte_idx >= 7){// неровно вышли
         byte_idx = 0;
         frame_idx++;
     }
-    for (int i = 1; i < 9; i++)
-    {
-        for (int k = 0; k < 12; k++)
-        {
-            if (is2ByteIn(i, k))
-            {
+    for (int i = 1; i < 9; i++){
+        for (int k = 0; k < 12; k++){
+            if (is2ByteIn(i, k)){
                 systemConfigure.channelsBitId[i][k] = bit_idx;
                 systemConfigure.channelsByteId[i][k] = byte_idx;
                 byte_idx++;
                 byte_idx++;
                 systemConfigure.channelsFrameId[i][k] = frame_idx;
             }
-            if (byte_idx >= 7)
-            {// неровно вышли
+            if (byte_idx >= 7){// неровно вышли
                 byte_idx = 0;
                 frame_idx++;
             }
@@ -171,53 +149,42 @@ void MyCan::fillSystemConfigure(SystemConfigure* srcC, QMap<int, SystemElement*>
     frame_idx = 2;// команда A1 занята под общие нужды - начиаем с A2
     bit_idx = 0;
     byte_idx = 0;
-    for (int i = 1; i < 9; i++)
-    {
-        for (int k = 0; k < 12; k++)
-        {
-            if (isBitOut(i, k))
-            {
+    for (int i = 1; i < 9; i++){
+        for (int k = 0; k < 12; k++){
+            if (isBitOut(i, k)){
                 systemConfigure.channelsOutBitId[i][k] = bit_idx;
                 bit_idx++;
                 systemConfigure.channelsOutByteId[i][k] = byte_idx;
                 systemConfigure.channelsOutFrameId[i][k] = frame_idx;
             }
-            if (bit_idx == 8)
-            {// перелезли через край
+            if (bit_idx == 8){// перелезли через край
                 bit_idx = 0;
                 byte_idx++;
             }
-            if (byte_idx == 8)
-            {// перелезли через край
+            if (byte_idx == 8){// перелезли через край
                 byte_idx = 0;
                 frame_idx++;
             }
         }
     }
     // проходимся по байтным параметрам
-    if (bit_idx != 0)
-    {// неровно вышли
+    if (bit_idx != 0){// неровно вышли
         bit_idx = 0;
         byte_idx++;
-        if (byte_idx == 8)
-        {// перелезли через край
+        if (byte_idx == 8){// перелезли через край
             byte_idx = 0;
             frame_idx++;
         }
     }
-    for (int i = 1; i < 9; i++)
-    {
-        for (int k = 0; k < 12; k++)
-        {
-            if (isByteOut(i, k))
-            {
+    for (int i = 1; i < 9; i++){
+        for (int k = 0; k < 12; k++){
+            if (isByteOut(i, k)){
                 systemConfigure.channelsOutBitId[i][k] = bit_idx;
                 systemConfigure.channelsOutByteId[i][k] = byte_idx;
                 byte_idx++;
                 systemConfigure.channelsOutFrameId[i][k] = frame_idx;
             }
-            if (byte_idx == 8)
-            {// перелезли через край
+            if (byte_idx == 8){// перелезли через край
                 byte_idx = 0;
                 frame_idx++;
             }
@@ -227,14 +194,12 @@ void MyCan::fillSystemConfigure(SystemConfigure* srcC, QMap<int, SystemElement*>
     haveSystemConfig = true;
 }
 
-bool MyCan::isHaveSystemConfig()
-{
+bool MyCan::isHaveSystemConfig(){
     QMutexLocker l(&configureMutex);
     return haveSystemConfig;
 }
 
-bool MyCan::isConfigured()
-{
+bool MyCan::isConfigured(){
     bool ret;
     configureMutex.lock();
     ret = BUCPConfigured;
@@ -242,15 +207,13 @@ bool MyCan::isConfigured()
     return ret;
 }
 
-bool MyCan::isBitIn(quint8 i, quint8 k)
-{
+bool MyCan::isBitIn(quint8 i, quint8 k){
     if (systemConfigure.channelsType[i][k] == IN_MODE_NORMAL && (systemConfigure.boardsType[i] == BOARD_IN || systemConfigure.boardsType[i] == BOARD_IN_AN || systemConfigure.boardsType[i] == BOARD_IN_KM))
         return true;
     return false;
 }
 
-bool MyCan::isByteIn(quint8 i, quint8 k)
-{
+bool MyCan::isByteIn(quint8 i, quint8 k){
     if ((systemConfigure.channelsType[i][k] == IN_MODE_PWM || systemConfigure.channelsType[i][k] == IN_MODE_EXTI_8) && (systemConfigure.boardsType[i] == BOARD_IN || systemConfigure.boardsType[i] == BOARD_IN_AN || systemConfigure.boardsType[i] == BOARD_IN_KM))
         return true;
     if (systemConfigure.channelsType[i][k] == IN_MODE_ANALOG_8 && (systemConfigure.boardsType[i] == BOARD_IN_AN || systemConfigure.boardsType[i] == BOARD_IN_KM))
@@ -258,8 +221,7 @@ bool MyCan::isByteIn(quint8 i, quint8 k)
     return false;
 }
 
-bool MyCan::is2ByteIn(quint8 i, quint8 k)
-{
+bool MyCan::is2ByteIn(quint8 i, quint8 k){
     if (systemConfigure.channelsType[i][k] == IN_MODE_EXTI_16 && (systemConfigure.boardsType[i] == BOARD_IN || systemConfigure.boardsType[i] == BOARD_IN_AN || systemConfigure.boardsType[i] == BOARD_IN_KM))
         return true;
     if (systemConfigure.channelsType[i][k] == IN_MODE_ANALOG_16 && (systemConfigure.boardsType[i] == BOARD_IN_AN || systemConfigure.boardsType[i] == BOARD_IN_KM))
@@ -267,22 +229,19 @@ bool MyCan::is2ByteIn(quint8 i, quint8 k)
     return false;
 }
 
-bool MyCan::isBitOut(quint8 i, quint8 k)
-{
+bool MyCan::isBitOut(quint8 i, quint8 k){
     if (systemConfigure.channelsType[i][k] == OUT_MODE_NORMAL && (systemConfigure.boardsType[i] == BOARD_OUT || systemConfigure.boardsType[i] == BOARD_OUT_AN))
         return true;
     return false;
 }
 
-bool MyCan::isByteOut(quint8 i, quint8 k)
-{
+bool MyCan::isByteOut(quint8 i, quint8 k){
     if ((systemConfigure.channelsType[i][k] == OUT_MODE_PWM || systemConfigure.channelsType[i][k] == OUT_MODE_PFM || systemConfigure.channelsType[i][k] == OUT_MODE_FC) && (systemConfigure.boardsType[i] == BOARD_OUT || systemConfigure.boardsType[i] == BOARD_OUT_AN))
         return true;
     return false;
 }
 
-void MyCan::CAN_init()
-{
+void MyCan::CAN_init(){
     qDebug() << "init " << canName;
 
     sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
@@ -308,8 +267,8 @@ void MyCan::CAN_init()
     mTimerSend->setInterval(100);
     mTimerSend->start();
 }
-void MyCan::CAN_reset()
-{
+
+void MyCan::CAN_reset(){
     mTimerRecv->stop();
     mTimerSend->stop();
 //    qDebug() << "reset " << canName;
@@ -323,16 +282,15 @@ void MyCan::CAN_reset()
 //    incomeGOFailCounter = 0;
 //    incomePOFailCounter = 0;
 
-    if (ableToRestart)
-    {
+    if (ableToRestart){
         system(("ifconfig " + canName + " down").toStdString().c_str());
         system(("ifconfig " + canName + " up").toStdString().c_str());
     }
     mTimerRecv->start();
     mTimerSend->start();
 }
-void MyCan::CAN_clear_frames()
-{
+
+void MyCan::CAN_clear_frames(){
     frame.can_id=0x00;
     frame.can_dlc=0;
     frame.data[0]=0x00;
@@ -345,10 +303,8 @@ void MyCan::CAN_clear_frames()
     frame.data[7]=0x00;
 }
 
-void MyCan::makeMedian(quint8* val, QList<QList<quint8>> &bRaw, QList<QList<quint8>> &bSmooth)
-{
-    for (int k = 0; k < 8; k++ )
-    {
+void MyCan::makeMedian(quint8* val, QList<QList<quint8>> &bRaw, QList<QList<quint8>> &bSmooth){
+    for (int k = 0; k < 8; k++ )    {
         bRaw[k].append(val[k]);
         if (bRaw[k].count() > MEDIAN_FILTER_SIZE)
             bRaw[k].removeFirst();
@@ -358,12 +314,9 @@ void MyCan::makeMedian(quint8* val, QList<QList<quint8>> &bRaw, QList<QList<quin
         bSmooth[k].clear();
         for (int i = 0; i < MEDIAN_FILTER_SIZE; i++)
             bSmooth[k].append(bRaw[k][i]);
-        for (int i = 0; i < MEDIAN_FILTER_SIZE; i++)
-        {
-            for (int j = 0; j < MEDIAN_FILTER_SIZE - i - 1; j++)
-            {
-                if (bSmooth[k][j] > bSmooth[k][j + 1])
-                {
+        for (int i = 0; i < MEDIAN_FILTER_SIZE; i++){
+            for (int j = 0; j < MEDIAN_FILTER_SIZE - i - 1; j++){
+                if (bSmooth[k][j] > bSmooth[k][j + 1]){
                     quint8 tmp = bSmooth[k][j];
                     bSmooth[k][j] = bSmooth[k][j + 1];
                     bSmooth[k][j + 1] = tmp;
@@ -373,12 +326,10 @@ void MyCan::makeMedian(quint8* val, QList<QList<quint8>> &bRaw, QList<QList<quin
     }
 }
 
-void MyCan::canTimerTimeoutRecv()
-{
+void MyCan::canTimerTimeoutRecv(){
     bool PO_ok = false;
     bool GO_ok = false;
-    do
-    {
+    do{
         CAN_clear_frames();
         nbytes = read(sock,&frame,sizeof(struct can_frame));
         //qDebug() << "CAN read error:" << strerror(errno);
@@ -449,28 +400,23 @@ void MyCan::canTimerTimeoutRecv()
                 }
             }
 
-            if (frame.can_id == CAN_OUT_CONFIGURE_EXTERNAL_ID && haveSystemConfig)
-            {// пришла команда ответ по конфигурации
+            if (frame.can_id == CAN_OUT_CONFIGURE_EXTERNAL_ID && haveSystemConfig){
+                // пришла команда ответ по конфигурации
                 // сверимся что в ответ пришла такая же команда
                 bool test = true;
-                for (int i = 0; i < 8; i++)
-                {
-                    if (frameConfig.data[i] != frame.data[i])
-                    {
+                for (int i = 0; i < 8; i++){
+                    if (frameConfig.data[i] != frame.data[i]){
                         test = false;
                         break;
                     }
                 }
-                if (test)
-                {// ответ нас устроил
-                    if (BUCPConfigureStep == 98)
-                    {// вс отправлено
+                if (test){// ответ нас устроил
+                    if (BUCPConfigureStep == 98){// вс отправлено
                         configureStarted = false;
                         BUCPConfigured = true;
                         qDebug() << "CONFIGURED";
                     }
-                    else
-                    {
+                    else{
                         frameConfig.can_id = (quint32)CAN_IN_CONFIGURE_EXTERNAL_ID|CAN_EFF_FLAG;
                         frameConfig.can_dlc = 8;
                         memset(frameConfig.data, 0, 8);
@@ -480,8 +426,7 @@ void MyCan::canTimerTimeoutRecv()
                             frameConfig.data[1] = systemConfigure.boardsType[7];
                             frameConfig.data[2] = systemConfigure.boardsType[8];
                         }
-                        else
-                        {// каналы
+                        else{// каналы
                             // переведем типы каналов чтобы не запутаться у себя (типы каналов )OUT ведутся с нуля)
                             if (systemConfigure.boardsType[(BUCPConfigureStep - 2) / 12 + 1] == BOARD_OUT || systemConfigure.boardsType[(BUCPConfigureStep - 2) / 12 + 1] == BOARD_OUT_AN)
                                 frameConfig.data[1] = systemConfigure.channelsType[(BUCPConfigureStep - 2) / 12 + 1][((BUCPConfigureStep - 2) + 12) % 12] - 6;
@@ -501,32 +446,27 @@ void MyCan::canTimerTimeoutRecv()
 
             // для черного ящика и для первой инициализации
             stateMutex.lock();
-            if (frame.can_id == 0x0000B100)
-            {
+            if (frame.can_id == 0x0000B100){
                 last0000B100 = frame;
                 makeMedian(frame.data, b1Raw, b1Smooth);
 //                        qDebug() << "in1" << QByteArray((const char *)frame.data, 8).toHex();
             }
-            if (frame.can_id == 0x0000B200)
-            {
+            if (frame.can_id == 0x0000B200){
                 last0000B200 = frame;
                 makeMedian(frame.data, b2Raw, b2Smooth);
 //                        qDebug() << "in2" << QByteArray((const char *)frame.data, 8).toHex();
             }
-            if (frame.can_id == 0x0000B300)
-            {
+            if (frame.can_id == 0x0000B300){
                 last0000B300 = frame;
                 makeMedian(frame.data, b3Raw, b3Smooth);
 //                        qDebug() << "in3" << QByteArray((const char *)frame.data, 8).toHex();
             }
-            if (frame.can_id == 0x0000B400)
-            {
+            if (frame.can_id == 0x0000B400){
                 last0000B400 = frame;
                 makeMedian(frame.data, b4Raw, b4Smooth);
 //                        qDebug() << "in4" << QByteArray((const char *)frame.data, 8).toHex();
             }
-            if (frame.can_id == 0x0000B500)
-            {
+            if (frame.can_id == 0x0000B500){
                 last0000B500 = frame;
                 makeMedian(frame.data, b5Raw, b5Smooth);
 //                        qDebug() << "in4" << QByteArray((const char *)frame.data, 8).toHex();
@@ -537,11 +477,9 @@ void MyCan::canTimerTimeoutRecv()
             // для черного ящика и для первой инициализации
             if (frame.can_id == 0x0000B500 || frame.can_id == 0x0000B100 || frame.can_id == 0x0000B200 || frame.can_id == 0x0000B300 || frame.can_id == 0x0000B400)
             {
-                if (firstInitCounter > 10)
-                {
+                if (firstInitCounter > 10){
                 }
-                if (firstInit && firstInitCounter > 10)
-                {// проверим есть ли конфликтные состояния
+                if (firstInit && firstInitCounter > 10){// проверим есть ли конфликтные состояния
                     firstInit = false;
                 }
                 firstInitCounter++;
@@ -551,11 +489,9 @@ void MyCan::canTimerTimeoutRecv()
         else
             incomeFailCounter++;
     } while (nbytes!=-1);
-    if (!BUCPConfigured)
-    {
+    if (!BUCPConfigured){
         failConfigureCounter++;
-        if (failConfigureCounter > 20)
-        {// конфижим заново
+        if (failConfigureCounter > 20){// конфижим заново
             configureStarted = false;
             failConfigureCounter = 0;
         }
@@ -571,8 +507,7 @@ void MyCan::canTimerTimeoutRecv()
 
     if (incomeFailCounter > 10)
         CAN_reset();
-    if (incomePOFailCounter > 10)
-    {
+    if (incomePOFailCounter > 10){
         emit canPOError();
         firstInit = true;
         firstInitCounter = 0;
@@ -585,8 +520,7 @@ void MyCan::canTimerTimeoutRecv()
         last0000B300.can_id = 0;
         last0000B400.can_id = 0;
         last0000B500.can_id = 0;
-        for (int i = 0; i < 8; i++)
-        {
+        for (int i = 0; i < 8; i++){
             b1Smooth[i].clear();
             b1Raw[i].clear();
             b2Smooth[i].clear();
@@ -600,8 +534,7 @@ void MyCan::canTimerTimeoutRecv()
         }
         stateMutex.unlock();
     }
-    if (incomeGOFailCounter > 10)
-    {
+    if (incomeGOFailCounter > 10){
         emit canGOError();
         firstInit = true;
         firstInitCounter = 0;
@@ -609,8 +542,7 @@ void MyCan::canTimerTimeoutRecv()
     }
 }
 
-void MyCan::canTimerTimeoutSend()
-{
+void MyCan::canTimerTimeoutSend(){
     if (firstInit)
         return;
     BUCPMutex.lock();
@@ -618,38 +550,28 @@ void MyCan::canTimerTimeoutSend()
     BUCPMutex.unlock();
 
     // изменение параметров для плавного хода
-    for (int i = 1; i < 9; i++)
-    {
-        for (int k = 0; k < 12; k++)
-        {
-            if (systemConfigure.channelsValueChangeSpeed[i][k] != 0)
-            {// плавный параметр
+    for (int i = 1; i < 9; i++) {
+        for (int k = 0; k < 12; k++) {
+            if (systemConfigure.channelsValueChangeSpeed[i][k] != 0){// плавный параметр
                 qint16 val = getOriginalState(i, k).toInt();
-                if (systemConfigure.channelsValueNeed[i][k] != val)
-                {// идет смена
+                if (systemConfigure.channelsValueNeed[i][k] != val){// идет смена
                     float shift = (float)systemConfigure.channelsValueChangeSpeed[i][k] / 10; // подсчет идет 10 раз в сек
-                    if (systemConfigure.channelsValueNeed[i][k] > val )
-                    {// увеличиваем
-                        if (val + shift > systemConfigure.channelsValueNeed[i][k])
-                        {
+                    if (systemConfigure.channelsValueNeed[i][k] > val ){// увеличиваем
+                        if (val + shift > systemConfigure.channelsValueNeed[i][k]){
                             setOriginalState(i, k, (quint8)systemConfigure.channelsValueNeed[i][k], true);
                             systemConfigure.channelsValueCalculated[i][k] = systemConfigure.channelsValueNeed[i][k];
                         }
-                        else
-                        {
+                        else{
                             systemConfigure.channelsValueCalculated[i][k] += shift;
                             setOriginalState(i, k, (quint8)systemConfigure.channelsValueCalculated[i][k], true);
                         }
                     }
-                    else if (systemConfigure.channelsValueNeed[i][k] < val )
-                    {// уменьшаем
-                        if (val - shift < systemConfigure.channelsValueNeed[i][k])
-                        {
+                    else if (systemConfigure.channelsValueNeed[i][k] < val ){// уменьшаем
+                        if (val - shift < systemConfigure.channelsValueNeed[i][k]){
                             setOriginalState(i, k, (quint8)systemConfigure.channelsValueNeed[i][k], true);
                             systemConfigure.channelsValueCalculated[i][k] = systemConfigure.channelsValueNeed[i][k];
                         }
-                        else
-                        {
+                        else{
                             systemConfigure.channelsValueCalculated[i][k] -= shift;
                             setOriginalState(i, k, (quint8)systemConfigure.channelsValueCalculated[i][k], true);
                         }
@@ -668,53 +590,46 @@ void MyCan::canTimerTimeoutSend()
     BUCP3Mutex.unlock();
 }
 
-void MyCan::setBUCPByte(quint8 BUCPByte, int byteNumber)
-{
+void MyCan::setBUCPByte(quint8 BUCPByte, int byteNumber){
     BUCPMutex.lock();
     BUCP.data[byteNumber] = BUCPByte;
     BUCPMutex.unlock();
 }
 
-quint8 MyCan::getBUCPByte(int byteNumber)
-{
+quint8 MyCan::getBUCPByte(int byteNumber){
     BUCPMutex.lock();
     quint8 ret = BUCP.data[byteNumber];
     BUCPMutex.unlock();
     return ret;
 }
 
-void MyCan::setBUCP2Byte(quint8 BUCPByte, int byteNumber)
-{
+void MyCan::setBUCP2Byte(quint8 BUCPByte, int byteNumber){
     BUCP2Mutex.lock();
     BUCP2.data[byteNumber] = BUCPByte;
     BUCP2Mutex.unlock();
 }
 
-quint8 MyCan::getBUCP2Byte(int byteNumber)
-{
+quint8 MyCan::getBUCP2Byte(int byteNumber){
     BUCP2Mutex.lock();
     quint8 ret = BUCP2.data[byteNumber];
     BUCP2Mutex.unlock();
     return ret;
 }
 
-void MyCan::setBUCP3Byte(quint8 BUCPByte, int byteNumber)
-{
+void MyCan::setBUCP3Byte(quint8 BUCPByte, int byteNumber){
     BUCP3Mutex.lock();
     BUCP3.data[byteNumber] = BUCPByte;
     BUCP3Mutex.unlock();
 }
 
-quint8 MyCan::getBUCP3Byte(int byteNumber)
-{
+quint8 MyCan::getBUCP3Byte(int byteNumber){
     BUCP3Mutex.lock();
     quint8 ret = BUCP3.data[byteNumber];
     BUCP3Mutex.unlock();
     return ret;
 }
 
-void MyCan::canSend(struct can_frame frame_)
-{
+void MyCan::canSend(struct can_frame frame_){
     //qDebug() << canName << " send ";
     int nbytes_send = write(sock, &frame_, sizeof(frame_));
     // черный ящик
@@ -725,8 +640,7 @@ void MyCan::canSend(struct can_frame frame_)
         CAN_reset();
 }
 
-bool MyCan::isActive()
-{// проверяет получена ли все параметры от плат для начала работ
+bool MyCan::isActive(){// проверяет получена ли все параметры от плат для начала работ
     QMutexLocker l(&stateMutex);
     if (last0000B100.can_id != 0 && last0000B200.can_id != 0 &&
             b1Smooth[0].count() == MEDIAN_FILTER_SIZE && b2Smooth[0].count() == MEDIAN_FILTER_SIZE)
@@ -734,8 +648,7 @@ bool MyCan::isActive()
     return false;
 }
 
-QVariant MyCan::getDataFromFrame(struct can_frame* frame, quint8 board_, quint8 channel_)
-{
+QVariant MyCan::getDataFromFrame(struct can_frame* frame, quint8 board_, quint8 channel_){
     if (systemConfigure.channelsType[board_][channel_] == IN_MODE_NORMAL
             || systemConfigure.channelsType[board_][channel_] == OUT_MODE_NORMAL)
     {
@@ -763,22 +676,17 @@ QVariant MyCan::getDataFromFrame(struct can_frame* frame, quint8 board_, quint8 
     return false;
 }
 
-QVariant MyCan::getOriginalState(quint8 board_, quint8 channel_)
-{
+QVariant MyCan::getOriginalState(quint8 board_, quint8 channel_){
     QMutexLocker l(&stateMutex);
-    if (FAKE_OUT && (isBitOut(board_, channel_) || isByteOut(board_, channel_)))
-    {
-        if (systemConfigure.channelsOutFrameId[board_][channel_] == 2 && BUCP2.can_id != 0)
-        {
+    if (FAKE_OUT && (isBitOut(board_, channel_) || isByteOut(board_, channel_))){
+        if (systemConfigure.channelsOutFrameId[board_][channel_] == 2 && BUCP2.can_id != 0){
             return getDataFromFrame(&BUCP2, board_, channel_);
         }
-        if (systemConfigure.channelsOutFrameId[board_][channel_] == 3 && BUCP3.can_id != 0)
-        {
+        if (systemConfigure.channelsOutFrameId[board_][channel_] == 3 && BUCP3.can_id != 0){
             return getDataFromFrame(&BUCP3, board_, channel_);
         }
     }
-    else
-    {
+    else{
         if (systemConfigure.channelsFrameId[board_][channel_] == 2 && last0000B200.can_id != 0 && b2Smooth[0].count() == MEDIAN_FILTER_SIZE)
         {
             return getDataFromFrame(&last0000B200, board_, channel_);
@@ -799,13 +707,11 @@ QVariant MyCan::getOriginalState(quint8 board_, quint8 channel_)
     return false;
 }
 
-void MyCan::toggleState(DeviceStates dev)
-{
+void MyCan::toggleState(DeviceStates dev){
     setState(dev, !getState(dev).toBool());
 }
 
-QVariant MyCan::getState(DeviceStates dev, bool is_raw)
-{
+QVariant MyCan::getState(DeviceStates dev, bool is_raw){
     QMutexLocker l(&stateMutex);
     if (dev == Board2Type)
         if (last0000B100.can_id != 0 && b1Smooth[0].count() == MEDIAN_FILTER_SIZE)
@@ -881,8 +787,7 @@ QVariant MyCan::getState(DeviceStates dev, bool is_raw)
             return last0000B100.data[6] & 0x80;
 
     l.unlock();
-    if (systemElements.contains(dev) && systemElements.value(dev)->board > 0 && BUCPConfigured)
-    {
+    if (systemElements.contains(dev) && systemElements.value(dev)->board > 0 && BUCPConfigured){
 //        if (dev == StateOUTWaterPump && waterPumpInversion)
 //            return !getOriginalState(systemElements[dev]->board, systemElements[dev]->channel).toBool();
 //        else
@@ -896,51 +801,41 @@ QVariant MyCan::getState(DeviceStates dev, bool is_raw)
     }
 }
 
-void MyCan::setOriginalState(quint8 board_, quint8 channel_, QVariant state, bool ignore_change_speed)
-{
+void MyCan::setOriginalState(quint8 board_, quint8 channel_, QVariant state, bool ignore_change_speed){
     QMutexLocker l(&stateMutex);
-    if (!ignore_change_speed && systemConfigure.channelsValueChangeSpeed[board_][channel_] != 0)
-    {// плавное изменение
+    if (!ignore_change_speed && systemConfigure.channelsValueChangeSpeed[board_][channel_] != 0){// плавное изменение
         systemConfigure.channelsValueNeed[board_][channel_] = state.toInt();
         return;
     }
-    if (systemConfigure.channelsOutFrameId[board_][channel_] == 2)
-    {//A2
-        if (systemConfigure.channelsType[board_][channel_] == OUT_MODE_NORMAL)
-        {// битный
+    if (systemConfigure.channelsOutFrameId[board_][channel_] == 2){//A2
+        if (systemConfigure.channelsType[board_][channel_] == OUT_MODE_NORMAL){// битный
             setBUCP2Byte((state.toBool()?
                               getBUCP2Byte(systemConfigure.channelsOutByteId[board_][channel_]) | (1 << systemConfigure.channelsOutBitId[board_][channel_]):
                               getBUCP2Byte(systemConfigure.channelsOutByteId[board_][channel_]) & ~(1 << systemConfigure.channelsOutBitId[board_][channel_])), systemConfigure.channelsOutByteId[board_][channel_]);
         }
-        else
-        {// байтный
+        else{// байтный
             setBUCP2Byte(state.toInt(), systemConfigure.channelsOutByteId[board_][channel_]);
         }
     }
-    if (systemConfigure.channelsOutFrameId[board_][channel_] == 3)
-    {//A3
-        if (systemConfigure.channelsType[board_][channel_] == OUT_MODE_NORMAL)
-        {// битный
+    if (systemConfigure.channelsOutFrameId[board_][channel_] == 3){//A3
+        if (systemConfigure.channelsType[board_][channel_] == OUT_MODE_NORMAL){// битный
             setBUCP3Byte((state.toBool()?
                               getBUCP3Byte(systemConfigure.channelsOutByteId[board_][channel_]) | (1 << systemConfigure.channelsOutBitId[board_][channel_]):
                               getBUCP3Byte(systemConfigure.channelsOutByteId[board_][channel_]) & ~(1 << systemConfigure.channelsOutBitId[board_][channel_])), systemConfigure.channelsOutByteId[board_][channel_]);
         }
-        else
-        {// байтный
+        else{// байтный
             setBUCP3Byte(state.toInt(), systemConfigure.channelsOutByteId[board_][channel_]);
         }
     }
 }
 
-void MyCan::setWaterPumpInversion(bool inversion)
-{
+void MyCan::setWaterPumpInversion(bool inversion){
     BUCPMutex.lock();
     waterPumpInversion = inversion;
     BUCPMutex.unlock();
 }
 
-void MyCan::setState(DeviceStates dev, QVariant state, bool ignore_change_speed)
-{
+void MyCan::setState(DeviceStates dev, QVariant state, bool ignore_change_speed){
 //    if (dev == StateOUTWaterPump)
 //        state = (waterPumpInversion?(100 - state.toInt()):state.toInt());
 

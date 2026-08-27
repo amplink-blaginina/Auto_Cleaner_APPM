@@ -22,6 +22,17 @@ public:
     bool getHeatState();
     void invertIgnition();
     bool getIgnition();
+    bool getSensorPower();
+    bool getHydraulicFan();
+    void setState(DeviceStates state, bool value);
+    void invertState(DeviceStates state);
+    uint getOilTmp();
+    template<typename T>
+    T getParam(const DeviceStates key, const T &defaultValue = T{}) const;
+    int getInt(DeviceStates key);
+    bool isConfigured();
+    QVariant getOriginalState(quint8 board_, quint8 channel_);
+    void setOriginalState(quint8 board_, quint8 channel_, int value);
 private:
     MyCan *_can0;
 };
