@@ -98,6 +98,8 @@ public:
     void setPressActive(bool state);
     void setFlowActive(bool state);
 
+    void goUpImmediate(bool state);
+    void goDownImmediate(bool);
 
 public slots:
     // слот для получания данных из CAN
