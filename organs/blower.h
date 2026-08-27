@@ -47,6 +47,7 @@ public:
     bool testStateTimer();
     int getTimeout();
     void checkFriendVars();
+
     BlowerStates stateUp();
     BlowerStates stateDown();
 
@@ -84,17 +85,30 @@ public:
 
     void goNone();
     bool isRotating();
+    QTime stoppingStartedAt;
+    QTime startingStartedAt;
+    QTime rotationStartedAt;
+    float stopDelay = 3;
+    void setStartMomentForStopping();
+    void setStartMomentForStarting();
+    void setStartMomentForRotation();
+    void updateWhenUpPressed();
+    void updateWhenDownPressed();
+    void updateWhenRotationPressed(bool isRight);
 public slots:
     // слот для получания данных из CAN
     void progressLoop();
 signals:
 private:
+    void updateTransitioning();
+    bool isTargetRight = false;
     float targetRotationSpeed = 0;
     float currentRotationSpeed =0;
     float speedRotationStep = 1;
-    //float maxSpeed = 10;
     void changeRotationSpeed();
     void setTargetRotationSpeed(float speed);
+
+    BlowerStates rotate();
 };
 
 #endif // BLOWER_H

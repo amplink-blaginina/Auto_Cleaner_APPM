@@ -91,54 +91,43 @@ QString Blower::toString(BlowerStates s)
     }
 }
 
-void Blower::setState(BlowerStates state_)
-{
+void Blower::setState(BlowerStates state_){
     state = state_;
 
-    if (state == Blower::BlowerOff)
-    {// выключили
+    if (state == Blower::BlowerOff){// выключили
         goOff();
         //myCan->setState(StateFRMBackL2, false);
     }
-    if (state == Blower::BlowerDownOut)
-    {// началось опускание
+    if (state == Blower::BlowerDownOut){// началось опускание
         startActionTime = QDateTime::currentDateTime();
         goOff();
         goDown();
         //myCan->setState(StateFRMBackL2, true);
     }
-    if (state == Blower::BlowerDowned)
-    {
+    if (state == Blower::BlowerDowned){
         goOff();
     }
-    if (state == Blower::BlowerDownIn)
-    {
-        // Запоминаем что поднимание начилось
+    if (state == Blower::BlowerDownIn){// Запоминаем что поднимание начилось
         startActionTime = QDateTime::currentDateTime();
         goOff();
         goUp();
     }
-    if (state == Blower::BlowerSlideOut)
-    {// поворот
+    if (state == Blower::BlowerSlideOut){// поворот
         startActionTime = QDateTime::currentDateTime();
 
         goSlide(rightBlow);
     }
-    if (state == Blower::BlowerSlideIn)
-    {// поворот
+    if (state == Blower::BlowerSlideIn){// поворот
         startActionTime = QDateTime::currentDateTime();
     }
-    if (state == Blower::BlowerSlided)
-    {// поворот
+    if (state == Blower::BlowerSlided){// поворот
         goOff();
     }
 
-    if (state == Blower::BlowerRotateOut)
-    {// раскручивание
+    if (state == Blower::BlowerRotateOut){// раскручивание
         startActionTime = QDateTime::currentDateTime();
     }
-    if (state == Blower::BlowerRotateIn)
-    {// остановка
+    if (state == Blower::BlowerRotateIn){// остановка
         startActionTime = QDateTime::currentDateTime();
         setTargetRotationSpeed(0);
     }
@@ -153,7 +142,7 @@ void Blower::goOff(){
 }
 
 void Blower::goRotate(quint8 speed){
-    qDebug()<<"RotationSpeed: "<<speed;
+    qDebug()<<"# RotationSpeed: "<<speed;
     myCan->setState(StateValveD3, speed);
 }
 
@@ -193,7 +182,6 @@ Blower::BlowerStates Blower::getState(){
 
 void Blower::setNeedState(BlowerStates state_){
     needState = state_;
-//    qDebug() << "Central broom needState " << toString(needState);
 }
 
 Blower::BlowerStates Blower::getAbleState(){
@@ -204,18 +192,8 @@ Blower::BlowerStates Blower::getNeedState(){
     return needState;
 }
 
-void Blower::checkNeedState(){// утанавливает максимальную границу до которой может дойти щетка (при текущих параметрах)
-    if (needState != BlowerOff)
-    {
-        if (!startClean){// пуск отжат или никакой режим смета не выбран или если щетки не выдвинуты
-            ableState = BlowerOff;// можно только продолжать пытаться включиться (используется такой странный статус потому что надо показать постоянно желание включиться даже если не нажали пуск например)
-        }
-        else{
-            ableState = BlowerRotated;
-        }
-    }
-    else
-        ableState = BlowerOff;
+void Blower::checkNeedState(){// утанавливает максимальную границу до которой может дойти обдув (при текущих параметрах)
+    ableState = (!startClean || needState == BlowerOff)?BlowerOff:BlowerRotated;
 }
 
 int Blower::getTimeout(){//получает таймаут в секундах (сколько надо простаивать в той или иной операции)
@@ -224,9 +202,9 @@ int Blower::getTimeout(){//получает таймаут в секундах (
 
 bool Blower::testStateTimer(){// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)
     qint64 msecs_to = startActionTime.msecsTo(QDateTime::currentDateTime());
-    qint64 tmp_msecs = msecs_to;
-    if (msecs_to > getTimeout() * 1000)
-        tmp_msecs = getTimeout() * 1000;
+    // qint64 tmp_msecs = msecs_to;
+    // if (msecs_to > getTimeout() * 1000)
+    //     tmp_msecs = getTimeout() * 1000;
     bool timeTest = false;
     if (msecs_to > getTimeout() * 1000){// тест по времени прошел а мы ничего не достигли. Нужны тревоги
         timeTest = true;
@@ -271,40 +249,81 @@ bool Blower::testStateTimer(){// мощная функция проверки т
 void Blower::checkFriendVars(){
     startClean = ((MainWindow*)parent)->startClean;
     rightBlow = ((MainWindow*)parent)->workMode.blowRight;
+    //qDebug()<<"# Set target direction 3: "<<(isTargetRight?"right":"left");
+    //isTargetRight = rightBlow;
 }
 
 void Blower::setTargetRotationSpeed(float speed){
     targetRotationSpeed = speed;
+    //qDebug()<<"# targetSpeed: "<<targetRotationSpeed;
 }
 
 void Blower::changeRotationSpeed(){
+    //qDebug()<<"# "<<currentRotationSpeed<<"/"<<targetRotationSpeed;
     if(currentRotationSpeed < targetRotationSpeed){
         currentRotationSpeed += speedRotationStep;
         if (currentRotationSpeed>targetRotationSpeed){
             currentRotationSpeed = targetRotationSpeed;
         }
+        goRotate(currentRotationSpeed);
+        qDebug()<<"# blower speed up: "<<currentRotationSpeed;
+        return;
     }
-    else if(currentRotationSpeed>targetRotationSpeed){
+
+    if(currentRotationSpeed > targetRotationSpeed){
         currentRotationSpeed-=speedRotationStep;
         if(currentRotationSpeed<0){
             currentRotationSpeed = 0;
         }
+        goRotate(currentRotationSpeed);
+        qDebug()<<"# blower speed down: "<<currentRotationSpeed;
+        return;
     }
-    goRotate(currentRotationSpeed);
 }
 
 void Blower::progressLoop(){
-    // проверяет соседние модули и собирает информацию о их состояниях (нажатые кнопки, обороты, статусы и пр.)
-    checkFriendVars();
-    // проверяет до какого состояния может добираться щетка
-    checkNeedState();
+    //qDebug()<<"# 1";
+    checkFriendVars();// проверяет соседние модули и собирает информацию о их состояниях (нажатые кнопки, обороты, статусы и пр.)
+    checkNeedState();// проверяет до какого состояния может добираться щетка
 
     if (state >= Blower::BlowerRotateOut){
-        //обороты движка
-        ((MainWindow*)parent)->canForEngine->setEngineCommand(rpmForSweepType.value(((MainWindow*)parent)->workMode.sweepType) * 8);
-        // скорость щеток
-        setTargetRotationSpeed(speedForSweepType.value(((MainWindow*)parent)->workMode.sweepType));
+        auto type = ((MainWindow*)parent)->workMode.sweepType;
+        ((MainWindow*)parent)->canForEngine->setEngineCommand(rpmForSweepType.value(type * 8));//обороты движка
+        setTargetRotationSpeed(speedForSweepType.value(type));// скорость щеток
         //goRotate();
+    }
+    //qDebug()<<"# 2";
+    updateTransitioning();
+    // if(isTargetRight != rightBlow){
+    //     rotate();
+    // }
+
+    // if (state < needState && state < ableState){// нужно прогрессировать вверх (выдвигать, мыть и гусей не забыть)
+    //     BlowerStates s = state;
+    //     stateUp();
+    //     if (s != state)// && (state == needState || state == ableState))
+    //     {
+    //         qDebug() << "Blower state " << toString(state);
+    //     }
+    // }
+    // else if (state > needState || state > ableState){// прогрессируем вниз
+    //     BlowerStates s = state;
+    //     stateDown();
+    //     if (s != state)// && (state == needState || state == ableState))
+    //     {
+    //         qDebug() << "Blower state " << toString(state);
+    //     }
+    // }
+    changeRotationSpeed();
+}
+
+void Blower::updateTransitioning(){
+    //qDebug()<<"# "<<isTargetRight<<"/"<<rightBlow;
+
+    if(isTargetRight != rightBlow){
+        qDebug()<<"## ";
+        rotate();
+        return;
     }
 
     if (state < needState && state < ableState){// нужно прогрессировать вверх (выдвигать, мыть и гусей не забыть)
@@ -323,13 +342,179 @@ void Blower::progressLoop(){
             qDebug() << "Blower state " << toString(state);
         }
     }
-
-    changeRotationSpeed();
 }
 
 bool Blower::isRotating(){
     return currentRotationSpeed > 0;
 }
+
+void Blower::setStartMomentForStopping(){
+    qDebug()<<"# wait for stop!";
+    stoppingStartedAt = QDateTime::currentDateTime().time();
+}
+
+void Blower::setStartMomentForStarting(){
+    qDebug()<<"# wait for start!";
+    startingStartedAt = QDateTime::currentDateTime().time();
+}
+
+void Blower::setStartMomentForRotation(){
+    rotationStartedAt = QDateTime::currentDateTime().time();
+
+}
+void Blower::updateWhenRotationPressed(bool isRight){
+    const int elapsed = qAbs(rotationStartedAt.secsTo(QDateTime::currentDateTime().time()));
+    if(elapsed > stopDelay){
+        //setState (BlowerOff);
+        qDebug()<<"# Set target direction 2: "<<(isTargetRight?"right":"left");
+        isTargetRight = isRight;
+        //((MainWindow*)parent)->changeBlowDirection(isRight);
+        setNeedState(BlowerRotated);
+    }
+    else{
+        qDebug()<<"# wait: "<<elapsed;
+    }
+
+    if(!isRotating()){
+        goSlide(isRight);
+        // if(isRight){
+        //     goRight();
+        // }
+        // else{
+        //     goLeft();
+        // }
+        qDebug()<<"# blower slide";
+        //goUp();
+    }
+    else{
+        qDebug()<<"# side: "<<isTargetRight<<"/"<<rightBlow;
+    }
+}
+
+void Blower::updateWhenUpPressed(){
+    const int elapsed = qAbs(stoppingStartedAt.secsTo(QDateTime::currentDateTime().time()));
+    if(elapsed > stopDelay){
+        setNeedState(BlowerOff);
+    }
+    else{
+        qDebug()<<"# wait: "<<elapsed;
+    }
+
+    if(!isRotating()){
+        qDebug()<<"# blower move up";
+        goUp();
+    }
+    else{
+        qDebug()<<"# speed: "<<currentRotationSpeed<<"/"<<targetRotationSpeed;
+    }
+}
+
+void Blower::updateWhenDownPressed(){
+    const int elapsed = qAbs(startingStartedAt.secsTo(QDateTime::currentDateTime().time()));
+    if(elapsed > stopDelay){
+        //setState(BlowerOff);
+        setNeedState(BlowerRotated);
+    }
+    else{
+        qDebug()<<"# wait: "<<elapsed;
+    }
+
+    if(!isRotating()){
+        qDebug()<<"# blower move down";
+        goDown();
+    }
+    else{
+        qDebug()<<"# speed: "<<currentRotationSpeed<<"/"<<targetRotationSpeed;
+    }
+}
+
+Blower::BlowerStates Blower::rotate(){
+    qDebug()<<"# rotate: "<<isTargetRight<<"/"<<rightBlow;
+    //QString message = (isTargetRight + "#" + rightBlow);
+    //logger->addLog(message);
+    //logger->addLog(" # Rotation state: "+ state);
+
+    switch (state) {
+    case BlowerOff:
+        // начинаем опускание
+        logger->addLog("Опускаем раструб");
+        setState(BlowerDownOut);
+        break;
+    case BlowerDownOut:
+        logger->addLog("Заканчиваем опускание по таймеру");
+        // заканчиваем опускание по таймеру
+        if (testStateTimer())
+            setState(BlowerDowned);
+        break;
+    case BlowerDownIn:
+        logger->addLog("Меняем направление на опускание");
+        // меняем направление на опускание (до этого поднимались)
+        setState(BlowerDownOut);
+        break;
+    case BlowerDowned:
+        logger->addLog("Выставлем направление обдува");
+
+        if(isTargetRight != rightBlow){
+            qDebug()<<"# Set target direction 1: "<<(isTargetRight?"right":"left");
+            rightBlow = isTargetRight;
+            ((MainWindow*)parent)->changeBlowDirection(isTargetRight);
+        }
+        setState(BlowerSlideOut);
+        break;
+    case BlowerSlideOut:
+        logger->addLog("Заканчиваем поворот щётки");
+        // заканчиваем поворот щетки
+        if (testStateTimer())
+            setState(BlowerSlided);
+        break;
+    case BlowerSlideIn:
+        if(isTargetRight != rightBlow){
+            if (testStateTimer())
+                setState(BlowerDowned);
+        }
+        else{
+            setState(BlowerSlideOut);}
+        break;
+    case BlowerSlided:
+        if(isTargetRight != rightBlow){
+            setState(BlowerSlideIn);
+        }
+        else{
+        logger->addLog("Раскручиваем вентилятор");
+            setState(BlowerRotateOut);}
+        break;
+    case BlowerRotateOut:
+        if(isTargetRight != rightBlow){
+            setState(BlowerRotateIn);
+        }
+        else{
+        // заканчиваем раскрутку а так же регулируем обороты дизеляки
+        if (testStateTimer())
+            setState(BlowerRotated);
+        }
+        break;
+    case BlowerRotateIn:
+        if(isTargetRight != rightBlow){
+            if (testStateTimer())
+                setState(BlowerSlided);
+        }
+        else{
+        // меняем направление раскрутки ( до этого тормозились)
+            setState(BlowerRotateOut);}
+        break;
+    case BlowerRotated:
+        if(isTargetRight != rightBlow){
+            logger->addLog("Выключаем вентилятор");
+            setState(BlowerRotateIn);
+        }
+
+        break;
+    default:
+        break;
+    }
+    return state;
+}
+
 Blower::BlowerStates Blower::stateUp(){// пытаемся прогрессировать статусом вверх (если что меняем направление статуса, если вдруг был понижающий прогресс)
     switch (state) {
     case BlowerOff:
