@@ -550,16 +550,23 @@ void MainWindow::configureButtons(){
     m_blowUpWatcher = BoolStateWatcher{
         {
             .onActivated = [this] {
-                  ui->pushButton_blowerUp->setProperty("wasDown", true);
-                  view->setStyle(ui->label_blowerUpDown, blowerVertPath + "up_on.png);");
+                ui->pushButton_blowerUp->setProperty("wasDown", true);
+                view->setStyle(ui->label_blowerUpDown, blowerVertPath + "up_on.png);");
 
-                 if(isBlowTransitioning()){
-                     view->addLogWarning("Обдув в движении, ожидайте");
-                     return;
-                 }
-                 if(startClean){
-                     blower->goUp();
-                 }
+                if(isBlowTransitioning()){
+                    view->addLogWarning("Обдув в движении, ожидайте");
+                    return;
+                }
+
+                if(startClean){
+                     if(blower->isRotating()){
+                            blower->setStartMomentForStopping();
+                            view->addLogWarning("Удерживайте кнопку вверх для остановки обдува и подъёма");
+                        }
+                     else{
+                            blower->goUp();
+                        }
+                }
              },
             .onDeactivated = [this] {
                  ui->pushButton_blowerUp->setProperty("wasDown", false);
@@ -573,7 +580,9 @@ void MainWindow::configureButtons(){
                      blower->goNone();
                  }
                 },
-            .whileActive = [this] {},
+            .whileActive = [this] {
+             blower->updateWhenUpPressed();
+         },
             .whileInactive = [this] {}
         }};
 
@@ -588,21 +597,24 @@ void MainWindow::configureButtons(){
                      return;
                  }
                  if(startClean){
-                     blower->goDown();}
+                     if(!blower->isRotating()){
+                         blower->setStartMomentForStarting();
+                     }
+                     //blower->goDown();
+                 }
                 },
             .onDeactivated = [this] {
                  ui->pushButton_blowerDown->setProperty("wasDown", false);
                  view->setStyle(ui->label_blowerUpDown, blowerVertPath + "off.png);");
 
                  if(isBlowTransitioning()){
-                     qDebug()<<"!!! dump Programm in process";
                      return;
                  }
                  if(startClean){
                      blower->goNone();
                  }
                 },
-            .whileActive = [this] {},
+            .whileActive = [this] {blower->updateWhenDownPressed();},
             .whileInactive = [this] {}
         }};
 
@@ -617,7 +629,13 @@ void MainWindow::configureButtons(){
                      return;
                  }
                  if(startClean){
-                     blower->goSlide(false);}
+                     if(blower->isRotating()){
+                         blower->setStartMomentForRotation();
+                     }
+                     else{
+                         blower->goSlide(false);
+                     }
+                 }
                  else{
                      workMode.blowLeft = !workMode.blowLeft;
                      workMode.blowRight = false;
@@ -642,13 +660,12 @@ void MainWindow::configureButtons(){
                  ui->pushButton_blowerLeft->setProperty("wasDown", false);
                  view->setStyle(ui->label_blower, getBlowerDefaultIcon());
                  if(isBlowTransitioning()){
-                     qDebug()<<"!!! dump Programm in process";
                      return;
                  }
                  if(startClean){
                      blower->goNone();}
                  },
-            .whileActive = [this] {},
+            .whileActive = [this] {blower->updateWhenRotationPressed(false);},
             .whileInactive = [this] {}
         }};
 
@@ -663,7 +680,11 @@ void MainWindow::configureButtons(){
                      return;
                  }
                  if(startClean){
-                     blower->goSlide(true);}
+                     if(blower->isRotating()){
+                         blower->setStartMomentForRotation();
+                     }
+                     else{
+                         blower->goSlide(true);}}
                  else{
                      workMode.blowRight = !workMode.blowRight;
                      workMode.blowLeft = false;
@@ -680,7 +701,7 @@ void MainWindow::configureButtons(){
                  if(startClean){
                      blower->goNone();}
                 },
-            .whileActive = [this] {},
+            .whileActive = [this] {blower->updateWhenRotationPressed(true);},
             .whileInactive = [this] {}
         }};
 }
@@ -909,13 +930,13 @@ void MainWindow::createFormsAndHide(){
     preroll->setEngineForm(serviceOtherEngineLeftForm);
     serviceOtherEngineLeftForm->hide();
 
-    serviceOtherLightLeftForm = new ServiceOtherLightLeftForm(this);
+    serviceOtherLightLeftForm = new ServiceOtherLightLeftForm(can, this);
     serviceOtherLightLeftForm->hide();
 
-    serviceDevicesHydraulicsLeftForm = new ServiceDevicesHydraulicsLeftForm(view->screenLog, this);
+    serviceDevicesHydraulicsLeftForm = new ServiceDevicesHydraulicsLeftForm(can, view, this);
     serviceDevicesHydraulicsLeftForm->hide();
 
-    serviceDevicesDKPLeftForm = new ServiceDevicesDKPLeftForm(this);
+    serviceDevicesDKPLeftForm = new ServiceDevicesDKPLeftForm(can, this);
     serviceDevicesDKPLeftForm->hide();
 
     serviceGlobalDateTimeLeftForm = new ServiceGlobalDateTimeLeftForm(this);
@@ -927,7 +948,7 @@ void MainWindow::createFormsAndHide(){
     serviceMainRightForm = new ServiceMainRightForm(this);
     serviceMainRightForm->hide();
 
-    settingsSettingsConfigurationLeftForm = new SettingsSettingsConfigurationLeftForm(this);
+    settingsSettingsConfigurationLeftForm = new SettingsSettingsConfigurationLeftForm(can, this);
     settingsSettingsConfigurationLeftForm->hide();
 
     settingsWifiLeftForm = new SettingsWifiLeftForm(this);
@@ -939,7 +960,7 @@ void MainWindow::createFormsAndHide(){
     settingsForm->fillElements();
     connect(settingsForm, SIGNAL(closedAndSave()), this, SLOT(settingsClosed()));
 
-    settingsMainRightForm = new SettingsMainRightForm(this, settingsForm);
+    settingsMainRightForm = new SettingsMainRightForm(can, this, settingsForm);
     settingsMainRightForm->hide();
 
     blockScreen = new BlockForm(this);
@@ -2193,7 +2214,6 @@ void MainWindow::showPauseButton()
     }
 }
 
-
 void MainWindow::tryToDisableDumpFlow(){
     if(!isDumpTransitioning()){
         setDumpFlow(false);
@@ -2210,6 +2230,12 @@ void MainWindow::tryToDisableBroomFlow(){
         // workMode.centralBroomFlow = false;
         // setBroomFlowView(false);
     }
+}
+
+void MainWindow::changeBlowDirection(bool isRight){
+    workMode.blowLeft = !isRight;
+    workMode.blowRight = isRight;
+    showWorkMode();
 }
 //=============================================================
 //====================Buttons click handlers===================
@@ -2651,4 +2677,9 @@ SettingsReader* MainWindow::getReader(){return _settingsReader;}
 bool MainWindow::isSpeedTooHigh(){
     auto speed = currentState->vehicleSpeed;
     return (speed > globals->disableCleanSpeed && speed != 199 && speed < 200);
+}
+
+void MainWindow::setServiceFormName(QWidget* form, QString name){
+    serviceSetingsName->raise();
+    serviceSetingsName->setText((form == settingsForm?name:""));
 }

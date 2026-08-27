@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+#include <Controllers/cancontroller.h>
+
 #include "../pdf/pdfscroller.h"
 
 #include "settingsform.h"
@@ -27,10 +29,9 @@ class SettingsMainRightForm : public QWidget
     };
 
 public: //= nullptr
-    explicit SettingsMainRightForm(QWidget *parent, SettingsForm *settingsForm);
+    explicit SettingsMainRightForm(CanController* can, QWidget *parent, SettingsForm *settingsForm);
     ~SettingsMainRightForm();
 
-    QWidget* parent;
 
     void addMenu(QString name_, quint8 id_, quint8 id1_, quint8 goLevel_, QWidget* form_, QString png_);
     void moveMenu(qint8 level);
@@ -53,6 +54,8 @@ private slots:
 
 private:
     Ui::SettingsMainRightForm *ui;
+    QWidget* _parent;
+    CanController* _can;
 };
 
 #endif // SETTINGSMAINRIGHTFORM_H

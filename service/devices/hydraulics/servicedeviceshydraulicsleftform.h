@@ -6,6 +6,8 @@
 #include <QSlider>
 #include <screenlog.h>
 
+#include <Controllers/cancontroller.h>
+#include <Controllers/viewcontroller.h>
 #include <can/mycan.h>
 #include <interface_button/interfacebutton.h>
 
@@ -18,13 +20,13 @@ class ServiceDevicesHydraulicsLeftForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit ServiceDevicesHydraulicsLeftForm(ScreenLog *logger_,QWidget *parent = nullptr);
+    explicit ServiceDevicesHydraulicsLeftForm(CanController* can, ViewController* view, QWidget *parent = nullptr);
     ~ServiceDevicesHydraulicsLeftForm();
 
     void refreshSliders();
     void updateVisual();
 
-    QWidget* parent;
+
 
 private slots:
     void on_horizontalSlider_broomRotateLeft_valueChanged(int value);
@@ -43,7 +45,10 @@ private slots:
 
 private:
     Ui::ServiceDevicesHydraulicsLeftForm *ui;
-    ScreenLog* logger;
+    QWidget* _parent;
+    CanController* _can;
+    ScreenLog* _logger;
+    ViewController *_view;
 };
 
 #endif // SERVICEDEVICESHYDRAULICSLEFTFORM_H

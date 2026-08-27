@@ -3,17 +3,17 @@
 
 #include "mainwindow.h"
 
-ServiceBUConfigForm::ServiceBUConfigForm(QWidget *parent_) :
-    QWidget(parent_),
+ServiceBUConfigForm::ServiceBUConfigForm(CanController* can, QWidget *parent) :
+    QWidget(parent),
     ui(new Ui::ServiceBUConfigForm)
 {
     ui->setupUi(this);
-
-    parent = parent_;
+    _can = can;
+    _parent = parent;
 
     ((MainWindow*)parent)->getSystemConfigure(&systemConfigure);
     ((MainWindow*)parent)->getElements(&systemElements);
-    BUCPConfigured = ((MainWindow*)parent)->can0->isConfigured();
+    BUCPConfigured = _can->isConfigured();
 
     for (int i = 0; i <= 8; i++)
     {// 0 плата это БУ ЦП (создаем ее просто как заглушку)
@@ -21,7 +21,7 @@ ServiceBUConfigForm::ServiceBUConfigForm(QWidget *parent_) :
             boards.append(NULL);
         else
         {
-            boards.append(new ServiceBUConfigElementForm(i, &systemConfigure, &systemElements, &BUCPConfigured, parent, this));
+            boards.append(new ServiceBUConfigElementForm(i, &systemConfigure, &systemElements, &BUCPConfigured, _can, _parent, this));
 
             // разместим на форме нашу плату (236x384)
             boards.last()->setGeometry((((i - 1) + 4) % 4) * 236, (i / 5) * 300, 236, 300);
@@ -43,7 +43,7 @@ void ServiceBUConfigForm::mainProgress()
     if (!isVisible())
         return;
 
-    if (((MainWindow*)parent)->can0->isConfigured())
+    if (_can->isConfigured())
     {
         if (!ui->frame_buCP->styleSheet().contains("70,248,114"))
         {
@@ -54,17 +54,17 @@ void ServiceBUConfigForm::mainProgress()
     {
 
     }
-    checkElement(ui->frame_buCP, NULL, "frame_buCP", ((MainWindow*)parent)->can0->isConfigured());
+    checkElement(ui->frame_buCP, NULL, "frame_buCP", _can->isConfigured());
 
-    checkElement(ui->frame_in1, ui->label_in1_value, "frame_in1", ((MainWindow*)parent)->can0->getState(DeviceStates::Board0IN1).toBool());
-    checkElement(ui->frame_in2, ui->label_in2_value, "frame_in2", ((MainWindow*)parent)->can0->getState(DeviceStates::Board0IN2).toBool());
-    checkElement(ui->frame_in3, ui->label_in3_value, "frame_in3", ((MainWindow*)parent)->can0->getState(DeviceStates::Board0IN3).toBool());
-    checkElement(ui->frame_in4, ui->label_in4_value, "frame_in4", ((MainWindow*)parent)->can0->getState(DeviceStates::Board0IN4).toBool());
+    checkElement(ui->frame_in1, ui->label_in1_value, "frame_in1", _can->getState(DeviceStates::Board0IN1));
+    checkElement(ui->frame_in2, ui->label_in2_value, "frame_in2", _can->getState(DeviceStates::Board0IN2));
+    checkElement(ui->frame_in3, ui->label_in3_value, "frame_in3", _can->getState(DeviceStates::Board0IN3));
+    checkElement(ui->frame_in4, ui->label_in4_value, "frame_in4", _can->getState(DeviceStates::Board0IN4));
 
-    checkElement(ui->frame_out1, ui->label_out1_value, "frame_out1", ((MainWindow*)parent)->can0->getState(DeviceStates::Board0OUT1).toBool());
-    checkElement(ui->frame_out2, ui->label_out2_value, "frame_out2", ((MainWindow*)parent)->can0->getState(DeviceStates::Board0OUT2).toBool());
-    checkElement(ui->frame_out3, ui->label_out3_value, "frame_out3", ((MainWindow*)parent)->can0->getState(DeviceStates::Board0OUT3).toBool());
-    checkElement(ui->frame_out4, ui->label_out4_value, "frame_out4", ((MainWindow*)parent)->can0->getState(DeviceStates::Board0OUT4).toBool());
+    checkElement(ui->frame_out1, ui->label_out1_value, "frame_out1", _can->getState(DeviceStates::Board0OUT1));
+    checkElement(ui->frame_out2, ui->label_out2_value, "frame_out2", _can->getState(DeviceStates::Board0OUT2));
+    checkElement(ui->frame_out3, ui->label_out3_value, "frame_out3", _can->getState(DeviceStates::Board0OUT3));
+    checkElement(ui->frame_out4, ui->label_out4_value, "frame_out4", _can->getState(DeviceStates::Board0OUT4));
 }
 
 void ServiceBUConfigForm::checkElement(QFrame* frame, QLabel* label, QString frame_name, bool state)

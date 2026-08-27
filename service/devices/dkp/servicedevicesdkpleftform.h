@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QSlider>
 
+#include <Controllers/cancontroller.h>
 #include <can/mycan.h>
 #include <interface_button/interfacebutton.h>
 
@@ -17,13 +18,14 @@ class ServiceDevicesDKPLeftForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit ServiceDevicesDKPLeftForm(QWidget *parent = nullptr);
+    explicit ServiceDevicesDKPLeftForm(CanController* can, QWidget *parent = nullptr);
     ~ServiceDevicesDKPLeftForm();
 
     void checkDKP(DeviceStates state, QLabel* label);
     void updateVisual();
 
-    QWidget* parent;
+    QWidget* _parent;
+    CanController* _can;
 
 
 

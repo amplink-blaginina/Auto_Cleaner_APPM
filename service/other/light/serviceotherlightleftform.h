@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QSlider>
 
+#include <Controllers/cancontroller.h>
 #include <can/mycan.h>
 #include <interface_button/interfacebutton.h>
 
@@ -17,7 +18,7 @@ class ServiceOtherLightLeftForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit ServiceOtherLightLeftForm(QWidget *parent = nullptr);
+    explicit ServiceOtherLightLeftForm(CanController* can,QWidget *parent = nullptr);
     ~ServiceOtherLightLeftForm();
 
     void updateVisual();
@@ -34,6 +35,7 @@ private slots:
 
 private:
     Ui::ServiceOtherLightLeftForm *ui;
+    CanController* _can;
 };
 
 #endif // SERVICEOTHERLIGHTLEFTFORM_H

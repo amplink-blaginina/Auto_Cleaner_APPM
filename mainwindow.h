@@ -368,12 +368,12 @@ public:
 
     bool showCheckEngine;
 
-    MyCan *can0;
     MyCanEngine * canForEngine;
     MyCanJ1939 *canj1939;
     MyCanJ1939 *canj1939Main;
 
 private:
+    MyCan *can0;
     QString blowerVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
     QString blowerHorPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
     QString dumpVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
@@ -510,6 +510,8 @@ public :
     void checkIgnition();
     void tryToDisableBroomFlow();
     void tryToDisableDumpFlow();
+    void setServiceFormName(QWidget *form, QString name);
+    void changeBlowDirection(bool isRight);
 public slots:
     //void messageListPressed();
     void settingsAskPassword();

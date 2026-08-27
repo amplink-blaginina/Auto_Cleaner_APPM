@@ -8,6 +8,8 @@
 
 #include <can/mycan.h>
 
+#include <Controllers/cancontroller.h>
+
 namespace Ui {
 class ServiceBUConfigElementForm;
 }
@@ -17,7 +19,7 @@ class ServiceBUConfigElementForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit ServiceBUConfigElementForm(int boardNum_, SystemConfigure* systemConfigure_, QMap<int, SystemElement*>* systemElements_,  bool* BUCPConfigured_, QWidget *parentMain, QWidget *parent = nullptr);
+    explicit ServiceBUConfigElementForm(int boardNum_, SystemConfigure* systemConfigure_, QMap<int, SystemElement*>* systemElements_,  bool* BUCPConfigured_, CanController* can, QWidget *parentMain, QWidget *parent = nullptr);
     ~ServiceBUConfigElementForm();
 
     QMap<int, QString> boardsString;
@@ -48,6 +50,7 @@ private slots:
 
 private:
     Ui::ServiceBUConfigElementForm *ui;
+    CanController* _can;
 };
 
 #endif // SERVICEBUCONFIGELEMENTFORM_H

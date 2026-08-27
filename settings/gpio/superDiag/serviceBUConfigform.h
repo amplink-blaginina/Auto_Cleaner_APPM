@@ -15,12 +15,10 @@ class ServiceBUConfigForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit ServiceBUConfigForm(QWidget *parent = nullptr);
+    explicit ServiceBUConfigForm(CanController* can, QWidget *parent = nullptr);
     ~ServiceBUConfigForm();
 
     void checkElement(QFrame* frame, QLabel* label, QString frame_name, bool state);
-
-    QWidget* parent;
 
     QTimer mainProgressTimer;
 
@@ -36,6 +34,8 @@ private slots:
 
 private:
     Ui::ServiceBUConfigForm *ui;
+    CanController* _can;
+    QWidget* _parent;
 };
 
 #endif // SERVICEBUCONFIGFORM_H

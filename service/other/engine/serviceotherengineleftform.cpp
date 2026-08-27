@@ -9,7 +9,7 @@ ServiceOtherEngineLeftForm::ServiceOtherEngineLeftForm(QWidget *parent_) :
 
     ui->setupUi(this);
     parent = parent_;
-    rpm_need=6400;//800
+    rpm_need = 6400;//800
 }
 
 ServiceOtherEngineLeftForm::~ServiceOtherEngineLeftForm(){
@@ -26,7 +26,8 @@ void ServiceOtherEngineLeftForm::updateVisual(){
     view ->setText(ui->label_realRPM, QString::number(mainWindow->engine->rpm));// обороты
     mainWindow->starter->setStarterPressed(ui->pushButton_starter->isDown());// выходы
 //
-    auto getIgnition = mainWindow->can0->getState(StateIgnitionOut).toBool();
+    auto getIgnition = mainWindow->can->getIgnition();
+    qDebug()<<"#Ignition: "<< getIgnition;
     if (getIgnition != ui->pushButton_ignition->isChecked()){
         ui->pushButton_ignition->setChecked(getIgnition);
         //qDebug()<<"Нажали стартер";
@@ -37,12 +38,9 @@ void ServiceOtherEngineLeftForm::updateVisual(){
     view->setStyle(ui->label_canInternal1, path + (mainWindow->canj1939Main->canFailStatus? "off.png);":"on.png);"));
 
     auto curState = mainWindow->currentState;
-    QString text = QString::number(mainWindow->engine->engineCoolantTemp);
-    view->setText(ui->label_temperatureExternal, text + "C t ДВС");
-    text = QString::number(curState->engineCoolantTemp);
-    view->setText(ui->label_temperatureInternal, text + "C t ДВС");
-    text = QString::number(curState->vehicleVoltage, 'f', 1);
-    view->setText(ui->label_voltageInternal, text + text + "V U БОРТ");
+    view->setText(ui->label_temperatureExternal, QString::number(mainWindow->engine->engineCoolantTemp) + "C t ДВС");
+    view->setText(ui->label_temperatureInternal, QString::number(curState->engineCoolantTemp) + "C t ДВС");
+    view->setText(ui->label_voltageInternal, QString::number(curState->vehicleVoltage, 'f', 1) + "V U БОРТ");
 }
 
 void ServiceOtherEngineLeftForm::on_pushButton_ignition_clicked(){

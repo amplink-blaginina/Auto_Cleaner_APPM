@@ -3,6 +3,7 @@
 
 #include <QWidget>
 
+#include <Controllers/cancontroller.h>
 #include <can/mycan.h>
 #include <interface_button/interfacebutton.h>
 
@@ -15,18 +16,19 @@ class SettingsSettingsConfigurationLeftForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit SettingsSettingsConfigurationLeftForm(QWidget *parent = nullptr);
+    explicit SettingsSettingsConfigurationLeftForm(CanController* can, QWidget *parent = nullptr);
     ~SettingsSettingsConfigurationLeftForm();
 
     void updateVisual();
     void checkButton(DeviceStates dev, InterfaceButton* btn);
 
-    QWidget* parent;
 
 private slots:
 
 private:
     Ui::SettingsSettingsConfigurationLeftForm *ui;
+    QWidget* _parent;
+    CanController* _can;
 };
 
 #endif // SETTINGSSETTINGSCONFIGURATIONLEFTFORM_H

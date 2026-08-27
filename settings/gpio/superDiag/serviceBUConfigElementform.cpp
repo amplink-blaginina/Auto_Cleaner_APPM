@@ -3,12 +3,12 @@
 
 #include "mainwindow.h"
 
-ServiceBUConfigElementForm::ServiceBUConfigElementForm(int boardNum_, SystemConfigure* systemConfigure_, QMap<int, SystemElement*>* systemElements_, bool* BUCPConfigured_, QWidget *parentMain_, QWidget *parent_) :
+ServiceBUConfigElementForm::ServiceBUConfigElementForm(int boardNum_, SystemConfigure* systemConfigure_, QMap<int, SystemElement*>* systemElements_, bool* BUCPConfigured_, CanController* can, QWidget *parentMain_, QWidget *parent_) :
     QWidget(parent_),
     ui(new Ui::ServiceBUConfigElementForm)
 {
     ui->setupUi(this);
-
+    _can = can;
     parent = parent_;
     parentMain = parentMain_;
 
@@ -180,7 +180,7 @@ void ServiceBUConfigElementForm::mainProgress()
         {
             if (systemConfigure->boardsType[boardNum] != BOARD_UNKNOWN)
             {
-                int val = ((MainWindow*)parentMain)->can0->getOriginalState(boardNum, i).toInt();
+                int val = _can->getOriginalState(boardNum, i).toInt();
                 if ((systemConfigure->channelsType[boardNum][i] == IN_MODE_ANALOG_16 || systemConfigure->channelsType[boardNum][i] == IN_MODE_EXTI_16)
                         && progressBars[i]->maximum() != 65535)
                     progressBars[i]->setMaximum(65535);
@@ -260,7 +260,7 @@ int ServiceBUConfigElementForm::getBoardType()
         case 7: ds = Board7Type;break;
         case 8: ds = Board8Type;break;
     }
-    int ret = ((MainWindow*)parentMain)->can0->getState(ds).toInt();
+    int ret = _can->getInt(ds);
     if (ret == 0)
         ret = BOARD_UNKNOWN;
     return ret;
@@ -280,7 +280,7 @@ bool ServiceBUConfigElementForm::isConfigured()
         case 7: ds = Board7Configured;break;
         case 8: ds = Board8Configured;break;
     }
-    return ((MainWindow*)parentMain)->can0->getState(ds).toBool();
+    return _can->getState(ds);
 }
 
 void ServiceBUConfigElementForm::fillBoard()
@@ -307,10 +307,10 @@ void ServiceBUConfigElementForm::valuesClicked()
         {
             if (buttonsLess.at(i) == obj || buttonsMore.at(i) == obj)
             {
-                if (((MainWindow*)parentMain)->can0->getOriginalState(boardNum, i).toInt())
-                    ((MainWindow*)parentMain)->can0->setOriginalState(boardNum, i, 0);
+                if (_can->getOriginalState(boardNum, i).toInt())
+                    _can->setOriginalState(boardNum, i, 0);
                 else
-                    ((MainWindow*)parentMain)->can0->setOriginalState(boardNum, i, 1);
+                    _can->setOriginalState(boardNum, i, 1);
                 break;
             }
         }
@@ -318,18 +318,18 @@ void ServiceBUConfigElementForm::valuesClicked()
         {
             if (buttonsLess.at(i) == obj)
             {
-                if (((MainWindow*)parentMain)->can0->getOriginalState(boardNum, i).toInt() >= 10)
-                    ((MainWindow*)parentMain)->can0->setOriginalState(boardNum, i, ((MainWindow*)parentMain)->can0->getOriginalState(boardNum, i).toInt() - 10);
+                if (_can->getOriginalState(boardNum, i).toInt() >= 10)
+                    _can->setOriginalState(boardNum, i, _can->getOriginalState(boardNum, i).toInt() - 10);
                 else
-                    ((MainWindow*)parentMain)->can0->setOriginalState(boardNum, i, 0);
+                    _can->setOriginalState(boardNum, i, 0);
                 break;
             }
             if (buttonsMore.at(i) == obj)
             {
-                if (((MainWindow*)parentMain)->can0->getOriginalState(boardNum, i).toInt() <= 245)
-                    ((MainWindow*)parentMain)->can0->setOriginalState(boardNum, i, ((MainWindow*)parentMain)->can0->getOriginalState(boardNum, i).toInt() + 10);
+                if (_can->getOriginalState(boardNum, i).toInt() <= 245)
+                    _can->setOriginalState(boardNum, i, _can->getOriginalState(boardNum, i).toInt() + 10);
                 else
-                    ((MainWindow*)parentMain)->can0->setOriginalState(boardNum, i, 255);
+                    _can->setOriginalState(boardNum, i, 255);
                 break;
             }
 
