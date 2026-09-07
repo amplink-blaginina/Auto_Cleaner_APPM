@@ -5,7 +5,7 @@
 
 #include "mainwindow.h"
 
-SettingsMainRightForm::SettingsMainRightForm(CanController* can, QWidget *parent, SettingsForm *settingsForm) :
+SettingsMainRightForm::SettingsMainRightForm(MyCan* can, QWidget *parent, SettingsForm *settingsForm) :
     QWidget(parent),
     ui(new Ui::SettingsMainRightForm)
 {
@@ -73,6 +73,7 @@ void SettingsMainRightForm::addMenu(QString name_, quint8 id_, quint8 id1_, quin
 
 void SettingsMainRightForm::showService()
 {// отображаем правое меню и левую форму в соответствии с данными меню
+    if(currentElement <0){}
     for (int i = 0; i < 4; i++)
     {
         if (menu[currentLevel][i].png != "")
@@ -150,6 +151,7 @@ void SettingsMainRightForm::showService()
     if (currentElement == 2 && currentLevel == 3)
         _settingsForm->callBackTimings();
 
+    if(currentElement>=0){
     // подпись заголовка
     auto form = menu[currentLevel][currentElement].form;
     ((MainWindow*)_parent)->setServiceFormName(form, menu[currentLevel][currentElement].name);
@@ -158,6 +160,7 @@ void SettingsMainRightForm::showService()
     //     ((MainWindow*)_parent)->serviceSetingsName->setText();
     // else
     //     ((MainWindow*)_parent)->serviceSetingsName->setText("");
+    }
 }
 
 void SettingsMainRightForm::moveMenu(qint8 level)

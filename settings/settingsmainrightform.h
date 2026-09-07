@@ -29,7 +29,7 @@ class SettingsMainRightForm : public QWidget
     };
 
 public: //= nullptr
-    explicit SettingsMainRightForm(CanController* can, QWidget *parent, SettingsForm *settingsForm);
+    explicit SettingsMainRightForm(MyCan* can, QWidget *parent, SettingsForm *settingsForm);
     ~SettingsMainRightForm();
 
 
@@ -55,7 +55,7 @@ private slots:
 private:
     Ui::SettingsMainRightForm *ui;
     QWidget* _parent;
-    CanController* _can;
+    MyCan* _can;
 };
 
 #endif // SETTINGSMAINRIGHTFORM_H

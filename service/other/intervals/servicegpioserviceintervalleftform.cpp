@@ -28,7 +28,8 @@ ServiceGPIOServiceIntervalLeftForm::ServiceGPIOServiceIntervalLeftForm(QWidget *
                                              background-image: url(:/Images/Images/service/other/intervals/buttons/service_engine_sub-background_TO_button_left_on.png);\
                                          }");
     lessTOValueButton->hide();
-    connect(lessTOValueButton, SIGNAL(clicked()), this, SLOT(on_pushButton_lessTOValueButton_clicked()));
+    //connect(lessTOValueButton, SIGNAL(clicked()), this, SLOT(on_pushButton_lessTOValueButton_clicked()));
+    connect(lessTOValueButton,  &QPushButton::clicked, this, &ServiceGPIOServiceIntervalLeftForm::on_pushButton_lessTOValueButton_clicked);
 
     moreTOValueButton = new QPushButton(this);
     moreTOValueButton->setStyleSheet("QPushButton{\
@@ -43,8 +44,8 @@ ServiceGPIOServiceIntervalLeftForm::ServiceGPIOServiceIntervalLeftForm(QWidget *
                                          background-image: url(:/Images/Images/service/other/intervals/buttons/service_engine_sub-background_TO_button_right_on.png);\
                                      }");
     moreTOValueButton->hide();
-    connect(moreTOValueButton, SIGNAL(clicked()), this, SLOT(on_pushButton_moreTOValueButton_clicked()));
-
+    //connect(moreTOValueButton, SIGNAL(clicked()), this, SLOT(on_pushButton_moreTOValueButton_clicked()));
+    connect(moreTOValueButton,  &QPushButton::clicked, this, &ServiceGPIOServiceIntervalLeftForm::on_pushButton_moreTOValueButton_clicked);
     resetTOValueButton = new QPushButton(this);
     resetTOValueButton->setStyleSheet("QPushButton{\
                                       border-style:none;\
@@ -58,8 +59,8 @@ ServiceGPIOServiceIntervalLeftForm::ServiceGPIOServiceIntervalLeftForm(QWidget *
                                           background-image: url(:/Images/Images/service/other/intervals/buttons/service_button_reset_on.png);\
                                       }");
     resetTOValueButton->hide();
-    connect(resetTOValueButton, SIGNAL(clicked()), this, SLOT(on_pushButton_resetTOValueButton_clicked()));
-
+    //connect(resetTOValueButton, SIGNAL(clicked()), this, SLOT(on_pushButton_resetTOValueButton_clicked()));
+    connect(resetTOValueButton, &QPushButton::clicked, this, &ServiceGPIOServiceIntervalLeftForm::on_pushButton_resetTOValueButton_clicked);
     //TOLabel = new QPushButton(this);
     //TOLabel->setStyleSheet("QPushButton{border-style:none;outline: none;background-image: url(:/Images/Images/service/gpio/intervals/buttons/settings_button_moreLess.png)}");
     //TOLabel->hide();

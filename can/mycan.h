@@ -359,6 +359,8 @@ signals:
     void canError();
     void canPOError();
     void canGOError();
+private:
+    qint64 lastResetMs;
 };
 
 #endif // MYCAN_H

@@ -960,7 +960,7 @@ void MainWindow::createFormsAndHide(){
     settingsForm->fillElements();
     connect(settingsForm, SIGNAL(closedAndSave()), this, SLOT(settingsClosed()));
 
-    settingsMainRightForm = new SettingsMainRightForm(can, this, settingsForm);
+    settingsMainRightForm = new SettingsMainRightForm(can0, this, settingsForm);
     settingsMainRightForm->hide();
 
     blockScreen = new BlockForm(this);
@@ -1365,6 +1365,7 @@ void MainWindow::resetDevices(){
         //        last0CA0A100.can_id = 0;
         //        last0CC0A100.can_id = 0;
         //        last0CC0A200.can_id = 0;
+        qDebug() << "resetDevices";
         blockScreen->label_blockScreenText->setText("Нет связи с блоками управления. Пожалуйста подождите");
         blockScreen->show();
         goHomeTimer.setInterval(1000);
@@ -1411,10 +1412,10 @@ void MainWindow::resetDevices(){
 }
 
 void MainWindow::canPOError(){
-    if (!ui->POStatus->isVisible())
-        ui->POStatus->show();
+    if (!ui->POStatus->isVisible()){
+        qDebug() << "POError";
+        ui->POStatus->show();}
 
-//    qDebug() << "POError";
     resetDevices();//сбросить все команды и состояния
 }
 
@@ -1439,6 +1440,7 @@ void MainWindow::incomeData(struct can_frame frame){
 }
 
 void MainWindow::canJ1939Error(){
+    qDebug()<<"canStatusError";
     if (!ui->J1939Status->isVisible())
         ui->J1939Status->show();
     // сбрасываем значения
@@ -1446,6 +1448,7 @@ void MainWindow::canJ1939Error(){
 }
 
 void MainWindow::canJ1939MainError(){
+    qDebug()<<"canMainError";
     if (!ui->J1939MainStatus->isVisible())
         ui->J1939MainStatus->show();
     currentState->resetVehicleValues();
@@ -1610,6 +1613,7 @@ void MainWindow::oneSecond(){// универсальный таймер для �
     else if (!to_test && ui->label_TO->isVisible()){
         ui->label_TO->hide();
     }
+    qDebug() << "!!! can0->isActive: "<<can0->isActive();
     if (can0->isActive()){
         if (ui->POStatus->isVisible())
             ui->POStatus->hide();

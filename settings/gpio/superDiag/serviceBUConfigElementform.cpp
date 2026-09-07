@@ -3,7 +3,7 @@
 
 #include "mainwindow.h"
 
-ServiceBUConfigElementForm::ServiceBUConfigElementForm(int boardNum_, SystemConfigure* systemConfigure_, QMap<int, SystemElement*>* systemElements_, bool* BUCPConfigured_, CanController* can, QWidget *parentMain_, QWidget *parent_) :
+ServiceBUConfigElementForm::ServiceBUConfigElementForm(int boardNum_, SystemConfigure* systemConfigure_, QMap<int, SystemElement*>* systemElements_, bool* BUCPConfigured_, MyCan* can, QWidget *parentMain_, QWidget *parent_) :
     QWidget(parent_),
     ui(new Ui::ServiceBUConfigElementForm)
 {
@@ -260,7 +260,7 @@ int ServiceBUConfigElementForm::getBoardType()
         case 7: ds = Board7Type;break;
         case 8: ds = Board8Type;break;
     }
-    int ret = _can->getInt(ds);
+    int ret = _can->getState(ds).toInt();
     if (ret == 0)
         ret = BOARD_UNKNOWN;
     return ret;
@@ -280,7 +280,7 @@ bool ServiceBUConfigElementForm::isConfigured()
         case 7: ds = Board7Configured;break;
         case 8: ds = Board8Configured;break;
     }
-    return _can->getState(ds);
+    return _can->getState(ds).toBool();
 }
 
 void ServiceBUConfigElementForm::fillBoard()
@@ -300,6 +300,7 @@ void ServiceBUConfigElementForm::fillBoard()
 
 void ServiceBUConfigElementForm::valuesClicked()
 {
+    qDebug()<<"!!! valueClicked";
     QPushButton* obj = (QPushButton*)sender();
     for (int i = 0; i < 12; i++)
     {
@@ -307,29 +308,40 @@ void ServiceBUConfigElementForm::valuesClicked()
         {
             if (buttonsLess.at(i) == obj || buttonsMore.at(i) == obj)
             {
+                qDebug()<<"!!! less/more: "<<_can->getOriginalState(boardNum, i).toInt();
                 if (_can->getOriginalState(boardNum, i).toInt())
                     _can->setOriginalState(boardNum, i, 0);
                 else
                     _can->setOriginalState(boardNum, i, 1);
+
+                qDebug()<<"!!! after set: "<<_can->getOriginalState(boardNum, i).toInt();
                 break;
             }
         }
+
         if (systemConfigure->channelsType[boardNum][i] == OUT_MODE_FC || systemConfigure->channelsType[boardNum][i] == OUT_MODE_PFM || systemConfigure->channelsType[boardNum][i] == OUT_MODE_PWM)
         {
+
             if (buttonsLess.at(i) == obj)
             {
+                qDebug()<<"!!! less: "<<_can->getOriginalState(boardNum, i).toInt();
                 if (_can->getOriginalState(boardNum, i).toInt() >= 10)
                     _can->setOriginalState(boardNum, i, _can->getOriginalState(boardNum, i).toInt() - 10);
                 else
                     _can->setOriginalState(boardNum, i, 0);
+
+                qDebug()<<"!!! after set: "<<_can->getOriginalState(boardNum, i).toInt();
                 break;
             }
             if (buttonsMore.at(i) == obj)
             {
+                qDebug()<<"!!! more: "<<_can->getOriginalState(boardNum, i).toInt();
                 if (_can->getOriginalState(boardNum, i).toInt() <= 245)
                     _can->setOriginalState(boardNum, i, _can->getOriginalState(boardNum, i).toInt() + 10);
                 else
                     _can->setOriginalState(boardNum, i, 255);
+
+                qDebug()<<"!!! after set: "<<_can->getOriginalState(boardNum, i).toInt();
                 break;
             }
 

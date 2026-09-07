@@ -15,7 +15,7 @@ class ServiceBUConfigForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit ServiceBUConfigForm(CanController* can, QWidget *parent = nullptr);
+    explicit ServiceBUConfigForm(MyCan* can, QWidget *parent = nullptr);
     ~ServiceBUConfigForm();
 
     void checkElement(QFrame* frame, QLabel* label, QString frame_name, bool state);
@@ -34,7 +34,7 @@ private slots:
 
 private:
     Ui::ServiceBUConfigForm *ui;
-    CanController* _can;
+    MyCan* _can;
     QWidget* _parent;
 };
 
