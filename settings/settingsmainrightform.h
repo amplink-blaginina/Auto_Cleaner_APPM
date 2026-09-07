@@ -2,12 +2,15 @@
 #define SETTINGSMAINRIGHTFORM_H
 
 #include <QWidget>
+//#include <mainwindow.h>
 
 #include <Controllers/cancontroller.h>
 
 #include "../pdf/pdfscroller.h"
 
 #include "settingsform.h"
+
+class MainWindow;
 
 namespace Ui {
 class SettingsMainRightForm;
@@ -29,7 +32,7 @@ class SettingsMainRightForm : public QWidget
     };
 
 public: //= nullptr
-    explicit SettingsMainRightForm(MyCan* can, QWidget *parent, SettingsForm *settingsForm);
+    explicit SettingsMainRightForm(MyCan* can, SettingsForm *settingsForm, MainWindow* mainWindow, QWidget *parent);
     ~SettingsMainRightForm();
 
 
@@ -45,6 +48,7 @@ public: //= nullptr
     PdfScroller* pdfScroller;
     
     SettingsForm *_settingsForm;
+    MainWindow *_mainWindow;
 private slots:
     void on_pushButton_1_clicked();
     void on_pushButton_2_clicked();

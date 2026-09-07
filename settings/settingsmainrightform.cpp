@@ -5,15 +5,16 @@
 
 #include "mainwindow.h"
 
-SettingsMainRightForm::SettingsMainRightForm(MyCan* can, QWidget *parent, SettingsForm *settingsForm) :
+SettingsMainRightForm::SettingsMainRightForm(MyCan* can, SettingsForm *settingsForm, MainWindow* mainWindow, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SettingsMainRightForm)
 {
     ui->setupUi(this);
 
     _can = can;
-    _parent = parent;
     _settingsForm = settingsForm;
+    _mainWindow = mainWindow;
+    _parent = parent;
 
     currentLevel = 0;
     currentElement = -1;
@@ -109,13 +110,13 @@ void SettingsMainRightForm::showService()
     //ищем специальные пункты которые не так просты как мы думаем
     if (currentElement == 0 && currentLevel == 4){// сброс пароля
 
-        ((MainWindow*)_parent)->resetPassword();//serviceGeneralPasswordLeftForm->passwordVariable = "password";
+        _mainWindow->resetPassword();//serviceGeneralPasswordLeftForm->passwordVariable = "password";
         //((MainWindow*)parent)->serviceGeneralPasswordLeftForm->goStep(0);
     }
     if (currentElement == 1 && currentLevel == 1)
     {//супердиаг
         currentElement = -1;
-        ServiceBUConfigForm * f = new ServiceBUConfigForm(_can, _parent);
+        ServiceBUConfigForm * f = new ServiceBUConfigForm(_can, _mainWindow, _parent);
         f->show();
         f->raise();
     }
@@ -154,12 +155,12 @@ void SettingsMainRightForm::showService()
     if(currentElement>=0){
     // подпись заголовка
     auto form = menu[currentLevel][currentElement].form;
-    ((MainWindow*)_parent)->setServiceFormName(form, menu[currentLevel][currentElement].name);
-    //((MainWindow*)_parent)->serviceSetingsName->raise();
-    // if ( == ((MainWindow*)_parent)->settingsForm)
-    //     ((MainWindow*)_parent)->serviceSetingsName->setText();
+    _mainWindow->setServiceFormName(form, menu[currentLevel][currentElement].name);
+    //_mainWindow->serviceSetingsName->raise();
+    // if ( == _mainWindow->settingsForm)
+    //     _mainWindow->serviceSetingsName->setText();
     // else
-    //     ((MainWindow*)_parent)->serviceSetingsName->setText("");
+    //     _mainWindow->serviceSetingsName->setText("");
     }
 }
 
@@ -182,11 +183,11 @@ void SettingsMainRightForm::on_pushButton_1_clicked()
 {
     if (currentLevel == 5)
     {// нажали в диалоге выхода ДА
-        ((MainWindow*)_parent)->settingsForm->on_pushButton_save_clicked();
-        ((MainWindow*)_parent)->serviceSetingsName->hide();
+        _mainWindow->settingsForm->on_pushButton_save_clicked();
+        _mainWindow->serviceSetingsName->hide();
         hide();
 
-        ((MainWindow*)_parent)->currentState->setSweepMode();//menuMode = MainWindow::SweepMode;
+        _mainWindow->currentState->setSweepMode();//menuMode = MainWindow::SweepMode;
         //((MainWindow*)parent)->superDiagMode = false;
         //((MainWindow*)parent)->Password_accepted_settings = false;
         // нажимаем выход чтобы нарисовать главный экран
@@ -204,9 +205,9 @@ void SettingsMainRightForm::on_pushButton_2_clicked()
 {
     if (currentLevel == 5)
     {// Нажали в диалоге выхода НЕТ
-        ((MainWindow*)_parent)->serviceSetingsName->hide();
+        _mainWindow->serviceSetingsName->hide();
         hide();
-        ((MainWindow*)_parent)->currentState->setSweepMode();//menuMode = MainWindow::SweepMode;
+        _mainWindow->currentState->setSweepMode();//menuMode = MainWindow::SweepMode;
         //((MainWindow*)parent)->superDiagMode = false;
         //((MainWindow*)parent)->Password_accepted_settings = false;
         // нажимаем выход чтобы нарисовать главный экран
