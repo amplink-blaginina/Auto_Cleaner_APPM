@@ -12,7 +12,7 @@
 #include <can/mycanj1939.h>
 
 #include <Controllers/viewcontroller.h>
-
+class MainWindow;
 class FrontRail : public QObject
 {
     Q_OBJECT
@@ -33,8 +33,8 @@ public:
         FrontRailFlowOut    = 10,
         FrontRailFlowed     = 11
     };
-
-    explicit FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, QObject *parent_);
+    Q_ENUM(FrontRailStates)
+    explicit FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
     QObject * parent;
     ViewController *logger;
     MyCan *myCan;
@@ -98,6 +98,7 @@ private:
     void goUp();
     void goDown();
     void printMovement(organsEnums::Direction dir, bool state);
+    MainWindow *_mainWindow;
 signals:
 
 };
