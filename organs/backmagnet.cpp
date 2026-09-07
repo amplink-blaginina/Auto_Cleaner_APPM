@@ -6,12 +6,13 @@
 #include <QTimer>
 #include <QThread>
 
-BackMagnet::BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, QObject *parent_) : QObject(parent_)
+BackMagnet::BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_)
 {
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
     parent = parent_;
     logger = logger_;
+    _mainWindow = mainWindow;
     setState(BackMagnetOff);
     setNeedState(BackMagnetOff);
     settings = settings_;
@@ -27,31 +28,15 @@ BackMagnet::BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settin
 
 void BackMagnet::readSettings(){
     timeouts.clear();
-    SettingsReader* reader = ((MainWindow*)parent)->getReader();
+    SettingsReader* reader = _mainWindow->getReader();
 //    // назначаем таймауты на длительные операции
     timeouts.insert(BackMagnetDownOut, reader->readSettingsValue("BackMagnet/timeouts.BackMagnetDownOut").toInt());
     timeouts.insert(BackMagnetDownIn, reader->readSettingsValue("BackMagnet/timeouts.BackMagnetDownIn").toInt());
 }
 
-QString BackMagnet::toString(BackMagnetStates s)
-{
-    switch (s) {
-    case BackMagnetOff:
-        return "BackMagnetOff";
-        break;
-    case BackMagnetDownIn:
-        return "BackMagnetDownIn";
-        break;
-    case BackMagnetDownOut:
-        return "BackMagnetDownOut";
-        break;
-    case BackMagnetDowned:
-        return "BackMagnetDowned";
-        break;
-    default:
-        return "UnknownState";
-    }
-}
+QString BackMagnet::toString(BackMagnetStates s){
+    const char *key = QMetaEnum::fromType<BackMagnetStates>().valueToKey(s);
+    return key ? QString::fromLatin1(key) : QStringLiteral("UnknownState");}
 
 void BackMagnet::setState(BackMagnetStates state_)
 {
@@ -61,7 +46,7 @@ void BackMagnet::setState(BackMagnetStates state_)
     {// выключили
         goOff();
         logger->addLog("Магнит поднят");
-       //((MainWindow*)parent)->addLog("Магнит поднят", MainWindow::InfoStatus);
+       //_mainWindow->addLog("Магнит поднят", MainWindow::InfoStatus);
         //myCan->setState(StateValveC5, false);
         //myCan->setState(StateFRMBackL2, false);
     }
@@ -69,7 +54,7 @@ void BackMagnet::setState(BackMagnetStates state_)
     {// поднимаем
         startActionTime = QDateTime::currentDateTime();
         logger->addLog("Поднимаем магнит");
-        //((MainWindow*)parent)->addLog("Поднимаем магнит", MainWindow::InfoStatus);
+        //_mainWindow->addLog("Поднимаем магнит", MainWindow::InfoStatus);
         goUp();
         //myCan->setState(StateValveC5, true);
     }
@@ -77,7 +62,7 @@ void BackMagnet::setState(BackMagnetStates state_)
     {// опускаем
         startActionTime = QDateTime::currentDateTime();
         logger->addLog("Опускаем магнит");
-        //((MainWindow*)parent)->addLog("Опускаем магнит", MainWindow::InfoStatus);
+        //_mainWindow->addLog("Опускаем магнит", MainWindow::InfoStatus);
         goDown();
         //myCan->setState(StateFRMBackL2, true);
         //myCan->setState(StateValveC5, true);
@@ -86,7 +71,7 @@ void BackMagnet::setState(BackMagnetStates state_)
     {// опустили
         startActionTime = QDateTime::currentDateTime();
         logger->addLog("Магнит опущен");
-        //((MainWindow*)parent)->addLog("Магнит опущен", MainWindow::InfoStatus);
+        //_mainWindow->addLog("Магнит опущен", MainWindow::InfoStatus);
         goOff();
         //myCan->setState(StateValveC5, true);
     }
@@ -192,7 +177,7 @@ bool BackMagnet::testStateTimer(){// мощная функция проверк�
 }
 
 void BackMagnet::checkFriendVars(){
-    startClean = ((MainWindow*)parent)->startClean;
+    startClean = _mainWindow->startClean;
 }
 
 void BackMagnet::progressLoop(){

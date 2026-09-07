@@ -12,7 +12,7 @@
 #include <can/mycanj1939.h>
 
 #include <Controllers/viewcontroller.h>
-
+class MainWindow;
 class Blower : public QObject
 {
     Q_OBJECT
@@ -31,8 +31,9 @@ public:
         BlowerRotateOut   = 8,
         BlowerRotated     = 9
     };
+    Q_ENUM(BlowerStates)
 
-    explicit Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, QObject *parent_);
+    explicit Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
     QObject * parent;
     ViewController *logger;
     MyCan *myCan;
@@ -109,6 +110,7 @@ private:
     void setTargetRotationSpeed(float speed);
 
     BlowerStates rotate();
+    MainWindow *_mainWindow;
 };
 
 #endif // BLOWER_H

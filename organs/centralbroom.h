@@ -9,12 +9,13 @@
 #include <QMap>
 #include <QSettings>
 #include <screenlog.h>
+//#include <mainwindow.h>
 
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
 
 #include <Controllers/viewcontroller.h>
-
+class MainWindow;
 class CentralBroom : public QObject
 {
     Q_OBJECT
@@ -41,9 +42,9 @@ public:
         BroomPressed    = 16,
 
     };
-
     Q_ENUM(BroomStates);
-    explicit CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, QObject *parent_);
+
+    explicit CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
     QObject * parent;
     ViewController *logger;
     MyCan *myCan;
@@ -133,6 +134,7 @@ private:
     void printMovement(int, bool, bool);
     CentralBroom::BroomStates getNextState(CentralBroom::BroomStates current);
     CentralBroom::BroomStates getPreviousState(CentralBroom::BroomStates current);
+    MainWindow *_mainWindow;
 };
 
 #endif // CENTRALBROOM_H

@@ -1,15 +1,17 @@
 #include "centralbroom.h"
-
 #include "mainwindow.h"
+
+//#include "mainwindow.h"
 
 #include <QDebug>
 #include <QTimer>
 #include <QThread>
-
-CentralBroom::CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, QObject *parent_) : QObject(parent_){
+class MainWindow;
+CentralBroom::CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_){
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
     logger = logger_;
+    _mainWindow = mainWindow;
     parent = parent_;
     setState(BroomOff);
     setNeedState(BroomOff);
@@ -29,8 +31,8 @@ void CentralBroom::readSettings(){
     timeouts.clear();
     rpmForSweepType.clear();
     speedForSweepType.clear();
-    auto mainWindow = (MainWindow*)parent;
-    auto reader = mainWindow->getReader();
+    //auto mainWindow = (MainWindow*)parent;
+    auto reader = _mainWindow->getReader();
 
     rpmForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("Engine/rpm.LeafSweep").toInt());
     rpmForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("Engine/rpm.LightSweep").toInt());
@@ -53,55 +55,8 @@ void CentralBroom::readSettings(){
 }
 
 QString CentralBroom::toString(BroomStates s){
-    switch (s) {
-    case BroomOff:
-        return "BroomOff";
-        break;
-    case BroomDownOut:
-        return "BroomDownOut";
-        break;
-    case BroomDownIn:
-        return "BroomDownIn";
-        break;
-    case BroomDowned:
-        return "BroomDowned";
-        break;
-    case BroomFlowOut:
-        return "BroomFlowOut";
-        break;
-    case BroomFlowIn:
-        return "BroomFlowIn";
-        break;
-    case BroomFlowed:
-        return "BroomFlowed";
-        break;
-    case BroomSlideOut:
-        return "BroomSlideOut";
-        break;
-    case BroomSlideIn:
-        return "BroomSlideIn";
-        break;
-    case BroomSlided:
-        return "BroomSlided";
-        break;
-    case BroomRotateOut:
-        return "BroomRotateOut";
-        break;
-    case BroomRotateIn:
-        return "BroomRotateIn";
-        break;
-    case BroomRotated:
-        return "BroomRotated";
-        break;
-    case BroomBounceOut:
-        return "BroomBounceOut";
-        break;
-    case BroomBounced:
-        return "BroomBounced";
-        break;
-    default:
-        return "UnknownState";
-    }
+    const char *key = QMetaEnum::fromType<BroomStates>().valueToKey(s);
+    return key ? QString::fromLatin1(key) : QStringLiteral("UnknownState");
 }
 
 void CentralBroom::setState(BroomStates state_){
@@ -110,7 +65,7 @@ void CentralBroom::setState(BroomStates state_){
     }
     qDebug()<<"BroomState "<<state_;
     state = state_;
-    auto mainWindow = (MainWindow*)parent;
+   // auto mainWindow = (MainWindow*)parent;
 
     if (state == CentralBroom::BroomOff||//щётка в крайне верхнем положении // остановим поднимаение
         state == CentralBroom::BroomDowned||//щётка в крайне нижнем положении
@@ -138,7 +93,7 @@ void CentralBroom::setState(BroomStates state_){
     }
 
     if (state == CentralBroom::BroomFlowed){// закончилось плавание
-        auto isFlowing = ((MainWindow*)parent)->workMode.centralBroomFlow;
+        auto isFlowing = _mainWindow->workMode.centralBroomFlow;
         setFlowActive(isFlowing);
     }
     if (state == CentralBroom::BroomFlowIn){// заканчиваем плавание
@@ -190,6 +145,7 @@ void CentralBroom::goLeft(bool state){
     myCan->setState(StateValveA1, state);
 }
 void CentralBroom::goRight(bool state){
+
     printMovement(organsEnums::Right, state, isPressed);
     myCan->setState(StateValveF3, state);
     myCan->setState(StateValveA1, state);
@@ -230,16 +186,18 @@ void CentralBroom::goDown(bool state, bool isPressed){
 
 void CentralBroom::goUpImmediate(bool state){
     if(state){
-        ((MainWindow*)parent)->tryToDisableBroomFlow();
+        _mainWindow->tryToDisableBroomFlow();
     }
+    printMovement(organsEnums::Up, state, false);
     myCan->setState(StateValveA1, state);
     myCan->setState(StateValveF10, state);
 }
 
 void CentralBroom::goDownImmediate(bool state){
     if(state){
-        ((MainWindow*)parent)->tryToDisableBroomFlow();
+        _mainWindow->tryToDisableBroomFlow();
     }
+    printMovement(organsEnums::Down, state, false);
     myCan->setState(StateValveA1, state);
     myCan->setState(StateValveF4, state);
 }
@@ -335,7 +293,7 @@ void CentralBroom::setPressActive(bool state){
             break;}
     }
     isPressed = state;
-    //((MainWindow*)parent)->setBroomPressView(state);
+    //_mainWindow->setBroomPressView(state);
     logger->addLogWarning(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
 }
 
@@ -367,7 +325,7 @@ void CentralBroom::setFlowActive(bool state){
     //     setDirection(organsEnums::None);
     // }
     goFlow(state);
-   // ((MainWindow*)parent)->setBroomFlowView(state);
+   // _mainWindow->setBroomFlowView(state);
 }
 
 void CentralBroom::goFlow(bool state){
@@ -535,7 +493,7 @@ bool CentralBroom::testStateTimer(){// мощная функция провер�
 }
 
 void CentralBroom::checkFriendVars(){
-    startClean = ((MainWindow*)parent)->startClean;
+    startClean = _mainWindow->startClean;
 }
 
 void CentralBroom::progressLoop(){
@@ -544,9 +502,9 @@ void CentralBroom::progressLoop(){
 
     if (state >= CentralBroom::BroomRotateOut){
         //обороты движка
-        ((MainWindow*)parent)->canForEngine->setEngineCommand(rpmForSweepType.value(((MainWindow*)parent)->workMode.sweepType) * 8);
+        _mainWindow->canForEngine->setEngineCommand(rpmForSweepType.value(_mainWindow->workMode.sweepType) * 8);
         // скорость щеток
-        goRotate(speedForSweepType.value(((MainWindow*)parent)->workMode.sweepType));
+        goRotate(speedForSweepType.value(_mainWindow->workMode.sweepType));
     }
 
     // проверяет до какого состояния может добираться щетка

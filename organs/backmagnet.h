@@ -12,7 +12,7 @@
 #include <can/mycanj1939.h>
 
 #include <Controllers/viewcontroller.h>
-
+class MainWindow;
 class BackMagnet : public QObject
 {
     Q_OBJECT
@@ -25,8 +25,9 @@ public:
         BackMagnetDownOut    = 2,
         BackMagnetDowned     = 3
     };
+    Q_ENUM(BackMagnetStates)
 
-    explicit BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, QObject *parent_);
+    explicit BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
     QObject * parent;
     ViewController *logger;
     MyCan *myCan;
@@ -74,6 +75,8 @@ public slots:
     void progressLoop();
 signals:
 
+private:
+    MainWindow *_mainWindow;
 };
 
 #endif // BACKMAGNET_H

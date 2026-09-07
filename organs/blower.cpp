@@ -6,12 +6,13 @@
 #include <QTimer>
 #include <QThread>
 
-Blower::Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, QObject *parent_) : QObject(parent_)
+Blower::Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_)
 {
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
     parent = parent_;
     logger = logger_;
+    _mainWindow = mainWindow;
     setState(BlowerOff);
     setNeedState(BlowerOff);
     settings = settings_;
@@ -30,8 +31,8 @@ void Blower::readSettings()
     timeouts.clear();
     rpmForSweepType.clear();
     speedForSweepType.clear();
-    auto mainWindow = ((MainWindow*)parent);
-    auto reader = mainWindow->getReader();
+
+    auto reader = _mainWindow->getReader();
     rpmForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("Engine/rpm.LeafSweep").toInt());
     rpmForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("Engine/rpm.LightSweep").toInt());
     rpmForSweepType.insert(MainWindow::MediumSweep, reader->readSettingsValue("Engine/rpm.MediumSweep").toInt());
@@ -53,42 +54,9 @@ void Blower::readSettings()
     qDebug() << timeouts;
 }
 
-QString Blower::toString(BlowerStates s)
-{
-    switch (s) {
-    case BlowerOff:
-        return "BlowerOff";
-        break;
-    case BlowerDownOut:
-        return "BlowerDownOut";
-        break;
-    case BlowerDownIn:
-        return "BlowerDownIn";
-        break;
-    case BlowerDowned:
-        return "BlowerDowned";
-        break;
-    case BlowerSlideOut:
-        return "BlowerSlideOut";
-        break;
-    case BlowerSlideIn:
-        return "BlowerSlideIn";
-        break;
-    case BlowerSlided:
-        return "BlowerSlided";
-        break;
-    case BlowerRotateOut:
-        return "BlowerRotateOut";
-        break;
-    case BlowerRotateIn:
-        return "BlowerRotateIn";
-        break;
-    case BlowerRotated:
-        return "BlowerRotated";
-        break;
-    default:
-        return "UnknownState";
-    }
+QString Blower::toString(BlowerStates s){
+    const char *key = QMetaEnum::fromType<BlowerStates>().valueToKey(s);
+    return key ? QString::fromLatin1(key) : QStringLiteral("UnknownState");
 }
 
 void Blower::setState(BlowerStates state_){
@@ -247,8 +215,8 @@ bool Blower::testStateTimer(){// мощная функция проверки т
 }
 
 void Blower::checkFriendVars(){
-    startClean = ((MainWindow*)parent)->startClean;
-    rightBlow = ((MainWindow*)parent)->workMode.blowRight;
+    startClean = _mainWindow->startClean;
+    rightBlow = _mainWindow->workMode.blowRight;
     //qDebug()<<"# Set target direction 3: "<<(isTargetRight?"right":"left");
     //isTargetRight = rightBlow;
 }
@@ -287,8 +255,8 @@ void Blower::progressLoop(){
     checkNeedState();// проверяет до какого состояния может добираться щетка
 
     if (state >= Blower::BlowerRotateOut){
-        auto type = ((MainWindow*)parent)->workMode.sweepType;
-        ((MainWindow*)parent)->canForEngine->setEngineCommand(rpmForSweepType.value(type * 8));//обороты движка
+        auto type = _mainWindow->workMode.sweepType;
+        _mainWindow->canForEngine->setEngineCommand(rpmForSweepType.value(type * 8));//обороты движка
         setTargetRotationSpeed(speedForSweepType.value(type));// скорость щеток
         //goRotate();
     }
@@ -368,7 +336,7 @@ void Blower::updateWhenRotationPressed(bool isRight){
         //setState (BlowerOff);
         qDebug()<<"# Set target direction 2: "<<(isTargetRight?"right":"left");
         isTargetRight = isRight;
-        //((MainWindow*)parent)->changeBlowDirection(isRight);
+        //_mainWindow->changeBlowDirection(isRight);
         setNeedState(BlowerRotated);
     }
     else{
@@ -437,32 +405,32 @@ Blower::BlowerStates Blower::rotate(){
     switch (state) {
     case BlowerOff:
         // начинаем опускание
-        logger->addLog("Опускаем раструб");
+        logger->addLog("Обдув: опускаем раструб");
         setState(BlowerDownOut);
         break;
     case BlowerDownOut:
-        logger->addLog("Заканчиваем опускание по таймеру");
+        logger->addLog("Обдув: заканчиваем опускание по таймеру");
         // заканчиваем опускание по таймеру
         if (testStateTimer())
             setState(BlowerDowned);
         break;
     case BlowerDownIn:
-        logger->addLog("Меняем направление на опускание");
+        logger->addLog("Обдув: меняем направление на опускание");
         // меняем направление на опускание (до этого поднимались)
         setState(BlowerDownOut);
         break;
     case BlowerDowned:
-        logger->addLog("Выставлем направление обдува");
+        logger->addLog("Обдув: выставлем направление обдува");
 
         if(isTargetRight != rightBlow){
             qDebug()<<"# Set target direction 1: "<<(isTargetRight?"right":"left");
             rightBlow = isTargetRight;
-            ((MainWindow*)parent)->changeBlowDirection(isTargetRight);
+            _mainWindow->changeBlowDirection(isTargetRight);
         }
         setState(BlowerSlideOut);
         break;
     case BlowerSlideOut:
-        logger->addLog("Заканчиваем поворот щётки");
+        logger->addLog("Обдув: заканчиваем поворот щётки");
         // заканчиваем поворот щетки
         if (testStateTimer())
             setState(BlowerSlided);
@@ -480,7 +448,7 @@ Blower::BlowerStates Blower::rotate(){
             setState(BlowerSlideIn);
         }
         else{
-        logger->addLog("Раскручиваем вентилятор");
+        logger->addLog("Обдув: раскручиваем вентилятор");
             setState(BlowerRotateOut);}
         break;
     case BlowerRotateOut:
@@ -504,7 +472,7 @@ Blower::BlowerStates Blower::rotate(){
         break;
     case BlowerRotated:
         if(isTargetRight != rightBlow){
-            logger->addLog("Выключаем вентилятор");
+            logger->addLog("Обдув: выключаем вентилятор");
             setState(BlowerRotateIn);
         }
 

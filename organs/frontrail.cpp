@@ -6,10 +6,11 @@
 #include <QTimer>
 #include <QThread>
 
-FrontRail::FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, QObject *parent_) : QObject(parent_){
+FrontRail::FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_){
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
     parent = parent_;
+    _mainWindow = mainWindow;
     logger= logger_;
     setState(FrontRailOff);
     setNeedState(FrontRailOff);
@@ -27,8 +28,8 @@ FrontRail::FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings
 
 void FrontRail::readSettings(){
     timeouts.clear();
-    auto mainWin = (MainWindow*)parent;
-    auto reader = mainWin->getReader();
+
+    auto reader = _mainWindow->getReader();
     qDebug()<<"Central readSettings Dump";
     // назначаем таймауты на длительные операции
     timeouts.insert(FrontRailSlideOut, reader->readSettingsValue("Dump/timeouts.DumpSlideOut").toFloat());
@@ -40,46 +41,8 @@ void FrontRail::readSettings(){
 }
 
 QString FrontRail::toString(FrontRailStates s){
-    switch (s) {
-    case FrontRailOff:
-        return "FrontRailOff";
-        break;
-    case FrontRailDownOut:
-        return "FrontRailDownOut";
-        break;
-    case FrontRailDownIn:
-        return "FrontRailDownIn";
-        break;
-    case FrontRailDowned:
-        return "FrontRailDowned";
-        break;
-    case FrontRailFlowOut:
-        return "FrontRailFlowOut";
-        break;
-    case FrontRailFlowIn:
-        return "FrontRailFlowIn";
-        break;
-    case FrontRailFlowed:
-        return "FrontRailFlowed";
-        break;
-    case FrontRailSlideOut:
-        return "FrontRailSlideOut";
-        break;
-    case FrontRailSlideIn:
-        return "FrontRailSlideIn";
-        break;
-    case FrontRailSlided:
-        return "FrontRailSlided";
-        break;
-    case FrontRailBounceOut:
-        return "FrontRailBounceOut";
-        break;
-    case FrontRailBounced:
-        return "FrontRailBounced";
-        break;
-    default:
-        return "UnknownState";
-    }
+    const char *key = QMetaEnum::fromType<FrontRailStates>().valueToKey(s);
+    return key ? QString::fromLatin1(key) : QStringLiteral("UnknownState");
 }
 
 
@@ -169,7 +132,7 @@ void FrontRail::setState(FrontRailStates state_){
     }
     if (state == FrontRail::FrontRailFlowed){// закончилось плавание
         qDebug()<<"Отвал: Плавание закончено";
-        setFlowActive(((MainWindow*)parent)->workMode.frontDumpFlow);
+        setFlowActive(_mainWindow->workMode.frontDumpFlow);
     }
     if (state == FrontRail::FrontRailFlowIn){// заканчиваем плавание
         setFlowActive(false);
@@ -239,13 +202,13 @@ void FrontRail::goDown(bool state){
     // if(state){
     //     setFlowActive(false);
     // }
-    // if(state && !((MainWindow*)parent)->isDumpTransitioning()){
+    // if(state && !_mainWindow->isDumpTransitioning()){
     //     qDebug()<<"###goDOWN!!!";
-    //     ((MainWindow*)parent)->setDumpFlowView(false);
-    //     ((MainWindow*)parent)->workMode.frontDumpFlow = false;
+    //     _mainWindow->setDumpFlowView(false);
+    //     _mainWindow->workMode.frontDumpFlow = false;
     // }
     if(state){
-        ((MainWindow*)parent)->tryToDisableDumpFlow();
+        _mainWindow->tryToDisableDumpFlow();
     }
     myCan->setState(StateValveF7, state);
     myCan->setState(StateValveA1, state);
@@ -259,16 +222,16 @@ void FrontRail::goUp(){
 void FrontRail::goUp(bool state){
     // if(state){
     //     setFlowActive(false);
-    //     ((MainWindow*)parent)->setDumpFlowView(state);
+    //     _mainWindow->setDumpFlowView(state);
     // }
 
-    // if(state && !((MainWindow*)parent)->isDumpTransitioning()){
+    // if(state && !_mainWindow->isDumpTransitioning()){
     //     qDebug()<<"###goUP!!!";
-    //     ((MainWindow*)parent)->setDumpFlowView(false);
-    //     ((MainWindow*)parent)->workMode.frontDumpFlow = false;
+    //     _mainWindow->setDumpFlowView(false);
+    //     _mainWindow->workMode.frontDumpFlow = false;
     // }
     if(state){
-        ((MainWindow*)parent)->tryToDisableDumpFlow();
+        _mainWindow->tryToDisableDumpFlow();
     }
     myCan->setState(StateValveF1, state);
     myCan->setState(StateValveA1, state);
@@ -286,7 +249,7 @@ void FrontRail::setFlowActive(bool state){
         return;
     isFlowing = state;
     goFlow(state);
-   // ((MainWindow*)parent)->setDumpFlowView(state);
+   // _mainWindow->setDumpFlowView(state);
 }
 
 
@@ -429,7 +392,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 //        if (timeTest && myCan->getState(StateFrontRailLevelD16).toInt() > levelUp)
 //        {
 //            if (!railAlarmed)
-//                ((MainWindow*)parent)->addLog("Все плохо. Передняя рейка не вышла выше домашнего состояния", MainWindow::FatalStatus);
+//                _mainWindow->addLog("Все плохо. Передняя рейка не вышла выше домашнего состояния", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
 //        if (myCan->getState(StateFrontRailLevelD16).toInt() <= levelUp)
@@ -441,7 +404,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 //        if (timeTest && myCan->getState(StateFrontRailLevelD16).toInt() < levelHome)
 //        {
 //            if (!railAlarmed)
-//                ((MainWindow*)parent)->addLog("Все плохо. Передняя рейка не вернулась из верхнего состояния", MainWindow::FatalStatus);
+//                _mainWindow->addLog("Все плохо. Передняя рейка не вернулась из верхнего состояния", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
 //        if (myCan->getState(StateFrontRailLevelD16).toInt() >= levelHome)
@@ -452,7 +415,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 //        if (timeTest && abs(myCan->getState(StateFrontRailLevelD16).toInt() < needLevelDown) > 2)
 //        {
 //            if (!railAlarmed)
-//                ((MainWindow*)parent)->addLog("Все плохо. Передняя рейка не пришла в рабочее состояние", MainWindow::FatalStatus);
+//                _mainWindow->addLog("Все плохо. Передняя рейка не пришла в рабочее состояние", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
 //        if (myCan->getState(StateFrontRailLevelD16).toInt() >= needLevelDown)
@@ -464,7 +427,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 //        if (timeTest && myCan->getState(StateFrontRailLevelD16).toInt() > levelUp)
 //        {
 //            if (!railAlarmed)
-//                ((MainWindow*)parent)->addLog("Все плохо. Передняя рейка не поднимается в верхнее состояние", MainWindow::FatalStatus);
+//                _mainWindow->addLog("Все плохо. Передняя рейка не поднимается в верхнее состояние", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
 //        if (myCan->getState(StateFrontRailLevelD16).toInt() <= levelUp)
@@ -475,7 +438,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 //        if (timeTest && abs(tmp_need_rotate - tmp_rotate) > 1)
 //        {
 //            if (!railAlarmed)
-//                ((MainWindow*)parent)->addLog("Все плохо. " + QString(((MainWindow*)parent)->workMode == MainWindow::SummerMode?"Передняя рейка не повернулась":"Отвал не повернулся"), MainWindow::FatalStatus);
+//                _mainWindow->addLog("Все плохо. " + QString(_mainWindow->workMode == MainWindow::SummerMode?"Передняя рейка не повернулась":"Отвал не повернулся"), MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
 //        if (abs(tmp_need_rotate - tmp_rotate) <= 1)
@@ -486,7 +449,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 //        if (timeTest && abs(levelRotateHome - tmp_rotate) > 1)
 //        {
 //            if (!railAlarmed)
-//                ((MainWindow*)parent)->addLog("Все плохо. Передняя рейка не вернулась в домашнее состояние", MainWindow::FatalStatus);
+//                _mainWindow->addLog("Все плохо. Передняя рейка не вернулась в домашнее состояние", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
 //        if (abs(levelRotateHome - tmp_rotate) <= 1)
@@ -497,9 +460,9 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 //        if (timeTest && (myCan->getState(StateDKPFrontLeftRailD17).toBool() || myCan->getState(StateDKPFrontRightRailD18).toBool()))
 //        {
 //            if (!railAlarmed && myCan->getState(StateDKPFrontLeftRailD17).toBool())
-//                ((MainWindow*)parent)->addLog("Все плохо. Передняя левая рейка не развернулась", MainWindow::FatalStatus);
+//                _mainWindow->addLog("Все плохо. Передняя левая рейка не развернулась", MainWindow::FatalStatus);
 //            if (!railAlarmed && myCan->getState(StateDKPFrontRightRailD18).toBool())
-//                ((MainWindow*)parent)->addLog("Все плохо. Передняя правая рейка не развернулась", MainWindow::FatalStatus);
+//                _mainWindow->addLog("Все плохо. Передняя правая рейка не развернулась", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
 //        if (!myCan->getState(StateDKPFrontLeftRailD17).toBool() && !myCan->getState(StateDKPFrontRightRailD18).toBool())
@@ -510,9 +473,9 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 //        if (timeTest && (!myCan->getState(StateDKPFrontLeftRailD17).toBool() || !myCan->getState(StateDKPFrontRightRailD18).toBool()))
 //        {
 //            if (!railAlarmed && myCan->getState(StateDKPFrontLeftRailD17).toBool())
-//                ((MainWindow*)parent)->addLog("Все плохо. Передняя левая рейка не свернулась", MainWindow::FatalStatus);
+//                _mainWindow->addLog("Все плохо. Передняя левая рейка не свернулась", MainWindow::FatalStatus);
 //            if (!railAlarmed && myCan->getState(StateDKPFrontRightRailD18).toBool())
-//                ((MainWindow*)parent)->addLog("Все плохо. Передняя правая рейка не свернулась", MainWindow::FatalStatus);
+//                _mainWindow->addLog("Все плохо. Передняя правая рейка не свернулась", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
 //        if (myCan->getState(StateDKPFrontLeftRailD17).toBool() && myCan->getState(StateDKPFrontRightRailD18).toBool())
@@ -540,7 +503,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 }
 
 void FrontRail::checkFriendVars(){
-    startClean = ((MainWindow*)parent)->startClean;
+    startClean = _mainWindow->startClean;
 }
 
 void FrontRail::progressLoop(){

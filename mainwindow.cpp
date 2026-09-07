@@ -32,7 +32,7 @@
 QLocale EngLocale (QLocale::Russian);
 
 static int ptsInc = 0;
-QString programmVersionString = "AutoCleaner APPM v3.017";
+QString programmVersionString = "AutoCleaner APPM v3.019";
 
 //Changes
 // 3.001 - форкнулся от APPM2 imx6, удалил лишнее и накатил на нее все от разбери с 200 и 318D4
@@ -151,7 +151,6 @@ void MainWindow::configureFilters(){
 
     m_oilFilterWatcher = BoolStateWatcher{
         {
-           // .onUpdate = []{},
             .onActivated = [this] {view->addLogError("Засорение масляного фильтра");},
             .onDeactivated = [this] {view->addLog("Сигнал засорения масляного фильтра снят");},
             .whileActive = [this] {
@@ -165,7 +164,6 @@ void MainWindow::configureFilters(){
 
     m_airFilterWatcher = BoolStateWatcher{
         {
-            //.onUpdate = []{},
             .onActivated = [this]{
                 view->addLogWarning("Засорение воздушного фильтра");
                 airFilterStartedAt = TOCurValues["Engine"];},
@@ -180,7 +178,6 @@ void MainWindow::configureFilters(){
 
     m_heatRelayWatcher = BoolStateWatcher{
         {
-           // .onUpdate = []{},
            .onActivated = [this]{view->addLogWarning("Требуется прогрев вспомогательного ДВС");},
            .onDeactivated = []{},
            .whileActive = [this]{
@@ -888,10 +885,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     connect (&goHomeTimer, SIGNAL(timeout()), this, SLOT(resetDevices()));
 
     // создаем виджеты щеток и прочих модулей
-    broomCentral = new CentralBroom(can0, NULL, settings, view, this);
-    frontRail = new FrontRail(can0, NULL, settings, view, this);
-    backMagnet = new BackMagnet(can0, NULL, settings, view, this);
-    blower = new Blower(can0, NULL, settings, view, this);
+    broomCentral = new CentralBroom(can0, NULL, settings, view, this, this);
+    frontRail = new FrontRail(can0, NULL, settings, view, this, this);
+    backMagnet = new BackMagnet(can0, NULL, settings, view, this, this);
+    blower = new Blower(can0, NULL, settings, view, this, this);
     resetDevices();
     //can0->setState(StateBoardsPowerOut, true);
     showWorkMode();
@@ -960,7 +957,7 @@ void MainWindow::createFormsAndHide(){
     settingsForm->fillElements();
     connect(settingsForm, SIGNAL(closedAndSave()), this, SLOT(settingsClosed()));
 
-    settingsMainRightForm = new SettingsMainRightForm(can0, this, settingsForm);
+    settingsMainRightForm = new SettingsMainRightForm(can0, settingsForm, this, this);
     settingsMainRightForm->hide();
 
     blockScreen = new BlockForm(this);
