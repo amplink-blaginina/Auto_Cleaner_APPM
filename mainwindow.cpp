@@ -637,20 +637,6 @@ void MainWindow::configureButtons(){
                      workMode.blowLeft = !workMode.blowLeft;
                      workMode.blowRight = false;
                      showWorkMode();
-
-                    //по идее магнит не должен быть тут задействован вообще
-                     //if (!workMode.blowLeft && !workMode.blowRight){
-                         //workMode.backMagnet = true;
-                         //on_pushButton_blowerLeft_clicked();
-                     //}
-                     //else if (workMode.blowLeft){
-                         //workMode.backMagnet = true;
-                         //on_pushButton_blowerRight_clicked();
-                     //}
-                     //else{
-                         //workMode.backMagnet = false;
-                         //on_pushButton_blowerRight_clicked();
-                     //}
                  }
                 },
             .onDeactivated = [this] {
@@ -1853,23 +1839,23 @@ void MainWindow::updateSensorAndWarningIndicators(){
 void MainWindow::updateButtonsUniversal(){
     //обновляем состояние всех кнопок: получаем правильное с антидребезгом состояние физ. кнопок и состояние кнопок на экране
     //-----------------------------------щётка------------------------------------------
-    m_broomUpWatcher.update(ui->pushButton_centralBroomUp->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_UP));
-    m_broomDownWatcher.update(ui->pushButton_centralBroomDown->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_DOWN));
+    m_broomUpWatcher.update(ui->pushButton_centralBroomUp->isEnabled() && (ui->pushButton_centralBroomUp->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_UP)));
+    m_broomDownWatcher.update(ui->pushButton_centralBroomDown->isEnabled() && (ui->pushButton_centralBroomDown->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_DOWN)));
     m_broomLeftWatcher.update(ui->pushButton_centralBroomLeft->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_LEFT));
     m_broomRightWatcher.update(ui->pushButton_centralBroomRight->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_RIGHT));
 
     m_broomFlowWatcher.update(ui->pushButton_centralBroomFlow->isDown());
     m_broomPressWatcher.update(ui->pushButton_centralBroomPress->isDown());
     //-----------------------------------отвал------------------------------------------
-    m_dumpUpWatcher.update(ui->pushButton_dumpUp->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_UP));
-    m_dumpDownWatcher.update(ui->pushButton_dumpDown->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_DOWN));
+    m_dumpUpWatcher.update(ui->pushButton_dumpUp->isEnabled() && (ui->pushButton_dumpUp->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_UP)));
+    m_dumpDownWatcher.update(ui->pushButton_dumpDown->isEnabled() && (ui->pushButton_dumpDown->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_DOWN)));
     m_dumpLeftWatcher.update(ui->pushButton_dumpLeft->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_LEFT));
     m_dumpRightWatcher.update(ui->pushButton_dumpRight->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_RIGHT));
 
     m_dumpFlowWatcher.update(ui->pushButton_dumpFlow->isDown());//|| m_buttonManager.isPressed(GPIOInput::)
     //-----------------------------------обдув------------------------------------------
-    m_blowUpWatcher.update(ui->pushButton_blowerUp->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BLOW_UP));
-    m_blowDownWatcher.update(ui->pushButton_blowerDown->isDown()|| m_buttonManager.isPressed(GPIOInput::IN_BLOW_DOWN));
+    m_blowUpWatcher.update(ui->pushButton_blowerUp->isEnabled() && (ui->pushButton_blowerUp->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BLOW_UP)));
+    m_blowDownWatcher.update(ui->pushButton_blowerDown->isEnabled() &&(ui->pushButton_blowerDown->isDown()|| m_buttonManager.isPressed(GPIOInput::IN_BLOW_DOWN)));
     m_blowLeftWatcher.update(ui->pushButton_blowerLeft->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BLOW_LEFT));
     m_blowRightWatcher.update(ui->pushButton_blowerRight->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BLOW_RIGHT));
 
