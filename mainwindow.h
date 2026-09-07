@@ -488,6 +488,7 @@ private:
     void setDumpFlow(bool state);
     void configureMovementStart(QPushButton *btn, QLabel *lbl, QString path, std::function<bool ()> isBusy, std::function<void ()> handler);
     void configureMovementStop(QPushButton *btn, QLabel *lbl, QString path, std::function<bool ()> isBusy, std::function<void ()> handler);
+    void startCleaning(bool state);
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);

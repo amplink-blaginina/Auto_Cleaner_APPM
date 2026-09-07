@@ -627,10 +627,12 @@ void MainWindow::configureButtons(){
                  }
                  if(startClean){
                      if(blower->isRotating()){
+                         view->addLogWarning("Удерживайте кнопку ввлево для смены направления обдува");
                          blower->setStartMomentForRotation();
                      }
                      else{
                          blower->goSlide(false);
+                         view->addLogWarning("Обдув: выбрана левая сторона");
                      }
                  }
                  else{
@@ -648,7 +650,10 @@ void MainWindow::configureButtons(){
                  if(startClean){
                      blower->goNone();}
                  },
-            .whileActive = [this] {blower->updateWhenRotationPressed(false);},
+            .whileActive = [this] {
+
+             blower->updateWhenRotationPressed(false);
+         },
             .whileInactive = [this] {}
         }};
 
@@ -664,10 +669,13 @@ void MainWindow::configureButtons(){
                  }
                  if(startClean){
                      if(blower->isRotating()){
+                         view->addLogWarning("Удерживайте кнопку вправо для смены направления обдува");
                          blower->setStartMomentForRotation();
                      }
                      else{
-                         blower->goSlide(true);}}
+                         view->addLogWarning("Обдув: выбрана правая сторона");
+                         blower->goSlide(true);}
+                 }
                  else{
                      workMode.blowRight = !workMode.blowRight;
                      workMode.blowLeft = false;
@@ -2230,15 +2238,18 @@ void MainWindow::on_pushButton_startstop_clicked(){
             return;
         }
         view->addLogWarning("Уборка окончена");
-        startClean = false;
+        startCleaning(false);
     }
     else{
         view->addLogWarning("Уборка начата");
-        startClean = true;
+        startCleaning(true);
     }
     showWorkMode();
 }
-
+void MainWindow:: startCleaning(bool state){
+    blower->setDirection(workMode.blowRight);
+    startClean = state;
+}
 void MainWindow::on_pushButton_service_clicked(){
     logger->addUserLogInfo(Logger::UF_SERVICE_PRESSED, 1);
     diagAskPassword();

@@ -96,6 +96,7 @@ public:
     void updateWhenUpPressed();
     void updateWhenDownPressed();
     void updateWhenRotationPressed(bool isRight);
+    void setDirection(bool);
 public slots:
     // слот для получания данных из CAN
     void progressLoop();

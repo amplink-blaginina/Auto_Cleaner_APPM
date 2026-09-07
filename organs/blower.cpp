@@ -58,7 +58,9 @@ QString Blower::toString(BlowerStates s){
     const char *key = QMetaEnum::fromType<BlowerStates>().valueToKey(s);
     return key ? QString::fromLatin1(key) : QStringLiteral("UnknownState");
 }
-
+void Blower::setDirection(bool isRight){
+    isTargetRight = isRight;
+}
 void Blower::setState(BlowerStates state_){
     state = state_;
 
@@ -288,7 +290,7 @@ void Blower::progressLoop(){
 void Blower::updateTransitioning(){
     //qDebug()<<"# "<<isTargetRight<<"/"<<rightBlow;
 
-    if(isTargetRight != rightBlow){
+    if(_mainWindow->startClean && isTargetRight != rightBlow){
         qDebug()<<"## ";
         rotate();
         return;
