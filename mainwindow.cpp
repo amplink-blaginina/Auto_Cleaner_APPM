@@ -52,13 +52,13 @@ QString programmVersionString = "AutoCleaner APPM v3.020";
 
 void MainWindow::createTimers()
 {
-    connect(&mainProgressTimer, SIGNAL(timeout()), this, SLOT(mainProgress()));
+    connect(&mainProgressTimer, &QTimer::timeout, this, &MainWindow::mainProgress);
     mainProgressTimer.start(100);
 
-    connect(&repaintTimer, SIGNAL(timeout()), this, SLOT(repaintProgress()));
+    connect(&repaintTimer, &QTimer::timeout, this, &MainWindow::repaintProgress);
     repaintTimer.start(500);
 
-    connect(&oneSecondTimer, SIGNAL(timeout()), this, SLOT(oneSecond()));
+    connect(&oneSecondTimer, &QTimer::timeout, this, &MainWindow::oneSecond);
     oneSecondTimer.start(1000);
 }
 
@@ -193,18 +193,15 @@ void MainWindow::configureFilters(){
 }
 
 void MainWindow::setBroomFlow(bool state){
-    qDebug()<<"!!! *broom Flow:"<<state;
     if(state == workMode.centralBroomFlow){
         return;
     }
     workMode.centralBroomFlow = state;
-    qDebug()<<"!!! broom Flow:"<<state;
 
     //setBroomFlowView(state);//workMode.centralBroomFlow
     if(startClean){
         broomCentral->setFlowActive(state);}
     showWorkMode();
-    qDebug()<<"!!! goBroomFlow: "<<state;
     QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
     path += state?(workMode.centralBroomPress? "on.png);": "up_on.png);"):(workMode.centralBroomPress? "down_on.png);": "off.png);");
     view->setStyle(ui->label_centralBroomFloatPress, path);
@@ -400,7 +397,7 @@ void MainWindow::configureButtons(){
                     }
                 },
             .onDeactivated = [this] {
-                 ui->pushButton_centralBroomUp->setProperty("wasDown", true);
+                 ui->pushButton_centralBroomUp->setProperty("wasDown", false);
                  view->setStyle(ui->label_centralBroomUpDown, broomVertPath + "off.png);");
 
                  if(isBroomTransitioning()){
@@ -431,7 +428,7 @@ void MainWindow::configureButtons(){
                 }
             },
             .onDeactivated = [this] {
-                 ui->pushButton_centralBroomDown->setProperty("wasDown", true);
+                 ui->pushButton_centralBroomDown->setProperty("wasDown", false);
                  view->setStyle(ui->label_centralBroomUpDown, broomVertPath + "off.png);");
                  if(startClean){
                      view->addLog("Щётка движение вниз завершено");
@@ -465,7 +462,7 @@ void MainWindow::configureButtons(){
                 }
              },
             .onDeactivated = [this] {
-                 ui->pushButton_centralBroomLeft->setProperty("wasDown", true);
+                 ui->pushButton_centralBroomLeft->setProperty("wasDown", false);
                  view->setStyle(ui->label_centralBroom, getBroomDefaultIcon());
                  if (startClean){
                     view->addLog("Щётка движение влево завершено");
@@ -509,7 +506,7 @@ void MainWindow::configureButtons(){
     m_broomFlowWatcher = BoolStateWatcher{
        {
            .onActivated = [this] {
-               ui->pushButton_centralBroomRight->setProperty("wasDown", true);
+               ui->pushButton_centralBroomFlow->setProperty("wasDown", true);
                setBroomFlow(!workMode.centralBroomFlow);
            },
            .onDeactivated = [this] {},
@@ -520,7 +517,7 @@ void MainWindow::configureButtons(){
     m_broomPressWatcher = BoolStateWatcher{
       {
           .onActivated = [this] {
-              ui->pushButton_centralBroomRight->setProperty("wasDown", true);
+              ui->pushButton_centralBroomFlow->setProperty("wasDown", true);
               workMode.centralBroomPress = !workMode.centralBroomPress;
               broomCentral->setPressActive(workMode.centralBroomPress);
               showWorkMode();
@@ -686,6 +683,7 @@ void MainWindow::configureButtons(){
         }};
 }
 
+
 MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -714,15 +712,15 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     _settingsReader->readSettingsValue("Global/secretPasswordDiag").toInt();
 
     globals = new GlobalSettings(_settingsReader);
-    logger = new Logger(NULL);// инит логгера (черный ящик)
+    logger = new Logger(nullptr);// инит логгера (черный ящик)
 
     //Инит CAN и GPIO
-    can0 = new MyCan(can_device, logger, true, NULL);//can0
-    canForEngine = new MyCanEngine(j1939_device, logger, false, NULL);
+    can0 = new MyCan(can_device, logger, true, nullptr);//can0
+    canForEngine = new MyCanEngine(j1939_device, logger, false, nullptr);
     canForEngine->setEngineAddr(globals->enigneAddr);
-    canj1939 = new MyCanJ1939(j1939_device, logger, true, NULL);
+    canj1939 = new MyCanJ1939(j1939_device, logger, true, nullptr);
     engine = new Engine(canj1939, this);// создаем виджет двигателя
-    canj1939Main = new MyCanJ1939(can_device, logger, false, NULL);// камазовкий кан незя рестартить потому как он на таком же интерфейсе как и ПО ГО. А это опасно
+    canj1939Main = new MyCanJ1939(can_device, logger, false, nullptr);// камазовкий кан незя рестартить потому как он на таком же интерфейсе как и ПО ГО. А это опасно
     //gp = new gpio_class();
     gpio = new GPIOWorker();
     gpioMatirx = new GPIOMatrix();
@@ -766,9 +764,9 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     if (need_to_reconf)
         QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini");
 
-    maintenanceTracker = new MaintenanceTracker(_settingsReader, settingsStore);
-    maintenanceTracker->createRules();
-    maintenanceTracker->load();
+//    maintenanceTracker = new MaintenanceTracker(_settingsReader, settingsStore);
+//    maintenanceTracker->createRules();
+//    maintenanceTracker->load();
     //insertValues();
     readValues();
 
@@ -865,7 +863,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     createFormsAndHide();
 
     createTimers();// создаем таймер для обслуживания общих узлов
-    connect (&goHomeTimer, SIGNAL(timeout()), this, SLOT(resetDevices()));
+    connect (&goHomeTimer, &QTimer::timeout, this, &MainWindow::resetDevices);
 
     // создаем виджеты щеток и прочих модулей
     broomCentral = new CentralBroom(can0, NULL, settings, view, this, this);
@@ -878,12 +876,16 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     starter->setIgnition(true);
 
-    connect(can0, SIGNAL(canPOError()), this, SLOT(canPOError()));
-    connect(can0, SIGNAL(canDataReady(struct can_frame)), this, SLOT(incomeData(struct can_frame)));
-    connect(canj1939, SIGNAL(canError()), this, SLOT(canJ1939Error()));
-    connect(canj1939, SIGNAL(canDataReadyJ1939(quint32, quint8, QByteArray)), this, SLOT(incomeDataJ1939(quint32, quint8, QByteArray)));
-    connect(canj1939Main, SIGNAL(canError()), this, SLOT(canJ1939MainError()));
-    connect(canj1939Main, SIGNAL(canDataReadyJ1939(quint32, quint8, QByteArray)), this, SLOT(incomeDataJ1939Main(quint32, quint8, QByteArray)));
+    connect(can0, &MyCan::canPOError, this, &MainWindow::canPOError);
+    connect(can0, &MyCan::canDataReady, this, &MainWindow::incomeData);
+    connect(canj1939, &MyCanJ1939::canError, this, &MainWindow::canJ1939Error);
+    connect(canj1939, &MyCanJ1939::canDataReadyJ1939, this,&MainWindow::incomeDataJ1939);
+    connect(canj1939Main, &MyCanJ1939::canError, this, &MainWindow::canJ1939MainError);
+    connect(canj1939Main, &MyCanJ1939::canDataReadyJ1939, this, &MainWindow::incomeDataJ1939Main);
+
+//    connect(canj1939, &MyCanJ1939::canDataReadyJ1939(quint32, quint8, QByteArray)), this, SLOT(incomeDataJ1939(quint32, quint8, QByteArray)));
+//    connect(canj1939Main, SIGNAL(canError()), this, SLOT(canJ1939MainError()));
+//    connect(canj1939Main, SIGNAL(canDataReadyJ1939(quint32, quint8, QByteArray)), this, SLOT(incomeDataJ1939Main(quint32, quint8, QByteArray)));
 
     view->addLogWarning("ПВИ запущен");
     ui->label_engineLowTemperature->hide();
@@ -939,7 +941,7 @@ void MainWindow::createFormsAndHide(){
     //settingsForm->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
     settingsForm->hide();
     settingsForm->fillElements();
-    connect(settingsForm, SIGNAL(closedAndSave()), this, SLOT(settingsClosed()));
+    connect(settingsForm, &SettingsForm::closedAndSave, this, &MainWindow::settingsClosed);
 
     settingsMainRightForm = new SettingsMainRightForm(can0, settingsForm, this, this);
     settingsMainRightForm->hide();
@@ -1960,10 +1962,10 @@ void MainWindow::settingsAskPassword(){
         Password_window->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
         Password_window->setAttribute(Qt::WA_DeleteOnClose,true);
 
-        connect(this,SIGNAL(Pass_close()),Password_window,SLOT(close()));
-        connect(this,SIGNAL(Send_Pass_2_pass_form(int)),Password_window,SLOT(Recieve_pass_name(int)));
-        connect(this,SIGNAL(Send_SecretPass_2_pass_form(int)),Password_window,SLOT(Recieve_secret_pass_name(int)));
-        connect(Password_window,SIGNAL(Send_correct(int)),this,SLOT(passwordSettingsOk(int)));
+        connect(this,&MainWindow::Pass_close, Password_window, &Password_Form::close);
+        connect(this,&MainWindow::Send_Pass_2_pass_form,Password_window, &Password_Form::Recieve_pass_name);
+        connect(this,&MainWindow::Send_SecretPass_2_pass_form,Password_window, &Password_Form::Recieve_secret_pass_name);
+        connect(Password_window,&Password_Form::Send_correct,this,&MainWindow::passwordSettingsOk);
 
         emit Send_Pass_2_pass_form(_settingsReader->readSettingsValue("Global/password").toInt());
         emit Send_SecretPass_2_pass_form(_settingsReader->readSettingsValue("Global/secretPassword").toInt());
@@ -1987,10 +1989,10 @@ void MainWindow::diagAskPassword(){
         Password_window->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
         Password_window->setAttribute(Qt::WA_DeleteOnClose, true);
 
-        connect(this,SIGNAL(Pass_close()),Password_window,SLOT(close()));
-        connect(this,SIGNAL(Send_Pass_2_pass_form(int)),Password_window,SLOT(Recieve_pass_name(int)));
-        connect(this,SIGNAL(Send_SecretPass_2_pass_form(int)),Password_window,SLOT(Recieve_secret_pass_name(int)));
-        connect(Password_window,SIGNAL(Send_correct(int)),this,SLOT(passwordDiagOk(int)));
+        connect(this,&MainWindow::Pass_close, Password_window,&Password_Form::close);
+        connect(this,&MainWindow::Send_Pass_2_pass_form,Password_window,&Password_Form::Recieve_pass_name);
+        connect(this,&MainWindow::Send_SecretPass_2_pass_form,Password_window,&Password_Form::Recieve_secret_pass_name);
+        connect(Password_window,&Password_Form::Send_correct,this,&MainWindow::passwordDiagOk);
 
         emit Send_Pass_2_pass_form(_settingsReader->readSettingsValue("Global/passwordDiag").toInt());
         emit Send_SecretPass_2_pass_form(_settingsReader->readSettingsValue("Global/secretPasswordDiag").toInt());
