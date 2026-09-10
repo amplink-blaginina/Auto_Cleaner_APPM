@@ -513,6 +513,7 @@ public :
     void tryToDisableDumpFlow();
     void setServiceFormName(QWidget *form, QString name);
     void changeBlowDirection(bool isRight);
+    bool getGPIOInput(GPIOInput id);
 public slots:
     //void messageListPressed();
     void settingsAskPassword();

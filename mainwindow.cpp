@@ -32,7 +32,7 @@
 QLocale EngLocale (QLocale::Russian);
 
 static int ptsInc = 0;
-QString programmVersionString = "AutoCleaner APPM v3.019";
+QString programmVersionString = "AutoCleaner APPM v3.020";
 
 //Changes
 // 3.001 - форкнулся от APPM2 imx6, удалил лишнее и накатил на нее все от разбери с 200 и 318D4
@@ -126,6 +126,9 @@ void MainWindow::registerPhysButtons(){
     m_buttonManager.registerButton(GPIOInput::IN_BLOW_RIGHT,{
                    .onPressed = [this](){},//blower->goSlide(true); printOrganStatus(organsEnums::Blower, organsEnums::Right, true);
                    .onReleased = [this](){}});//blower->goNone(); printOrganStatus(organsEnums::Blower, organsEnums::Right, false);
+    m_buttonManager.registerButton(GPIOInput::IN_STARTER,{
+                  .onPressed = [this](){},//blower->goSlide(true); printOrganStatus(organsEnums::Blower, organsEnums::Right, true);
+                  .onReleased = [this](){}});//blower->goNone(); printOrganStatus(organsEnums::Blower, organsEnums::Right, false);
 
 }
 
@@ -213,17 +216,16 @@ void MainWindow::setDumpFlow(bool state){
     }
     workMode.frontDumpFlow = state;
     if (startClean){
-        view->addLogWarning(state? "Отвал плавание": "Отвал плавание завершено");
+        view->addLog(state? "Отвал плавание": "Отвал плавание завершено");
         frontRail->setFlowActive(state);}
     else{
         if(state)
-            view->addLogWarning("Отвал выбрано плавание ");
+            view->addLog("Отвал выбрано плавание ");
     }
     QString path = //"background-image: url(:/Images/main/buttons/configuration_button_variable_up_";
         "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_";////dozerBlade_lift_";
     view->setStyle(ui->label_dumpFloatPress, path + (state?"on_down_blocked);":"off_down_blocked);" ));
     showWorkMode();
-    qDebug()<<"!!! goDumpFlow: "<<state;
 }
 
 void MainWindow::configureButtons(){
@@ -235,11 +237,11 @@ void MainWindow::configureButtons(){
            view->setStyle(ui->label_dumpUpDown, dumpVertPath + "up_off.png);");
 
            if(isDumpTransitioning()){
-               view->addLog("!Отвал в движении, ожидайте");
+               view->addLog("Отвал в движении, ожидайте");
                return;
            }
            if (startClean){
-               view->addLogWarning("!Отвал: движение вверх");
+               view->addLog("Отвал: движение вверх");
                frontRail->setDirection(organsEnums::Up);
            }
        },
@@ -248,12 +250,12 @@ void MainWindow::configureButtons(){
            view->setStyle(ui->label_dumpUpDown, dumpVertPath + "off.png);");
 
            if(isDumpTransitioning()){
-               view->addLogWarning("!Отвал в движении, ожидайте");
+               view->addLog("Отвал в движении, ожидайте");
                return;
            }
 
            if (startClean){
-               view->addLogWarning("!Отвал: движение вверх завершено");
+               view->addLog("Отвал: движение вверх завершено");
                frontRail->setDirection(organsEnums::None);}
        },
        .whileActive = [this] {},
@@ -267,12 +269,12 @@ void MainWindow::configureButtons(){
              view->setStyle(ui->label_dumpUpDown, dumpVertPath + "down_off.png);");
 
              if(isDumpTransitioning()){
-                 view->addLogWarning("Отвал в движении, ожидайте");
+                 view->addLog("Отвал в движении, ожидайте");
                  return;
              }
              if (startClean){
                  frontRail->setDirection(organsEnums::Down);
-                 view->addLogWarning("Отвал: движение вниз");}
+                 view->addLog("Отвал: движение вниз");}
              ;},
 
          .onDeactivated = [this] {
@@ -280,12 +282,12 @@ void MainWindow::configureButtons(){
              view->setStyle(ui->label_dumpUpDown, dumpVertPath + "off.png);");
 
              if(isDumpTransitioning()){
-                 view->addLogWarning("!Отвал в движении, ожидайте");
+                 view->addLog("Отвал в движении, ожидайте");
                  return;
              }
              if (startClean){
                  frontRail->setDirection(organsEnums::None);
-                 view->addLogWarning("Отвал: движение вниз завершено");}
+                 view->addLog("Отвал: движение вниз завершено");}
              },
          .whileActive = [this] {},
          .whileInactive = [this] {}
@@ -298,11 +300,11 @@ void MainWindow::configureButtons(){
                 view->setStyle(ui->label_dump, dumpHorPath + "left_on.png);");
 
                 if(isDumpTransitioning()){
-                    view->addLogWarning("Отвал в движении, ожидайте");
+                    view->addLog("Отвал в движении, ожидайте");
                     return;
                 }
                 if(startClean){
-                    view->addLogWarning("Отвал движение влево");
+                    view->addLog("Отвал движение влево");
                     frontRail->setDirection(organsEnums::Left);
                 }
                 else{
@@ -319,11 +321,11 @@ void MainWindow::configureButtons(){
                 ui->pushButton_dumpLeft->setProperty("wasDown", false);
                 view->setStyle(ui->label_dump, getDumpDefaultIcon());
                 if(isDumpTransitioning()){
-                    view->addLogWarning("Отвал в движении, ожидайте");
+                    view->addLog("Отвал в движении, ожидайте");
                     return;
                 }
                 if(startClean){
-                    view->addLogWarning("Отвал движение влево завершено");
+                    view->addLog("Отвал движение влево завершено");
                     frontRail->setDirection(organsEnums::None);}
                 },
             .whileActive = [this] {},
@@ -338,11 +340,11 @@ void MainWindow::configureButtons(){
                 view->setStyle(ui->label_dump, dumpHorPath + "right_on.png);");
 
                 if(isDumpTransitioning()){
-                    view->addLogWarning("Отвал в движении, ожидайте");
+                    view->addLog("Отвал в движении, ожидайте");
                     return;
                 }
                 if (startClean){
-                    view->addLogWarning("Отвал движение вправо");
+                    view->addLog("Отвал движение вправо");
                     frontRail->setDirection(organsEnums::Right);}
                 else{
                     workMode.frontDumpRight = !workMode.frontDumpRight;
@@ -351,20 +353,17 @@ void MainWindow::configureButtons(){
                     }
                     workMode.frontDumpLeft = false;
                     showWorkMode();
-                    //}
                 }
             },
             .onDeactivated = [this] {
                 ui->pushButton_dumpRight->setProperty("wasDown", false);
                 view->setStyle(ui->label_dump, getDumpDefaultIcon());
                 if(isDumpTransitioning()){
-                    qDebug()<<"!!! dump Programm in process";
                     return;
                 }
                 if (startClean){
-                    view->addLogWarning("Отвал движение вправо завершено");
+                    view->addLog("Отвал движение вправо завершено");
                     frontRail->setDirection(organsEnums::None);}
-                qDebug()<<"!!! goRight stop";
             },
             .whileActive = [this] {},
             .whileInactive = [this] {}
@@ -392,27 +391,25 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_centralBroomUpDown, broomVertPath + "up_on.png);");
 
                     if(isBroomTransitioning()){
-                        view->addLogWarning("Щетка в движении, ожидайте");
+                        view->addLog("Щетка в движении, ожидайте");
                         return;
                     }
                     if (startClean){
-                        view->addLogWarning("!Щётка: движение вверх");
+                        view->addLog("Щётка: движение вверх");
                         broomCentral->setDirection(organsEnums::Up);
                     }
-                    qDebug()<<"!!! broom onActivated goUp, pressed: "<< workMode.centralBroomPress;
                 },
             .onDeactivated = [this] {
                  ui->pushButton_centralBroomUp->setProperty("wasDown", true);
                  view->setStyle(ui->label_centralBroomUpDown, broomVertPath + "off.png);");
 
                  if(isBroomTransitioning()){
-                     qDebug()<<"!!! broomProgramm in process";
                      return;
                  }
                  if (startClean){
                      view->addLogWarning("Щётка движение вверх завершено");
                      broomCentral->setDirection(organsEnums::None);}
-                 qDebug()<<"!!! broom onDeactivated goUp stop";},
+         },
             .whileActive = [this] {},
             .whileInactive = [this] {}
         }};
@@ -425,20 +422,19 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_centralBroomUpDown, broomVertPath + "down_on.png);");
 
                 if(isBroomTransitioning()){
-                    view->addLogWarning("Щетка в движении, ожидайте");
+                    view->addLog("Щетка в движении, ожидайте");
                     return;
                 }
                 if (startClean){
-                    view->addLogWarning("!Щётка: движение вниз");
+                    view->addLog("Щётка: движение вниз");
                     broomCentral->setDirection(organsEnums::Down);
                 }
-                qDebug()<<"!!! goDown";
             },
             .onDeactivated = [this] {
                  ui->pushButton_centralBroomDown->setProperty("wasDown", true);
                  view->setStyle(ui->label_centralBroomUpDown, broomVertPath + "off.png);");
                  if(startClean){
-                     view->addLogWarning("Щётка движение вниз завершено");
+                     view->addLog("Щётка движение вниз завершено");
                      broomCentral->setDirection(organsEnums::None);
                  }},
             .whileActive = [this] {},
@@ -453,7 +449,7 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_centralBroom, broomHorPath + "left_on.png);");
 
                 if(isBroomTransitioning()){
-                    view->addLogWarning("Щетка в движении, ожидайте");
+                    view->addLog("Щетка в движении, ожидайте");
                     return;
                 }
                 if(startClean){
@@ -472,7 +468,7 @@ void MainWindow::configureButtons(){
                  ui->pushButton_centralBroomLeft->setProperty("wasDown", true);
                  view->setStyle(ui->label_centralBroom, getBroomDefaultIcon());
                  if (startClean){
-                    view->addLogWarning("Щётка движение влево завершено");
+                    view->addLog("Щётка движение влево завершено");
                     broomCentral->setDirection(organsEnums::None);}
             },
             .whileActive = [this] {},
@@ -486,7 +482,7 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_centralBroom, broomHorPath + "right_on.png);");
 
                 if(isBroomTransitioning()){
-                    view->addLogWarning("Щетка в движении, ожидайте");
+                    view->addLog("Щетка в движении, ожидайте");
                     return;
                 }
                 if (startClean)
@@ -504,7 +500,6 @@ void MainWindow::configureButtons(){
                  ui->pushButton_centralBroomRight->setProperty("wasDown", false);
                  view->setStyle(ui->label_centralBroom, getBroomDefaultIcon());
                  if (startClean){
-
                     broomCentral->setDirection(organsEnums::None);}
             },
             .whileActive = [this] {broomCentral->setDirection(organsEnums::Right);},
@@ -514,7 +509,6 @@ void MainWindow::configureButtons(){
     m_broomFlowWatcher = BoolStateWatcher{
        {
            .onActivated = [this] {
-                qDebug()<<"!!! broom Flow: activated";
                ui->pushButton_centralBroomRight->setProperty("wasDown", true);
                setBroomFlow(!workMode.centralBroomFlow);
            },
@@ -551,14 +545,14 @@ void MainWindow::configureButtons(){
                 view->setStyle(ui->label_blowerUpDown, blowerVertPath + "up_on.png);");
 
                 if(isBlowTransitioning()){
-                    view->addLogWarning("Обдув в движении, ожидайте");
+                    view->addLog("Обдув в движении, ожидайте");
                     return;
                 }
 
                 if(startClean){
                      if(blower->isRotating()){
                             blower->setStartMomentForStopping();
-                            view->addLogWarning("Удерживайте кнопку вверх для остановки обдува и подъёма");
+                            view->addLog("Удерживайте кнопку вверх для остановки обдува и подъёма");
                         }
                      else{
                             blower->goUp();
@@ -570,7 +564,6 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_blowerUpDown, blowerVertPath + "off.png);");
 
                  if(isBlowTransitioning()){
-                     qDebug()<<"!!! dump Programm in process";
                      return;
                  }
                  if(startClean){
@@ -590,7 +583,7 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_blowerUpDown, blowerVertPath + "down_on.png);");
 
                  if(isBlowTransitioning()){
-                     view->addLogWarning("Обдув в движении, ожидайте");
+                     view->addLog("Обдув в движении, ожидайте");
                      return;
                  }
                  if(startClean){
@@ -622,20 +615,20 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_blower, blowerHorPath + "left_on.png);");
 
                  if(isBlowTransitioning()){
-                     view->addLogWarning("Обдув в движении, ожидайте");
+                     view->addLog("Обдув в движении, ожидайте");
                      return;
                  }
                  if(startClean){
                      if(blower->isRotating()){
-                         view->addLogWarning("Удерживайте кнопку ввлево для смены направления обдува");
+                         view->addLog("Удерживайте кнопку ввлево для смены направления обдува");
                          blower->setStartMomentForRotation();
                      }
                      else{
                          blower->goSlide(false);
-                         view->addLogWarning("Обдув: выбрана левая сторона");
                      }
                  }
                  else{
+                     view->addLog("Обдув: выбрана левая сторона");
                      workMode.blowLeft = !workMode.blowLeft;
                      workMode.blowRight = false;
                      showWorkMode();
@@ -647,13 +640,9 @@ void MainWindow::configureButtons(){
                  if(isBlowTransitioning()){
                      return;
                  }
-                 if(startClean){
-                     blower->goNone();}
+                 if(startClean){blower->goNone();}
                  },
-            .whileActive = [this] {
-
-             blower->updateWhenRotationPressed(false);
-         },
+            .whileActive = [this] {blower->updateWhenRotationPressed(false);},
             .whileInactive = [this] {}
         }};
 
@@ -664,19 +653,19 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_blower, blowerHorPath + "right_on.png);");
 
                  if(isBlowTransitioning()){
-                     view->addLogWarning("Обдув в движении, ожидайте");
+                     view->addLog("Обдув в движении, ожидайте");
                      return;
                  }
                  if(startClean){
                      if(blower->isRotating()){
-                         view->addLogWarning("Удерживайте кнопку вправо для смены направления обдува");
+                         view->addLog("Удерживайте кнопку вправо для смены направления обдува");
                          blower->setStartMomentForRotation();
                      }
                      else{
-                         view->addLogWarning("Обдув: выбрана правая сторона");
                          blower->goSlide(true);}
                  }
                  else{
+                     view->addLog("Обдув: выбрана правая сторона");
                      workMode.blowRight = !workMode.blowRight;
                      workMode.blowLeft = false;
                      showWorkMode();
@@ -686,11 +675,11 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_blower, getBlowerDefaultIcon());
 
                  if(isBlowTransitioning()){
-                     qDebug()<<"!!! dump Programm in process";
                      return;
                  }
                  if(startClean){
-                     blower->goNone();}
+                     blower->goNone();
+                 }
                 },
             .whileActive = [this] {blower->updateWhenRotationPressed(true);},
             .whileInactive = [this] {}
@@ -704,7 +693,8 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     ui->setupUi(this);
     can0 = NULL;
     settings = new QSettings(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini", QSettings::IniFormat);
-    _settingsReader= new SettingsReader(settings);
+    _settingsReader = new SettingsReader(settings);
+    _settingsReader->setDefaults();//дефолтные настройки
     settingsStore = new SettingsStore(settings);
 
     maintenanceTracker = new MaintenanceTracker(
@@ -741,8 +731,8 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     currentState = new CurrentState(_settingsReader, _gpio, can);
     view = new ViewController(this, logger);
     ui->logLayout->addWidget(view->getMessageList());
-    starter = new StarterController(globals, currentState, engine, view->screenLog, can, _gpio);
-    preroll = new PrerollController(globals, engine, view->screenLog, can, starter, currentState, view);
+    starter = new StarterController(globals, currentState, engine, view->screenLog, can, _gpio, this);
+    preroll = new PrerollController(globals, engine, view->screenLog, can, starter, currentState, view, this);
 
     registerPhysButtons();
 
@@ -776,7 +766,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     if (need_to_reconf)
         QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini");
 
-    _settingsReader->setDefaults();//дефолтные настройки
     maintenanceTracker = new MaintenanceTracker(_settingsReader, settingsStore);
     maintenanceTracker->createRules();
     maintenanceTracker->load();
@@ -914,11 +903,12 @@ MainWindow::~MainWindow(){
 }
 
 void MainWindow::createFormsAndHide(){
-    serviceGPIOServiceIntervalLeftForm = new ServiceGPIOServiceIntervalLeftForm(this);
+    serviceGPIOServiceIntervalLeftForm = new ServiceGPIOServiceIntervalLeftForm(this, this);
     serviceGPIOServiceIntervalLeftForm->hide();
 
     serviceOtherEngineLeftForm = new ServiceOtherEngineLeftForm(this);
     preroll->setEngineForm(serviceOtherEngineLeftForm);
+    starter->setEngineForm(serviceOtherEngineLeftForm);
     serviceOtherEngineLeftForm->hide();
 
     serviceOtherLightLeftForm = new ServiceOtherLightLeftForm(can, this);
@@ -933,10 +923,10 @@ void MainWindow::createFormsAndHide(){
     serviceGlobalDateTimeLeftForm = new ServiceGlobalDateTimeLeftForm(this);
     serviceGlobalDateTimeLeftForm->hide();
 
-    serviceGeneralPasswordLeftForm = new ServiceGeneralPasswordLeftForm(this);
+    serviceGeneralPasswordLeftForm = new ServiceGeneralPasswordLeftForm(this, this);
     serviceGeneralPasswordLeftForm->hide();
 
-    serviceMainRightForm = new ServiceMainRightForm(this);
+    serviceMainRightForm = new ServiceMainRightForm(this, this);
     serviceMainRightForm->hide();
 
     settingsSettingsConfigurationLeftForm = new SettingsSettingsConfigurationLeftForm(can, this);
@@ -1042,9 +1032,7 @@ void MainWindow::setDefaultWorkMode(){
     workMode.sweepType = LightSweep;
 }
 
-void MainWindow::setDefaultSettings(){
-
-}
+void MainWindow::setDefaultSettings(){}
 
 void MainWindow::createButtons(){}
 
@@ -1539,6 +1527,7 @@ void MainWindow::oneSecond(){// универсальный таймер для �
 
     const bool engineRunningNow = engine->getRpm() > 700;
     if (engineRunningNow && !engineRunStatePrev){
+        qDebug()<<"!!! setCurrentData";
         currentState->updateStartDate();
         starter->resetValues();
         preroll->resetValues();
@@ -1604,7 +1593,7 @@ void MainWindow::oneSecond(){// универсальный таймер для �
     else if (!to_test && ui->label_TO->isVisible()){
         ui->label_TO->hide();
     }
-    qDebug() << "!!! can0->isActive: "<<can0->isActive();
+    //qDebug() << "!!! can0->isActive: "<<can0->isActive();
     if (can0->isActive()){
         if (ui->POStatus->isVisible())
             ui->POStatus->hide();
@@ -1759,9 +1748,9 @@ void MainWindow::mainProgress(){
     if (!transitioning){
         if (organsWereTransitioning && !pauseActive){
             if (startClean)
-                view->addLog("Органы разложены — управление разблокировано");
+                view->addLogWarning("Органы разложены — управление разблокировано");
             else
-                view->addLog("Органы сложены — можно начинать движение");
+                view->addLogWarning("Органы сложены — можно начинать движение");
         }
         // алиасы
         // щетки  - при неактивной программе выбирают левую правую щетку. при активной программе меняют обороты щетки
@@ -1809,6 +1798,7 @@ void MainWindow::checkEngineAndRollLocks(){
     const bool engineTempValid = engine->coolantTempEverReceived && (engine->online <= ENGINE_ONLINE_EDGE * 10);// Температура учитывается только при живом CAN
     const bool engineCold = engineTempValid && (globals->isEngineCold(engine->engineCoolantTemp));// Температура двигателя: учитываем только если движок уже хоть раз прислал данные
     const int daysFromLastStart = currentState->getDaysFromStart();
+
     preroll->checkIfAwaitForRoll(daysFromLastStart);
 
     // Блокировка по температуре: если двигатель холодный И теплореле ещё не сработало
@@ -1867,6 +1857,13 @@ void MainWindow::updateButtonsUniversal(){
     m_blowLeftWatcher.update(ui->pushButton_blowerLeft->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BLOW_LEFT));
     m_blowRightWatcher.update(ui->pushButton_blowerRight->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BLOW_RIGHT));
 
+    starter->updateButtons(serviceOtherEngineLeftForm->starterBtnStatus()||gpioMatirx->keyPressed == GPIOInput::IN_STARTER);
+    //qDebug()<<"* starter"<<(gpioMatirx->keyPressed == GPIOInput::IN_STARTER);
+    //starter->updateButtons(m_buttonManager.isPressed(GPIOInput::IN_STARTER));
+}
+
+bool MainWindow::getGPIOInput(GPIOInput id){
+    return m_buttonManager.isPressed(id);
 }
 
 void MainWindow::checkAndShowStatus(){
@@ -2161,6 +2158,8 @@ void MainWindow::updatePhysButtons(){
     m_buttonManager.update(GPIOInput::IN_BLOW_DOWN, gpioMatirx->keyPressed == GPIOInput::IN_BLOW_DOWN);
     m_buttonManager.update(GPIOInput::IN_BLOW_RIGHT, gpioMatirx->keyPressed == GPIOInput::IN_BLOW_RIGHT);
     m_buttonManager.update(GPIOInput::IN_BLOW_LEFT, gpioMatirx->keyPressed == GPIOInput::IN_BLOW_LEFT);
+
+    m_buttonManager.update(GPIOInput::IN_STARTER, gpioMatirx->keyPressed == GPIOInput::IN_STARTER);
 }
 
 void MainWindow::showPauseButton(){
