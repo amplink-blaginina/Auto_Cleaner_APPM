@@ -8,8 +8,9 @@
 #include <QScrollArea>
 #include <QScroller>
 
-#include "servicetoelement.h"
 
+#include "servicetoelement.h"
+class MainWindow;
 namespace Ui {
 class ServiceGPIOServiceIntervalLeftForm;
 }
@@ -19,7 +20,7 @@ class ServiceGPIOServiceIntervalLeftForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit ServiceGPIOServiceIntervalLeftForm(QWidget *parent = nullptr);
+    explicit ServiceGPIOServiceIntervalLeftForm(MainWindow* mainWindow, QWidget *parent = nullptr);
     ~ServiceGPIOServiceIntervalLeftForm();
 
     void checkElementTO(int element);
@@ -50,6 +51,7 @@ public slots:
 
 private:
     Ui::ServiceGPIOServiceIntervalLeftForm *ui;
+    MainWindow *_mainWindow;
 };
 
 #endif // SERVICEGPIOSERVICEINTERVALLEFTFORM_H

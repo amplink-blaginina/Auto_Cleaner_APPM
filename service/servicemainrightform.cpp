@@ -6,14 +6,14 @@
 
 #include "mainwindow.h"
 
-ServiceMainRightForm::ServiceMainRightForm(QWidget *parent_) :
+ServiceMainRightForm::ServiceMainRightForm(MainWindow* mainWindow, QWidget *parent_) :
     QWidget(parent_),
     ui(new Ui::ServiceMainRightForm)
 {
     ui->setupUi(this);
-
+    _mainWindow = mainWindow;
     parent = parent_;
-    _settings = ((MainWindow*)parent)->settings;
+    _settings = _mainWindow->settings;
 
     currentLevel = 0;
     currentElement = -1;
@@ -27,21 +27,21 @@ ServiceMainRightForm::ServiceMainRightForm(QWidget *parent_) :
     buttons[3] = ui->pushButton_4;
 
     addMenu("Глобальные настройки", 0, 0, 1, NULL, ":/Images/Images/service/buttons/service_button_generalSettings");
-    addMenu("Дата, время", 1, 0, 1, ((MainWindow*)parent)->serviceGlobalDateTimeLeftForm, ":/Images/Images/service/global/buttons/service_generalSettings_button_time");
-    addMenu("Пароль", 1, 1, 1, ((MainWindow*)parent)->serviceGeneralPasswordLeftForm, ":/Images/Images/service/global/buttons/service_generalSettings_button_password");
+    addMenu("Дата, время", 1, 0, 1, _mainWindow->serviceGlobalDateTimeLeftForm, ":/Images/Images/service/global/buttons/service_generalSettings_button_time");
+    addMenu("Пароль", 1, 1, 1, _mainWindow->serviceGeneralPasswordLeftForm, ":/Images/Images/service/global/buttons/service_generalSettings_button_password");
     addMenu("PDF", 1, 2, 1, NULL, ":/Images/Images/service/global/buttons/service_generalSettings_button_PDF");
     addMenu("", 1, 3, 0, NULL, "");
 
     addMenu("Устройства", 0, 1, 2, NULL, ":/Images/Images/service/buttons/service_button_engine");
-    addMenu("Гидравлика", 2, 0, 2, ((MainWindow*)parent)->serviceDevicesHydraulicsLeftForm, ":/Images/Images/service/devices/buttons/service_valve_button_hydraulics");
-    addMenu("ДКП", 2, 1, 2, ((MainWindow*)parent)->serviceDevicesDKPLeftForm, ":/Images/Images/service/devices/buttons/service_valve_button_DKP");
+    addMenu("Гидравлика", 2, 0, 2, _mainWindow->serviceDevicesHydraulicsLeftForm, ":/Images/Images/service/devices/buttons/service_valve_button_hydraulics");
+    addMenu("ДКП", 2, 1, 2, _mainWindow->serviceDevicesDKPLeftForm, ":/Images/Images/service/devices/buttons/service_valve_button_DKP");
     addMenu("", 2, 2, 2, NULL, "");
     addMenu("", 2, 3, 0, NULL, "");
 
     addMenu("Прочее", 0, 2, 3, NULL, ":/Images/Images/service/buttons/service_button_valve");
-    addMenu("ДВС", 3, 0, 3, ((MainWindow*)parent)->serviceOtherEngineLeftForm, ":/Images/Images/service/other/buttons/service_engine_button_engine");
-    addMenu("ТО", 3, 1, 3, ((MainWindow*)parent)->serviceGPIOServiceIntervalLeftForm, ":/Images/Images/service/other/buttons/service_engine_button_TO");
-    addMenu("Освещение", 3, 2, 3, ((MainWindow*)parent)->serviceOtherLightLeftForm, ":/Images/Images/service/other/buttons/service_engine_button_light");
+    addMenu("ДВС", 3, 0, 3, _mainWindow->serviceOtherEngineLeftForm, ":/Images/Images/service/other/buttons/service_engine_button_engine");
+    addMenu("ТО", 3, 1, 3, _mainWindow->serviceGPIOServiceIntervalLeftForm, ":/Images/Images/service/other/buttons/service_engine_button_TO");
+    addMenu("Освещение", 3, 2, 3, _mainWindow->serviceOtherLightLeftForm, ":/Images/Images/service/other/buttons/service_engine_button_light");
     addMenu("", 3, 3, 0, NULL, "");
 
     addMenu("", 0, 3, 0, NULL, ":/Images/Images/settings/buttons/settings_reserve");
@@ -123,17 +123,17 @@ void ServiceMainRightForm::showService()
         _settings->endGroup();
         Password_window->show();        
         menu[currentLevel][currentElement].form->hide();
-        ((MainWindow*)parent)->serviceGPIOServiceIntervalLeftForm->fillElements();
+        _mainWindow->serviceGPIOServiceIntervalLeftForm->fillElements();
     }
     if (currentElement == 0 && currentLevel == 2){// гидравлика инициализация
-        ((MainWindow*)parent)->serviceDevicesHydraulicsLeftForm->refreshSliders();
+        _mainWindow->serviceDevicesHydraulicsLeftForm->refreshSliders();
     }
     if (currentElement == 1 && currentLevel == 1){// сброс пароля
-        ((MainWindow*)parent)->serviceGeneralPasswordLeftForm->passwordVariable = "passwordDiag";
-        ((MainWindow*)parent)->serviceGeneralPasswordLeftForm->goStep(0);
+        _mainWindow->serviceGeneralPasswordLeftForm->passwordVariable = "passwordDiag";
+        _mainWindow->serviceGeneralPasswordLeftForm->goStep(0);
     }
     if (currentElement == 0 && currentLevel == 1 && oldCurrentElement != currentElement && oldCurrentLevel != currentLevel){// выставить текущую дату
-        ((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->actualTime();
+        _mainWindow->serviceGlobalDateTimeLeftForm->actualTime();
     }
     //ищем специальные пункты которые не так просты как мы думаем
     if (currentElement == 2 && currentLevel == 1){//pdf
@@ -148,7 +148,7 @@ void ServiceMainRightForm::showService()
 
 void ServiceMainRightForm::passwordDiagOk(int pass)
 {
-    if (pass == ((MainWindow*)parent)->getReader()->readSettingsValue("Global/secretPasswordDiag").toString().toInt()){// сбросим одноразовы пароль
+    if (pass == _mainWindow->getReader()->readSettingsValue("Global/secretPasswordDiag").toString().toInt()){// сбросим одноразовы пароль
         if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
             QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
         int random = std::rand() % ((9999 + 1) - 1) + 1;
@@ -157,7 +157,7 @@ void ServiceMainRightForm::passwordDiagOk(int pass)
         _settings->sync();
         system("sync");
         // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
-        ((MainWindow*)parent)->removeBadSettings();
+        _mainWindow->removeBadSettings();
     }
     menu[currentLevel][currentElement].form->show();
 }
@@ -169,23 +169,23 @@ void ServiceMainRightForm::moveMenu(qint8 level){// организуем пер�
         menu[currentLevel][currentElement].form->hide();
         level = oldLevel;
         if (currentElement == 1 && currentLevel == 3){// ТО
-            ((MainWindow*)parent)->serviceGPIOServiceIntervalLeftForm->saveIntervals();
-            ((MainWindow*)parent)->readValues();
+            _mainWindow->serviceGPIOServiceIntervalLeftForm->saveIntervals();
+            _mainWindow->readValues();
             menu[currentLevel][currentElement].form->hide();
         }
         if (currentElement == 0 && currentLevel == 1){// дату редактировали
-            ((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->changed = false;
-            QString dataa = "date -s @\"" + QString::number(((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->curDT.toTime_t()) + "\"";
+            _mainWindow->serviceGlobalDateTimeLeftForm->changed = false;
+            QString dataa = "date -s @\"" + QString::number(_mainWindow->serviceGlobalDateTimeLeftForm->curDT.toTime_t()) + "\"";
 //            QString dataa = "date -s "
-//                    +QString::number(((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->curDT.date().year(),10)
+//                    +QString::number(_mainWindow->serviceGlobalDateTimeLeftForm->curDT.date().year(),10)
 //                    +"."
-//                    +QString::number(((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->curDT.date().month(),10)
+//                    +QString::number(_mainWindow->serviceGlobalDateTimeLeftForm->curDT.date().month(),10)
 //                    +"."
-//                    +QString::number(((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->curDT.date().day(),10)
+//                    +QString::number(_mainWindow->serviceGlobalDateTimeLeftForm->curDT.date().day(),10)
 //                    +"-"
-//                    +QString::number(((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->curDT.time().hour(),10)
+//                    +QString::number(_mainWindow->serviceGlobalDateTimeLeftForm->curDT.time().hour(),10)
 //                    +":"
-//                    +QString::number(((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->curDT.time().minute(),10)
+//                    +QString::number(_mainWindow->serviceGlobalDateTimeLeftForm->curDT.time().minute(),10)
 //                    +":"
 //                    +QString::number(0,10);
             system(dataa.toUtf8().constData());
@@ -201,7 +201,7 @@ void ServiceMainRightForm::moveMenu(qint8 level){// организуем пер�
         if (currentElement == 1 && currentLevel == 3)
             menu[currentLevel][currentElement].form->hide();
         if (currentElement == 0 && currentLevel == 1)
-            ((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->changed = false;// дату редактировали
+            _mainWindow->serviceGlobalDateTimeLeftForm->changed = false;// дату редактировали
         level = oldLevel;
         oldCurrentElement = -1;
         oldCurrentLevel = -1;
@@ -214,7 +214,7 @@ void ServiceMainRightForm::moveMenu(qint8 level){// организуем пер�
     }
 
     // в некоторых случаях при переходе из меню в меню надо попасть на вопрос о сохранении или не сохранении. попробуем сделать это перенаправляясь на скрытое меню
-    if (currentElement == 0 && currentLevel == 1 && ((MainWindow*)parent)->serviceGlobalDateTimeLeftForm->changed){// дата время сменилась
+    if (currentElement == 0 && currentLevel == 1 && _mainWindow->serviceGlobalDateTimeLeftForm->changed){// дата время сменилась
         oldCurrentLevel = currentLevel;
         oldCurrentElement = currentElement;
         oldLevel = level;
@@ -263,11 +263,11 @@ void ServiceMainRightForm::on_pushButton_4_clicked(){
 
 void ServiceMainRightForm::on_pushButton_exit_clicked(){
     if (currentLevel == 0)    {
-        ((MainWindow*)parent)->serviceSetingsName->hide();
+        _mainWindow->serviceSetingsName->hide();
         hide();
-        ((MainWindow*)parent)->currentState->setSweepMode();
-        ((MainWindow*)parent)->starter->resetIgnitionTimer();//ignitionOffTimer = 0;
-        //((MainWindow*)parent)->Password_accepted_settings = false;
+        _mainWindow->currentState->setSweepMode();
+        _mainWindow->starter->resetIgnitionTimer();//ignitionOffTimer = 0;
+        //_mainWindow->Password_accepted_settings = false;
     }
     else{
         // выход невидимый

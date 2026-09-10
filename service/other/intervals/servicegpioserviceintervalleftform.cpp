@@ -5,12 +5,12 @@
 
 #include "mainwindow.h"
 
-ServiceGPIOServiceIntervalLeftForm::ServiceGPIOServiceIntervalLeftForm(QWidget *parent_) :
+ServiceGPIOServiceIntervalLeftForm::ServiceGPIOServiceIntervalLeftForm(MainWindow* mainWindow, QWidget *parent_) :
     QWidget(parent_),
     ui(new Ui::ServiceGPIOServiceIntervalLeftForm)
 {
     ui->setupUi(this);
-
+    _mainWindow = mainWindow;
     parent = parent_;
 
     choosePdfVboxLayout = new QVBoxLayout(this);
@@ -132,12 +132,13 @@ void ServiceGPIOServiceIntervalLeftForm::fillElements()
         elementsTO.at(i)->deleteLater();
     }
     elementsTO.clear();
-    foreach (QString key, ((MainWindow*)parent)->TONameValues.keys())
+    foreach (QString key, _mainWindow->TONameValues.keys())
     {
-        if (((MainWindow*)parent)->TOSourceValues[key] == 1)
-            elementsTO.append(new ServiceTOElement(((MainWindow*)parent)->TONameValues[key], key, ((MainWindow*)parent)->TOCurValues["System"] - ((MainWindow*)parent)->TOCurValues[key], ((MainWindow*)parent)->TOValues[key], 0, 1000 * 3600, 3600));
+
+        if (_mainWindow->TOSourceValues[key] == 1)
+            elementsTO.append(new ServiceTOElement(_mainWindow->TONameValues[key], key, _mainWindow->TOCurValues["System"] - _mainWindow->TOCurValues[key], _mainWindow->TOValues[key], 0, 1000 * 3600, 3600));
         else
-            elementsTO.append(new ServiceTOElement(((MainWindow*)parent)->TONameValues[key], key, ((MainWindow*)parent)->TOCurValues["Engine"] - ((MainWindow*)parent)->TOCurValues[key], ((MainWindow*)parent)->TOValues[key], 0, 1000 * 3600, 3600));
+            elementsTO.append(new ServiceTOElement(_mainWindow->TONameValues[key], key, _mainWindow->TOCurValues["Engine"] - _mainWindow->TOCurValues[key], _mainWindow->TOValues[key], 0, 1000 * 3600, 3600));
         choosePdfGrid->addWidget(elementsTO.last(), ((elementsTO.size() - 1) / 4), (elementsTO.size() - 1) % 4);
         checkElementTO(elementsTO.size() - 1);
         connect(elementsTO.last()->elementButton, SIGNAL(clicked()), this, SLOT(elementTOClicked()));
@@ -212,10 +213,10 @@ void ServiceGPIOServiceIntervalLeftForm::on_pushButton_moreTOValueButton_clicked
 
 void ServiceGPIOServiceIntervalLeftForm::updateElementTO(int element)
 {
-    if (((MainWindow*)parent)->TOSourceValues[elementsTO.at(element)->settingsName] == 1)
-        elementsTO.at(element)->value = ((MainWindow*)parent)->TOCurValues["System"] - ((MainWindow*)parent)->TOCurValues[elementsTO.at(element)->settingsName];
+    if (_mainWindow->TOSourceValues[elementsTO.at(element)->settingsName] == 1)
+        elementsTO.at(element)->value = _mainWindow->TOCurValues["System"] - _mainWindow->TOCurValues[elementsTO.at(element)->settingsName];
     else
-        elementsTO.at(element)->value = ((MainWindow*)parent)->TOCurValues["Engine"] - ((MainWindow*)parent)->TOCurValues[elementsTO.at(element)->settingsName];
+        elementsTO.at(element)->value = _mainWindow->TOCurValues["Engine"] - _mainWindow->TOCurValues[elementsTO.at(element)->settingsName];
     elementsTO.at(element)->elementValueLabel->setText(QStringLiteral("%1").arg(elementsTO.at(element)->value / 3600, 4, 10, QLatin1Char('0')));
 }
 
@@ -248,14 +249,14 @@ void ServiceGPIOServiceIntervalLeftForm::saveIntervals()
 {
     for (int i = 0; i < elementsTO.count(); i++)
     {
-        ((MainWindow*)parent)->settings->setValue("TO/" + elementsTO.at(i)->settingsName, elementsTO.at(i)->valueTO);
-        if (((MainWindow*)parent)->TOSourceValues[elementsTO.at(i)->settingsName] == 1)
-            ((MainWindow*)parent)->settings->setValue("TOCur/" + elementsTO.at(i)->settingsName, ((MainWindow*)parent)->TOCurValues["System"] - elementsTO.at(i)->value);
+        _mainWindow->settings->setValue("TO/" + elementsTO.at(i)->settingsName, elementsTO.at(i)->valueTO);
+        if (_mainWindow->TOSourceValues[elementsTO.at(i)->settingsName] == 1)
+            _mainWindow->settings->setValue("TOCur/" + elementsTO.at(i)->settingsName, _mainWindow->TOCurValues["System"] - elementsTO.at(i)->value);
         else
-            ((MainWindow*)parent)->settings->setValue("TOCur/" + elementsTO.at(i)->settingsName, ((MainWindow*)parent)->TOCurValues["Engine"] - elementsTO.at(i)->value);
+            _mainWindow->settings->setValue("TOCur/" + elementsTO.at(i)->settingsName, _mainWindow->TOCurValues["Engine"] - elementsTO.at(i)->value);
     }
 
-    ((MainWindow*)parent)->settings->sync();
+    _mainWindow->settings->sync();
     system("sync");
 }
 

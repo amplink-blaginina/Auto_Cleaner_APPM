@@ -3,12 +3,12 @@
 
 #include "mainwindow.h"
 
-ServiceGeneralPasswordLeftForm::ServiceGeneralPasswordLeftForm(QWidget *parent_) :
+ServiceGeneralPasswordLeftForm::ServiceGeneralPasswordLeftForm(MainWindow* mainWindow, QWidget *parent_) :
     QWidget(parent_),
     ui(new Ui::ServiceGeneralPasswordLeftForm)
 {
     ui->setupUi(this);
-
+    _mainWindow = mainWindow;
     parent = parent_;
 
     wrongPassword = false;
@@ -28,7 +28,7 @@ void ServiceGeneralPasswordLeftForm::goStep(quint8 step)
 {
     if (step == 0)
     {
-        passwrd = ((MainWindow*)parent)->settings->value("Global/" + passwordVariable).toInt();
+        passwrd = _mainWindow->settings->value("Global/" + passwordVariable).toInt();
         labels.clear();
         labels.append(ui->label_old_1);
         labels.append(ui->label_old_2);
@@ -219,10 +219,10 @@ void ServiceGeneralPasswordLeftForm::on_pushButton_save_clicked()
             if (QFile::exists(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock"))
                 QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini.lock");
 
-            ((MainWindow*)parent)->settings->beginGroup("Global");
-            ((MainWindow*)parent)->settings->setValue(passwordVariable, passwrd);
-            ((MainWindow*)parent)->settings->endGroup();
-            ((MainWindow*)parent)->settings->sync();
+            _mainWindow->settings->beginGroup("Global");
+            _mainWindow->settings->setValue(passwordVariable, passwrd);
+            _mainWindow->settings->endGroup();
+            _mainWindow->settings->sync();
         }
         for (int i = 0; i < 5; i++)
         {

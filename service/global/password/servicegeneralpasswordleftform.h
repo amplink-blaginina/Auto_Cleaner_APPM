@@ -6,7 +6,7 @@
 #include <QLabel>
 
 #include <interface_button/interfacebutton.h>
-
+class MainWindow;
 namespace Ui {
 class ServiceGeneralPasswordLeftForm;
 }
@@ -16,7 +16,7 @@ class ServiceGeneralPasswordLeftForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit ServiceGeneralPasswordLeftForm(QWidget *parent = nullptr);
+    explicit ServiceGeneralPasswordLeftForm(MainWindow* mainWindow, QWidget *parent = nullptr);
     ~ServiceGeneralPasswordLeftForm();
 
     void stopWrongPassword();
@@ -51,6 +51,7 @@ private slots:
 
 private:
     Ui::ServiceGeneralPasswordLeftForm *ui;
+    MainWindow *_mainWindow;
 };
 
 #endif // SERVICEGENERALPASSWORDLEFTFORM_H

@@ -24,15 +24,15 @@ SettingsMainRightForm::SettingsMainRightForm(MyCan* can, SettingsForm *settingsF
     buttons[2] = ui->pushButton_3;
     buttons[3] = ui->pushButton_4;
 
-    //((MainWindow*)parent)->settingsGlobalGlobalLeftForm
+    //_mainWindow->settingsGlobalGlobalLeftForm
     addMenu("Общие настройки", 0, 0, 1, NULL, ":/Images/Images/settings/buttons/settings_button_gpio");
     addMenu("GPIO ПУ", 1, 0, 1, NULL, ":/Images/Images/settings/gpio/buttons/settings_gpio_button_gpioPy");
     addMenu("GPIO БУЦ", 1, 1, 1, NULL, ":/Images/Images/settings/gpio/buttons/settings_gpio_button_gpioBym");
-    addMenu("WIFI", 1, 2, 1, ((MainWindow*)parent)->settingsWifiLeftForm, ":/Images/Images/settings/gpio/buttons/settings_gpio_button_update");
+    addMenu("WIFI", 1, 2, 1, _mainWindow->settingsWifiLeftForm, ":/Images/Images/settings/gpio/buttons/settings_gpio_button_update");
     addMenu("", 1, 3, 0, NULL, "");
 
     addMenu("Режимы", 0, 1, 2, NULL, ":/Images/Images/settings/buttons/settings_button_mode");
-    addMenu("Легкий + листья", 2, 0, 2, ((MainWindow*)parent)->settingsForm, ":/Images/Images/settings/modes/buttons/settings_mode_button_easyAndLeafHarvesting");
+    addMenu("Легкий + листья", 2, 0, 2, _mainWindow->settingsForm, ":/Images/Images/settings/modes/buttons/settings_mode_button_easyAndLeafHarvesting");
     addMenu("Средний", 2, 1, 2, _settingsForm, ":/Images/Images/settings/modes/buttons/settings_mode_button_average");
     addMenu("Тяжелый", 2, 2, 2, _settingsForm, ":/Images/Images/settings/modes/buttons/settings_mode_button_hard");
     addMenu("", 2, 3, 0, NULL, "");
@@ -44,8 +44,8 @@ SettingsMainRightForm::SettingsMainRightForm(MyCan* can, SettingsForm *settingsF
     addMenu("", 3, 3, 0, NULL, "");
 
     addMenu("Настройки", 0, 3, 4, NULL, ":/Images/Images/settings/buttons/settings_button_settings");
-    addMenu("Пароль", 4, 0, 4, ((MainWindow*)parent)->serviceGeneralPasswordLeftForm, ":/Images/Images/settings/settings/buttons/settings_settings_button_password");
-    addMenu("Оборудование", 4, 1, 4, ((MainWindow*)parent)->settingsSettingsConfigurationLeftForm, ":/Images/Images/settings/settings/buttons/settings_settings_button_configuration");
+    addMenu("Пароль", 4, 0, 4, _mainWindow->serviceGeneralPasswordLeftForm, ":/Images/Images/settings/settings/buttons/settings_settings_button_password");
+    addMenu("Оборудование", 4, 1, 4, _mainWindow->settingsSettingsConfigurationLeftForm, ":/Images/Images/settings/settings/buttons/settings_settings_button_configuration");
     addMenu("Общие", 4, 2, 4, _settingsForm, ":/Images/Images/settings/settings/buttons/settings_settings_button_different");
     addMenu("", 4, 3, 0, NULL, "");
 
@@ -111,7 +111,7 @@ void SettingsMainRightForm::showService()
     if (currentElement == 0 && currentLevel == 4){// сброс пароля
 
         _mainWindow->resetPassword();//serviceGeneralPasswordLeftForm->passwordVariable = "password";
-        //((MainWindow*)parent)->serviceGeneralPasswordLeftForm->goStep(0);
+        //_mainWindow->serviceGeneralPasswordLeftForm->goStep(0);
     }
     if (currentElement == 1 && currentLevel == 1)
     {//супердиаг
@@ -188,8 +188,8 @@ void SettingsMainRightForm::on_pushButton_1_clicked()
         hide();
 
         _mainWindow->currentState->setSweepMode();//menuMode = MainWindow::SweepMode;
-        //((MainWindow*)parent)->superDiagMode = false;
-        //((MainWindow*)parent)->Password_accepted_settings = false;
+        //_mainWindow->superDiagMode = false;
+        //_mainWindow->Password_accepted_settings = false;
         // нажимаем выход чтобы нарисовать главный экран
         moveMenu(3);
         showService();
@@ -208,8 +208,8 @@ void SettingsMainRightForm::on_pushButton_2_clicked()
         _mainWindow->serviceSetingsName->hide();
         hide();
         _mainWindow->currentState->setSweepMode();//menuMode = MainWindow::SweepMode;
-        //((MainWindow*)parent)->superDiagMode = false;
-        //((MainWindow*)parent)->Password_accepted_settings = false;
+        //_mainWindow->superDiagMode = false;
+        //_mainWindow->Password_accepted_settings = false;
         // нажимаем выход чтобы нарисовать главный экран
         moveMenu(3);
         showService();
@@ -248,9 +248,9 @@ void SettingsMainRightForm::on_pushButton_exit_clicked()
         moveMenu(4);
         showService();
 //        hide();
-//        ((MainWindow*)parent)->menuMode = MainWindow::SweepMode;
-//        ((MainWindow*)parent)->superDiagMode = false;
-//        //((MainWindow*)parent)->Password_accepted_settings = false;
+//        _mainWindow->menuMode = MainWindow::SweepMode;
+//        _mainWindow->superDiagMode = false;
+//        //_mainWindow->Password_accepted_settings = false;
     }
     else
     {

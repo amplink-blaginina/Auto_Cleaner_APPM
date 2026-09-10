@@ -12,7 +12,7 @@ class ServiceMainRightForm;
 }
 
 #define SERVICE_MENU_SIZE 5
-
+class MainWindow;
 class ServiceMainRightForm : public QWidget
 {
     Q_OBJECT
@@ -27,7 +27,7 @@ class ServiceMainRightForm : public QWidget
     };
 
 public:
-    explicit ServiceMainRightForm(QWidget *parent = nullptr);
+    explicit ServiceMainRightForm(MainWindow* mainWindow, QWidget *parent = nullptr);
     ~ServiceMainRightForm();
 
     QWidget* parent;
@@ -59,6 +59,7 @@ private slots:
 private:
     Ui::ServiceMainRightForm *ui;
     QSettings *_settings;
+    MainWindow *_mainWindow;
 };
 
 #endif // SERVICEMAINRIGHTFORM_H
