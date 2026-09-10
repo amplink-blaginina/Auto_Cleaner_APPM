@@ -4,13 +4,15 @@
 #include "cancontroller.h"
 #include "gpiocontroller.h"
 
+#include <BoolStateWatcher.h>
 #include <currentstate.h>
 #include <engine.h>
 #include <globalsettings.h>
 #include <qdatetime.h>
 #include <screenlog.h>
+#include <other/engine/serviceotherengineleftform.h>
 
-
+class MainWindow;
 class StarterController
 {
 public:
@@ -19,23 +21,24 @@ public:
                       Engine *engine,
                       ScreenLog *screenLog,
                       CanController *can0,
-                      GPIOController *gpio);
+                      GPIOController *gpio,
+                      MainWindow* mainWindow);
 
     QDateTime starterStartedTime;
     QDateTime starterPauseStartedAt;
 
-    int starterAttemptsUsed;
-    bool starterLockedByRoll;
-    bool starterLockedByTemperature;
-    bool starterLockedByEmergency;
-    bool starterNeedReboot;
-    bool starterPressedPrev;
-    bool starterPauseWarned;
-    bool starterStarted;
-    bool starterStartedAlarmed;
-    bool starterBroomAlarmed;
-    bool starterBunkerAlarmed;
-    bool starterPauseActive;
+    int starterAttemptsUsed = 0;
+    bool starterLockedByRoll = false;
+    bool starterLockedByTemperature = false;
+    bool starterLockedByEmergency = false;
+    bool starterNeedReboot = false;
+    bool starterPressedPrev = false;
+    bool starterPauseWarned = false;
+    bool starterStarted = false;
+    bool starterStartedAlarmed = false;
+    bool starterBroomAlarmed = false;
+    bool starterBunkerAlarmed = false;
+    bool starterPauseActive = false;
     bool starterPressed = false;
     bool engineStartedOk = false;
     quint32 ignitionOffTimer;
@@ -57,9 +60,12 @@ public:
     void forceStopIgnition();
     bool isStarterReleased();
     bool isStarterPressed();
-    bool isStarterClicked();
+    //bool isStarterClicked();
     QString getFatalStatusMessage();
 
+    void updateButtons(bool state);
+    void setEngineForm(ServiceOtherEngineLeftForm *otherEngineForm);
+    void updateStarterStatusText(QString text, bool isError = false);
 private:
     GlobalSettings *_globals;
     Engine *_engine;
@@ -69,9 +75,22 @@ private:
     CurrentState *_state;
     bool engineWasRunning;
     bool intentionalShutdown;
+    BoolStateWatcher m_starter;
+
     bool checkAttemptsLimitReached();
     void handleStarterTimeout();
     bool checkAbleToStart();
+    void startStarterOutput();
+    void engineShutdown();
+    void configureButtons();
+    void onStarterPress();
+    void onStarterHold();
+    void onStarterRelease();
+    void updateStarterState();
+    bool getEngineRunning();
+    MainWindow *_mainWindow;
+    QLabel *_statusLbl;
+    bool trySetStarterState(bool state);
 };
 
 #endif // STARTERCONTROLLER_H

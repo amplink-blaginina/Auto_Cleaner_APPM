@@ -22,7 +22,8 @@ public:
     PrerollController(GlobalSettings *globals, Engine *engine,
                       ScreenLog *screenLog, CanController *can,
                       StarterController *starter, CurrentState *state,
-                      ViewController *view);
+                      ViewController *view,
+                      MainWindow* mainWindow);
 
     QDateTime rollRunStartedAt;
     QDateTime rollPauseStartedAt;
@@ -46,6 +47,8 @@ public:
     void checkEmergencies();
     void update();
     void setEngineForm(ServiceOtherEngineLeftForm *otherEngineForm);
+    void setPrerollPressed(bool state);
+    void resetPreroll();
 private:
     GlobalSettings *_globals;
     Engine *_engine;
@@ -57,8 +60,12 @@ private:
     QPushButton *_prerollBtn;
     QPushButton *_starterPrerollBtn;
     QLabel *_statusLbl;
-    bool foundButtons();
     bool _isInited = false;
+    BoolStateWatcher m_preroll;
+
+    bool foundButtons();
+    void configureButtons();
+    MainWindow *_mainWindow;
 };
 
 #endif // PREROLLCONTROLLER_H
