@@ -1,11 +1,9 @@
 #include "centralbroom.h"
 #include "mainwindow.h"
-
-//#include "mainwindow.h"
-
 #include <QDebug>
 #include <QTimer>
 #include <QThread>
+
 class MainWindow;
 CentralBroom::CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_){
     myCan = myCan_;
@@ -31,7 +29,6 @@ void CentralBroom::readSettings(){
     timeouts.clear();
     rpmForSweepType.clear();
     speedForSweepType.clear();
-    //auto mainWindow = (MainWindow*)parent;
     auto reader = _mainWindow->getReader();
 
     rpmForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("Engine/rpm.LeafSweep").toInt());
@@ -63,9 +60,7 @@ void CentralBroom::setState(BroomStates state_){
     if(state == state_){
         return;
     }
-    qDebug()<<"BroomState "<<state_;
     state = state_;
-   // auto mainWindow = (MainWindow*)parent;
 
     if (state == CentralBroom::BroomOff||//щётка в крайне верхнем положении // остановим поднимаение
         state == CentralBroom::BroomDowned||//щётка в крайне нижнем положении
@@ -231,10 +226,8 @@ void CentralBroom::setDirection(organsEnums::Direction dir){
 }
 
 void CentralBroom::setDirection(organsEnums::Direction dir, bool pressed){
-    qDebug()<<"!!! direction: "<< dir;
     if(dir == direction && pressed == isPressed)
         return;
-    qDebug()<<"!!! "<< dir;
     switch (direction) {
         case organsEnums::Up:
             goUp(false, isPressed);
@@ -251,7 +244,6 @@ void CentralBroom::setDirection(organsEnums::Direction dir, bool pressed){
         default:
             break;
     }
-    //printMovement(dir, false, isPressed);
     direction = dir;
     setPressActive(pressed);
 
@@ -271,12 +263,10 @@ void CentralBroom::setDirection(organsEnums::Direction dir, bool pressed){
         default:
             goNone();
             break;
-    //printMovement(dir, true, pressed);
     }
 }
 
 void CentralBroom::setPressActive(bool state){
-    //qDebug()<<"### setPressed: "<<state;
     if(isPressed == state)
         return;
     if(direction!= organsEnums::None){
@@ -293,39 +283,14 @@ void CentralBroom::setPressActive(bool state){
             break;}
     }
     isPressed = state;
-    //_mainWindow->setBroomPressView(state);
     logger->addLogWarning(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
 }
 
-
-// void CentralBroom::setPressActive(bool state){
-//     if(isPressed == state)
-//         return;
-//     if(direction!= organsEnums::None)
-//         logger->addLogWarning(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
-
-//     if(isPressed)
-//         stopPress();
-//     else
-//         goNone();
-
-//     isPressed = state;
-// }
-
 void CentralBroom::setFlowActive(bool state){
-    qDebug()<<"###flow!!!  "<<state;
     if(isFlowing == state)
         return;
     isFlowing = state;
-    // QString msg = (state? "Switch broom flow to true": "Switch broom flow to false");
-    // logger->printTest(msg);
-    // //если двигались вверх или вниз без поджима и включили плавающий режим - прекращаем движение
-    // if(state && !isPressed
-    //     && (direction == organsEnums::Up ||direction == organsEnums::Down)){
-    //     setDirection(organsEnums::None);
-    // }
     goFlow(state);
-   // _mainWindow->setBroomFlowView(state);
 }
 
 void CentralBroom::goFlow(bool state){

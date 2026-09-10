@@ -1,4 +1,5 @@
 #include "settingsreader.h"
+#include "qdebug.h"
 
 #include <qdatetime.h>
 
@@ -7,11 +8,18 @@ SettingsReader::SettingsReader(QSettings *settings) {
 }
 
 QVariant SettingsReader::readSettingsValue(QString name){// читает значение из настроек (если значения нет, то берет дефолтное)
-    if (_settings->contains(name))
-        return _settings->value(name);
-    else
+    if (_settings->contains(name)){
+
+        return _settings->value(name);}
+    else{
+
         _settings->setValue(name, _defaultValues.value(name));
+    }
     return _defaultValues.value(name);
+}
+
+bool SettingsReader::isSettingsContainsValue(QString name){
+    return _settings->contains(name);
 }
 
 void SettingsReader::setDefaults(){
@@ -89,6 +97,7 @@ void SettingsReader::setDefaults(){
     _defaultValues.insert("Engine/disableTemperatureBlock", false);
     _defaultValues.insert("Engine/ignoreAllEmergency", false);
     _defaultValues.insert("Engine/lastStartDate", QDate::currentDate().addDays(-6));
+    qDebug()<<"!!! defaultValues: "<<_defaultValues.value("Engine/lastStartDate");
     _defaultValues.insert("Global/hydraulicPressure1K", "1");
     _defaultValues.insert("Global/hydraulicPressure1B", "0");
     _defaultValues.insert("Global/hydraulicPressure2K", "1");
@@ -160,6 +169,7 @@ void SettingsReader::setDefaults(){
 
 
 void SettingsReader::updateStartDate(QDate value){
+    qDebug()<<"!!! updateStartDate: "<<value;
     _settings->setValue("Engine/lastStartDate", value);
     _settings->sync();
 }

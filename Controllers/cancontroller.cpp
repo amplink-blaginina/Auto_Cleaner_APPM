@@ -29,9 +29,6 @@ bool CanController::getHeatState(){
 bool CanController::getOilRele(){
     return _can0->getState(StateOilRele).toBool();}
 
-int CanController::getHydraOilTmp(){
-    return _can0->getState(StateHydraulicOilTemperature).toUInt();}
-
 bool CanController::getAlarm(){
     return _can0->getState(StateAlarmIn).toBool();}
 
@@ -48,11 +45,11 @@ bool CanController::getHydraulicFan(){
     return _can0->getState(StateHydraulicFan).toBool();}
 
 uint CanController::getOilTmp(){
-    return _can0->getState(StateHydraulicOilTemperature).toUInt();
-}
+    return _can0->getState(StateHydraulicOilTemperature).toUInt();}
+
 QVariant CanController::getOriginalState(quint8 board_, quint8 channel_){
-    return _can0->getOriginalState(board_, channel_);
-}
+    return _can0->getOriginalState(board_, channel_);}
+
 void CanController::setOriginalState(quint8 board_, quint8 channel_, int value){
     _can0->setOriginalState(board_, channel_, value);
 }

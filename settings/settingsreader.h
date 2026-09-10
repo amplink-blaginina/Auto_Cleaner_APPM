@@ -12,6 +12,7 @@ public:
     QVariant readSettingsValue(QString name);
     void setDefaults();
     void updateStartDate(QDate value);
+    bool isSettingsContainsValue(QString name);
 private:
     QSettings *_settings;
     QMap<QString, QVariant> _defaultValues;
