@@ -1,38 +1,36 @@
 #include "mainwindow.h"
+
 #include "BoolStateWatcher.h"
+#include "password_form.h"
 #include "ui_mainwindow.h"
 
-#include <QLayoutItem>
-
-#include <linux/can/j1939.h>
-#define MAXSOCK 16
-#include "password_form.h"
-
-#include <QLayoutItem>
-#include <QScroller>
-#include <QScrollBar>
-#include <QPushButton>
-#include <screenlog.h>
+#include <Controllers/viewcontroller.h>
 #include <currentstate.h>
+#include <screenlog.h>
 #include <settingsreader.h>
 
-// pwm
-#include <sys/socket.h>
+#include <QLayoutItem>
+#include <QPushButton>
+#include <QScroller>
+#include <QScrollBar>
+
+#include <errno.h>
+#include <fcntl.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
-#include <fcntl.h>
 #include <sys/mman.h>
-#include <errno.h>
-#include <Controllers/viewcontroller.h>
+#include <sys/socket.h>
 
+#include <linux/can.h>
 #include <linux/can/j1939.h>
 
+#define MAXSOCK 16
 #define DEVELOPER_MODE 0
 
 QLocale EngLocale (QLocale::Russian);
 
 static int ptsInc = 0;
-QString programmVersionString = "AutoCleaner APPM v3.020";
+const QString programmVersionString = QStringLiteral("AutoCleaner APPM v3.020");
 
 //Changes
 // 3.001 - форкнулся от APPM2 imx6, удалил лишнее и накатил на нее все от разбери с 200 и 318D4
@@ -1869,7 +1867,7 @@ bool MainWindow::getGPIOInput(GPIOInput id){
 }
 
 void MainWindow::checkAndShowStatus(){
-    checkEngineAndRollLocks();
+    //checkEngineAndRollLocks();
 
     // wait_on_start
     showStatus(ui->label_wait_on_start, engine->waitOnStart, "Требуется прогрев двигателя", "Двигатель прогрет");
