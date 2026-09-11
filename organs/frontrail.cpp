@@ -239,7 +239,7 @@ void FrontRail::goUp(bool state){
 }
 
 void FrontRail::goFlow(bool state){
-    logger->addLogWarning(state?"Отвал: плавание активировано":"Отвал: плавание деактивировано");
+    logger->addLog(state?"Отвал: плавание активировано":"Отвал: плавание деактивировано");
     myCan->setState(StateValveC3, state);
     myCan->setState(StateValveC4, state);
 }

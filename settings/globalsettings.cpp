@@ -1,10 +1,10 @@
 #include "globalsettings.h"
+#include "qdebug.h"
 
 #include <qdatetime.h>
 
 GlobalSettings::GlobalSettings(SettingsReader *reader){
-    _reader = reader;
-}
+    _reader = reader;}
 
 void GlobalSettings::setDefaults(){
     starterMaxWorkSec = 15;
@@ -20,13 +20,11 @@ void GlobalSettings::setDefaults(){
 }
 
 void GlobalSettings::readValues(){
-
     rpmNone = readSettingsValue("Engine/rpm.None").toInt();// холостой ход
     enigneAddr = readSettingsValue("Engine/addr").toInt();// адрес двигателя
     enableCleanSpeed = _reader->readSettingsValue("Global/enableCleanSpeed").toInt();// пороги скорости
     disableCleanSpeed = _reader->readSettingsValue("Global/disableCleanSpeed").toInt();
     ventEdge = _reader->readSettingsValue("Engine/rpm.VentEdge").toInt();// охлаждение двигателя
-
     requireRollAfterDays = readSettingsValue("Engine/startRollRequiredDays").toInt();
     lowTempRequireWarm = readSettingsValue("Engine/startLowTemperatureEdge").toInt();
     starterMaxWorkSec = readSettingsValue("Engine/starterMaxWorkSec").toInt();
@@ -41,15 +39,13 @@ void GlobalSettings::readValues(){
 }
 
 QVariant GlobalSettings::readSettingsValue(QString key){
-    return _reader->readSettingsValue(key);
-}
+    return _reader->readSettingsValue(key);}
+
 bool GlobalSettings::isNeedRoolByDate(int value) const{
-    return value > requireRollAfterDays;
-}
+    return value > requireRollAfterDays;}
 
 bool GlobalSettings::isEngineCold(int value) const{
-    return value < lowTempRequireWarm;
-}
+    return value < lowTempRequireWarm;}
 
 bool GlobalSettings::rollWorkingLimitReached(QDateTime startMoment) const{
     const int rollRunTime = qAbs(startMoment.secsTo(QDateTime::currentDateTime()));
@@ -57,8 +53,7 @@ bool GlobalSettings::rollWorkingLimitReached(QDateTime startMoment) const{
 }
 
 bool GlobalSettings::rollAttemptsLimitReached(int used) const{
-    return used >= starterMaxAttempts;
-}
+    return used >= starterMaxAttempts;}
 
 bool GlobalSettings::starterWorkingLimitReached(QDateTime startMoment) const{
     const int starterRunTime = qAbs(startMoment.secsTo(QDateTime::currentDateTime()));
@@ -66,12 +61,10 @@ bool GlobalSettings::starterWorkingLimitReached(QDateTime startMoment) const{
 }
 
 bool GlobalSettings::starterAttemptsLimitReached(int used) const{
-    return used >= starterMaxAttempts;
-}
+    return used >= starterMaxAttempts;}
 
 bool GlobalSettings::checkStarterPause(QDateTime startMoment) const{
     const int passed = qAbs(startMoment.secsTo(QDateTime::currentDateTime()));
-    //qDebug()<<"timer: "<<passed<<"   targetTime: "<<starterPauseSec;
     return passed < starterPauseSec;
 }
 
@@ -91,9 +84,8 @@ int GlobalSettings::rollPauseSecondsLeft(QDateTime startMoment) const{
 }
 
 int GlobalSettings::getRollAttempts() const{
-    return rollMaxAttempts;
-}
+    return rollMaxAttempts;}
+
 int GlobalSettings::getRpm() const{
-    return rpmNone * 8;
-}
+    return rpmNone * 8;}
 

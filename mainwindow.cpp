@@ -189,20 +189,20 @@ void MainWindow::configureFilters(){
         }
     };
 }
-
-void MainWindow::setBroomFlow(bool state){
-    if(state == workMode.centralBroomFlow){
+void MainWindow::setBroomFlow(bool state)
+{
+    if (state == workMode.centralBroomFlow) {
         return;
     }
+
     workMode.centralBroomFlow = state;
 
-    //setBroomFlowView(state);//workMode.centralBroomFlow
-    if(startClean){
-        broomCentral->setFlowActive(state);}
+    if (startClean) {
+        broomCentral->setFlowActive(state);
+    }
+
     showWorkMode();
-    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
-    path += state?(workMode.centralBroomPress? "on.png);": "up_on.png);"):(workMode.centralBroomPress? "down_on.png);": "off.png);");
-    view->setStyle(ui->label_centralBroomFloatPress, path);
+    updateBroomFlowPressIcon();
 }
 
 void MainWindow::setDumpFlow(bool state){
@@ -223,13 +223,39 @@ void MainWindow::setDumpFlow(bool state){
     showWorkMode();
 }
 
+void MainWindow::updateBroomFlowPressIcon()
+{
+    QString path =
+        "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
+
+    path += workMode.centralBroomFlow
+                ? (workMode.centralBroomPress ? "on.png);" : "up_on.png);")
+                : (workMode.centralBroomPress ? "down_on.png);" : "off.png);");
+
+    view->setStyle(ui->label_centralBroomFloatPress, path);
+}
+
+void MainWindow::setButtonVisualState(QPushButton* button, QLabel* iconLabel, const QString& style, bool wasDown)
+{
+    button->setProperty("wasDown", wasDown);
+
+    if (iconLabel != nullptr) {
+        view->setStyle(iconLabel, style);
+    }
+}
+
 void MainWindow::configureButtons(){
 
     m_dumpUpWatcher = BoolStateWatcher{
    {
        .onActivated = [this] {
-           ui->pushButton_dumpUp->setProperty("wasDown", true);
-           view->setStyle(ui->label_dumpUpDown, dumpVertPath + "up_off.png);");
+
+        setButtonVisualState(
+            ui->pushButton_dumpUp,
+            ui->label_dumpUpDown,
+            dumpVertPath + "up_off.png);",
+            true
+            );
 
            if(isDumpTransitioning()){
                view->addLog("Отвал в движении, ожидайте");
@@ -241,8 +267,12 @@ void MainWindow::configureButtons(){
            }
        },
        .onDeactivated = [this] {
-           ui->pushButton_dumpUp->setProperty("wasDown", false);
-           view->setStyle(ui->label_dumpUpDown, dumpVertPath + "off.png);");
+             setButtonVisualState(
+                 ui->pushButton_dumpUp,
+                 ui->label_dumpUpDown,
+                 dumpVertPath + "off.png);",
+                 false
+                 );
 
            if(isDumpTransitioning()){
                view->addLog("Отвал в движении, ожидайте");
@@ -258,71 +288,99 @@ void MainWindow::configureButtons(){
    }};
 
     m_dumpDownWatcher = BoolStateWatcher{
-     {
-         .onActivated = [this] {
-             ui->pushButton_dumpDown->setProperty("wasDown", true);
-             view->setStyle(ui->label_dumpUpDown, dumpVertPath + "down_off.png);");
+        {
+            .onActivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_dumpDown,
+                    ui->label_dumpUpDown,
+                    dumpVertPath + "down_off.png);",
+                    true
+                    );
 
-             if(isDumpTransitioning()){
-                 view->addLog("Отвал в движении, ожидайте");
-                 return;
-             }
-             if (startClean){
-                 frontRail->setDirection(organsEnums::Down);
-                 view->addLog("Отвал: движение вниз");}
-             ;},
+                if (isDumpTransitioning()) {
+                    view->addLog("Отвал в движении, ожидайте");
+                    return;
+                }
 
-         .onDeactivated = [this] {
-             ui->pushButton_dumpDown->setProperty("wasDown", false);
-             view->setStyle(ui->label_dumpUpDown, dumpVertPath + "off.png);");
+                if (startClean) {
+                    frontRail->setDirection(organsEnums::Down);
+                    view->addLog("Отвал: движение вниз");
+                }
+            },
 
-             if(isDumpTransitioning()){
-                 view->addLog("Отвал в движении, ожидайте");
-                 return;
-             }
-             if (startClean){
-                 frontRail->setDirection(organsEnums::None);
-                 view->addLog("Отвал: движение вниз завершено");}
-             },
-         .whileActive = [this] {},
-         .whileInactive = [this] {}
-     }};
+            .onDeactivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_dumpDown,
+                    ui->label_dumpUpDown,
+                    dumpVertPath + "off.png);",
+                    false
+                    );
+
+                if (isDumpTransitioning()) {
+                    view->addLog("Отвал в движении, ожидайте");
+                    return;
+                }
+
+                if (startClean) {
+                    frontRail->setDirection(organsEnums::None);
+                    view->addLog("Отвал: движение вниз завершено");
+                }
+            },
+
+            .whileActive = [this] {},
+            .whileInactive = [this] {}
+        }
+    };
 
     m_dumpLeftWatcher = BoolStateWatcher{
         {
             .onActivated = [this] {
-                ui->pushButton_dumpLeft->setProperty("wasDown", true);
-                view->setStyle(ui->label_dump, dumpHorPath + "left_on.png);");
+                setButtonVisualState(
+                    ui->pushButton_dumpLeft,
+                    ui->label_dump,
+                    dumpHorPath + "left_on.png);",
+                    true
+                    );
 
-                if(isDumpTransitioning()){
+                if (isDumpTransitioning()) {
                     view->addLog("Отвал в движении, ожидайте");
                     return;
                 }
-                if(startClean){
+
+                if (startClean) {
                     view->addLog("Отвал движение влево");
                     frontRail->setDirection(organsEnums::Left);
-                }
-                else{
+                } else {
                     workMode.frontDumpLeft = !workMode.frontDumpLeft;
-                    if(workMode.frontDumpLeft){
+
+                    if (workMode.frontDumpLeft) {
                         view->addLog("Отвал: выбрана левая сторона");
                     }
+
                     workMode.frontDumpRight = false;
                     showWorkMode();
                 }
-
             },
+
             .onDeactivated = [this] {
-                ui->pushButton_dumpLeft->setProperty("wasDown", false);
-                view->setStyle(ui->label_dump, getDumpDefaultIcon());
-                if(isDumpTransitioning()){
+                setButtonVisualState(
+                    ui->pushButton_dumpLeft,
+                    ui->label_dump,
+                    getDumpDefaultIcon(),
+                    false
+                    );
+
+                if (isDumpTransitioning()) {
                     view->addLog("Отвал в движении, ожидайте");
                     return;
                 }
-                if(startClean){
+
+                if (startClean) {
                     view->addLog("Отвал движение влево завершено");
-                    frontRail->setDirection(organsEnums::None);}
-                },
+                    frontRail->setDirection(organsEnums::None);
+                }
+            },
+
             .whileActive = [this] {},
             .whileInactive = [this] {}
         }
@@ -331,35 +389,51 @@ void MainWindow::configureButtons(){
     m_dumpRightWatcher = BoolStateWatcher{
         {
             .onActivated = [this] {
-                ui->pushButton_dumpRight->setProperty("wasDown", true);
-                view->setStyle(ui->label_dump, dumpHorPath + "right_on.png);");
+                setButtonVisualState(
+                    ui->pushButton_dumpRight,
+                    ui->label_dump,
+                    dumpHorPath + "right_on.png);",
+                    true
+                    );
 
-                if(isDumpTransitioning()){
+                if (isDumpTransitioning()) {
                     view->addLog("Отвал в движении, ожидайте");
                     return;
                 }
-                if (startClean){
+
+                if (startClean) {
                     view->addLog("Отвал движение вправо");
-                    frontRail->setDirection(organsEnums::Right);}
-                else{
+                    frontRail->setDirection(organsEnums::Right);
+                } else {
                     workMode.frontDumpRight = !workMode.frontDumpRight;
-                    if(workMode.frontDumpRight){
+
+                    if (workMode.frontDumpRight) {
                         view->addLog("Отвал: выбрана правая сторона");
                     }
+
                     workMode.frontDumpLeft = false;
                     showWorkMode();
                 }
             },
+
             .onDeactivated = [this] {
-                ui->pushButton_dumpRight->setProperty("wasDown", false);
-                view->setStyle(ui->label_dump, getDumpDefaultIcon());
-                if(isDumpTransitioning()){
+                setButtonVisualState(
+                    ui->pushButton_dumpRight,
+                    ui->label_dump,
+                    getDumpDefaultIcon(),
+                    false
+                    );
+
+                if (isDumpTransitioning()) {
                     return;
                 }
-                if (startClean){
+
+                if (startClean) {
                     view->addLog("Отвал движение вправо завершено");
-                    frontRail->setDirection(organsEnums::None);}
+                    frontRail->setDirection(organsEnums::None);
+                }
             },
+
             .whileActive = [this] {},
             .whileInactive = [this] {}
         }
@@ -368,9 +442,16 @@ void MainWindow::configureButtons(){
     m_dumpFlowWatcher = BoolStateWatcher{
         {
             .onActivated = [this] {
-                ui->pushButton_dumpFlow->setProperty("wasDown", true);
+                setButtonVisualState(
+                    ui->pushButton_dumpFlow,
+                    nullptr,
+                    QString(),
+                    true
+                    );
+
                 setDumpFlow(!workMode.frontDumpFlow);
             },
+
             .onDeactivated = [this] {},
             .whileActive = [this] {},
             .whileInactive = [this] {}
@@ -382,153 +463,484 @@ void MainWindow::configureButtons(){
     m_broomUpWatcher = BoolStateWatcher{
         {
             .onActivated = [this] {
-                 ui->pushButton_centralBroomUp->setProperty("wasDown", true);
-                 view->setStyle(ui->label_centralBroomUpDown, broomVertPath + "up_on.png);");
+                setButtonVisualState(
+                    ui->pushButton_centralBroomUp,
+                    ui->label_centralBroomUpDown,
+                    broomVertPath + "up_on.png);",
+                    true
+                    );
 
-                    if(isBroomTransitioning()){
-                        view->addLog("Щетка в движении, ожидайте");
-                        return;
-                    }
-                    if (startClean){
-                        view->addLog("Щётка: движение вверх");
-                        broomCentral->setDirection(organsEnums::Up);
-                    }
-                },
-            .onDeactivated = [this] {
-                 ui->pushButton_centralBroomUp->setProperty("wasDown", false);
-                 view->setStyle(ui->label_centralBroomUpDown, broomVertPath + "off.png);");
-
-                 if(isBroomTransitioning()){
-                     return;
-                 }
-                 if (startClean){
-                     view->addLogWarning("Щётка движение вверх завершено");
-                     broomCentral->setDirection(organsEnums::None);}
-         },
-            .whileActive = [this] {},
-            .whileInactive = [this] {}
-        }};
-
-    m_broomDownWatcher = BoolStateWatcher{
-        {
-            //.onUpdate = []{},
-            .onActivated = [this] {
-                 ui->pushButton_centralBroomDown->setProperty("wasDown", true);
-                 view->setStyle(ui->label_centralBroomUpDown, broomVertPath + "down_on.png);");
-
-                if(isBroomTransitioning()){
+                if (isBroomTransitioning()) {
                     view->addLog("Щетка в движении, ожидайте");
                     return;
                 }
-                if (startClean){
+
+                if (startClean) {
+                    view->addLog("Щётка: движение вверх");
+                    broomCentral->setDirection(organsEnums::Up);
+                }
+            },
+
+            .onDeactivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_centralBroomUp,
+                    ui->label_centralBroomUpDown,
+                    broomVertPath + "off.png);",
+                    false
+                    );
+
+                if (isBroomTransitioning()) {
+                    return;
+                }
+
+                if (startClean) {
+                    view->addLog("Щётка движение вверх завершено");
+                    broomCentral->setDirection(organsEnums::None);
+                }
+            },
+
+            .whileActive = [this] {},
+            .whileInactive = [this] {}
+        }
+    };
+
+    m_broomDownWatcher = BoolStateWatcher{
+        {
+            .onActivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_centralBroomDown,
+                    ui->label_centralBroomUpDown,
+                    broomVertPath + "down_on.png);",
+                    true
+                    );
+
+                if (isBroomTransitioning()) {
+                    view->addLog("Щетка в движении, ожидайте");
+                    return;
+                }
+
+                if (startClean) {
                     view->addLog("Щётка: движение вниз");
                     broomCentral->setDirection(organsEnums::Down);
                 }
             },
+
             .onDeactivated = [this] {
-                 ui->pushButton_centralBroomDown->setProperty("wasDown", false);
-                 view->setStyle(ui->label_centralBroomUpDown, broomVertPath + "off.png);");
-                 if(startClean){
-                     view->addLog("Щётка движение вниз завершено");
-                     broomCentral->setDirection(organsEnums::None);
-                 }},
+                setButtonVisualState(
+                    ui->pushButton_centralBroomDown,
+                    ui->label_centralBroomUpDown,
+                    broomVertPath + "off.png);",
+                    false
+                    );
+
+                if (startClean) {
+                    view->addLog("Щётка движение вниз завершено");
+                    broomCentral->setDirection(organsEnums::None);
+                }
+            },
+
             .whileActive = [this] {},
             .whileInactive = [this] {}
-        }};
+        }
+    };
 
     m_broomLeftWatcher = BoolStateWatcher{
         {
-            //.onUpdate = []{},
             .onActivated = [this] {
-                 ui->pushButton_centralBroomLeft->setProperty("wasDown", true);
-                 view->setStyle(ui->label_centralBroom, broomHorPath + "left_on.png);");
+                setButtonVisualState(
+                    ui->pushButton_centralBroomLeft,
+                    ui->label_centralBroom,
+                    broomHorPath + "left_on.png);",
+                    true
+                    );
 
-                if(isBroomTransitioning()){
+                if (isBroomTransitioning()) {
                     view->addLog("Щетка в движении, ожидайте");
                     return;
                 }
-                if(startClean){
+
+                if (startClean) {
                     broomCentral->setDirection(organsEnums::Left);
-                }
-                else{
+                } else {
                     workMode.centralBroomLeft = !workMode.centralBroomLeft;
-                    if(workMode.centralBroomLeft){
+
+                    if (workMode.centralBroomLeft) {
                         view->addLog("Щётка: выбрана левая сторона");
                     }
+
                     workMode.centralBroomRight = false;
                     showWorkMode();
                 }
-             },
-            .onDeactivated = [this] {
-                 ui->pushButton_centralBroomLeft->setProperty("wasDown", false);
-                 view->setStyle(ui->label_centralBroom, getBroomDefaultIcon());
-                 if (startClean){
-                    view->addLog("Щётка движение влево завершено");
-                    broomCentral->setDirection(organsEnums::None);}
             },
+
+            .onDeactivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_centralBroomLeft,
+                    ui->label_centralBroom,
+                    getBroomDefaultIcon(),
+                    false
+                    );
+
+                if (startClean) {
+                    view->addLog("Щётка движение влево завершено");
+                    broomCentral->setDirection(organsEnums::None);
+                }
+            },
+
             .whileActive = [this] {},
             .whileInactive = [this] {}
-        }};
+        }
+    };
 
     m_broomRightWatcher = BoolStateWatcher{
         {
             .onActivated = [this] {
-                 ui->pushButton_centralBroomRight->setProperty("wasDown", true);
-                 view->setStyle(ui->label_centralBroom, broomHorPath + "right_on.png);");
+                setButtonVisualState(
+                    ui->pushButton_centralBroomRight,
+                    ui->label_centralBroom,
+                    broomHorPath + "right_on.png);",
+                    true
+                    );
 
-                if(isBroomTransitioning()){
+                if (isBroomTransitioning()) {
                     view->addLog("Щетка в движении, ожидайте");
                     return;
                 }
-                if (startClean)
+
+                if (startClean) {
                     broomCentral->setDirection(organsEnums::Right);
-                else{
+                } else {
                     workMode.centralBroomRight = !workMode.centralBroomRight;
-                    if(workMode.centralBroomRight){
+
+                    if (workMode.centralBroomRight) {
                         view->addLog("Щётка: выбрана правая сторона");
                     }
+
                     workMode.centralBroomLeft = false;
                     showWorkMode();
                 }
             },
+
             .onDeactivated = [this] {
-                 ui->pushButton_centralBroomRight->setProperty("wasDown", false);
-                 view->setStyle(ui->label_centralBroom, getBroomDefaultIcon());
-                 if (startClean){
-                    broomCentral->setDirection(organsEnums::None);}
+                setButtonVisualState(
+                    ui->pushButton_centralBroomRight,
+                    ui->label_centralBroom,
+                    getBroomDefaultIcon(),
+                    false
+                    );
+
+                if (startClean) {
+                    broomCentral->setDirection(organsEnums::None);
+                }
             },
-            .whileActive = [this] {broomCentral->setDirection(organsEnums::Right);},
+
+            .whileActive = [this] {
+                broomCentral->setDirection(organsEnums::Right);
+            },
+
             .whileInactive = [this] {}
-        }};
+        }
+    };
 
     m_broomFlowWatcher = BoolStateWatcher{
-       {
-           .onActivated = [this] {
-               ui->pushButton_centralBroomFlow->setProperty("wasDown", true);
-               setBroomFlow(!workMode.centralBroomFlow);
-           },
-           .onDeactivated = [this] {},
-           .whileActive = [this] {},
-           .whileInactive = [this] {}
-       }};
+        {
+            .onActivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_centralBroomFlow,
+                    nullptr,
+                    QString(),
+                    true
+                    );
+
+                setBroomFlow(!workMode.centralBroomFlow);
+            },
+
+            .onDeactivated = [this] {},
+            .whileActive = [this] {},
+            .whileInactive = [this] {}
+        }
+    };
 
     m_broomPressWatcher = BoolStateWatcher{
-      {
-          .onActivated = [this] {
-              ui->pushButton_centralBroomFlow->setProperty("wasDown", true);
-              workMode.centralBroomPress = !workMode.centralBroomPress;
-              broomCentral->setPressActive(workMode.centralBroomPress);
-              showWorkMode();
+        {
+            .onActivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_centralBroomPress,
+                    nullptr,
+                    QString(),
+                    true
+                    );
+
+                workMode.centralBroomPress = !workMode.centralBroomPress;
+                broomCentral->setPressActive(workMode.centralBroomPress);
+                showWorkMode();
+
+                QString path =
+                    "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
+
+                path += workMode.centralBroomFlow
+                            ? (workMode.centralBroomPress ? "on.png);" : "up_on.png);")
+                            : (workMode.centralBroomPress ? "down_on.png);" : "off.png);");
+
+                view->setStyle(ui->label_centralBroomFloatPress, path);
+            },
+
+            .onDeactivated = [this] {},
+            .whileActive = [this] {},
+            .whileInactive = [this] {}
+        }
+    };
 
 
-              QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
-              path += workMode.centralBroomFlow?(workMode.centralBroomPress? "on.png);": "up_on.png);"):(workMode.centralBroomPress? "down_on.png);": "off.png);");
-              view->setStyle(ui->label_centralBroomFloatPress, path);
-          },
-          .onDeactivated = [this] {},
-          .whileActive = [this] {},
-          .whileInactive = [this] {}
-      }};
+    //-------------------------------------------------------------------------
+    m_blowUpWatcher = BoolStateWatcher{
+        {
+            .onActivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_blowerUp,
+                    ui->label_blowerUpDown,
+                    blowerVertPath + "up_on.png);",
+                    true
+                    );
+
+                if (isBlowTransitioning()) {
+                    view->addLog("Обдув в движении, ожидайте");
+                    return;
+                }
+
+                if (startClean) {
+                    if (blower->isRotating()) {
+                        blower->setStartMomentForStopping();
+                        view->addLog(
+                            "Удерживайте кнопку вверх для остановки обдува и подъёма"
+                            );
+                    } else {
+                        blower->goUp();
+                    }
+                }
+            },
+
+            .onDeactivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_blowerUp,
+                    ui->label_blowerUpDown,
+                    blowerVertPath + "off.png);",
+                    false
+                    );
+
+                if (isBlowTransitioning()) {
+                    return;
+                }
+
+                if (startClean) {
+                    blower->goNone();
+                }
+            },
+
+            .whileActive = [this] {
+                blower->updateWhenUpPressed();
+            },
+
+            .whileInactive = [this] {}
+        }
+    };
+
+    m_blowDownWatcher = BoolStateWatcher{
+        {
+            .onActivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_blowerDown,
+                    ui->label_blowerUpDown,
+                    blowerVertPath + "down_on.png);",
+                    true
+                    );
+
+                if (isBlowTransitioning()) {
+                    view->addLog("Обдув в движении, ожидайте");
+                    return;
+                }
+
+                if (startClean) {
+                    if (!blower->isRotating()) {
+                        blower->setStartMomentForStarting();
+                    }
+
+                    // blower->goDown();
+                }
+            },
+
+            .onDeactivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_blowerDown,
+                    ui->label_blowerUpDown,
+                    blowerVertPath + "off.png);",
+                    false
+                    );
+
+                if (isBlowTransitioning()) {
+                    return;
+                }
+
+                if (startClean) {
+                    blower->goNone();
+                }
+            },
+
+            .whileActive = [this] {
+                blower->updateWhenDownPressed();
+            },
+
+            .whileInactive = [this] {}
+        }
+    };
+
+    m_blowLeftWatcher = BoolStateWatcher{
+        {
+            .onActivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_blowerLeft,
+                    ui->label_blower,
+                    blowerHorPath + "left_on.png);",
+                    true
+                    );
+
+                if (isBlowTransitioning()) {
+                    view->addLog("Обдув в движении, ожидайте");
+                    return;
+                }
+
+                if (startClean) {
+                    if (blower->isRotating()) {
+                        view->addLog(
+                            "Удерживайте кнопку влево для смены направления обдува"
+                            );
+                        blower->setStartMomentForRotation();
+                    } else {
+                        blower->goSlide(false);
+                    }
+                } else {
+                    view->addLog("Обдув: выбрана левая сторона");
+                    workMode.blowLeft = !workMode.blowLeft;
+                    workMode.blowRight = false;
+                    showWorkMode();
+                }
+            },
+
+            .onDeactivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_blowerLeft,
+                    ui->label_blower,
+                    getBlowerDefaultIcon(),
+                    false
+                    );
+
+                if (isBlowTransitioning()) {
+                    return;
+                }
+
+                if (startClean) {
+                    blower->goNone();
+                }
+            },
+
+            .whileActive = [this] {
+                blower->updateWhenRotationPressed(false);
+            },
+
+            .whileInactive = [this] {}
+        }
+    };
+
+    m_blowRightWatcher = BoolStateWatcher{
+        {
+            .onActivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_blowerRight,
+                    ui->label_blower,
+                    blowerHorPath + "right_on.png);",
+                    true
+                    );
+
+                if (isBlowTransitioning()) {
+                    view->addLog("Обдув в движении, ожидайте");
+                    return;
+                }
+
+                if (startClean) {
+                    if (blower->isRotating()) {
+                        view->addLog(
+                            "Удерживайте кнопку вправо для смены направления обдува"
+                            );
+                        blower->setStartMomentForRotation();
+                    } else {
+                        blower->goSlide(true);
+                    }
+                } else {
+                    view->addLog("Обдув: выбрана правая сторона");
+                    workMode.blowRight = !workMode.blowRight;
+                    workMode.blowLeft = false;
+                    showWorkMode();
+                }
+            },
+
+            .onDeactivated = [this] {
+                setButtonVisualState(
+                    ui->pushButton_blowerRight,
+                    ui->label_blower,
+                    getBlowerDefaultIcon(),
+                    false
+                    );
+
+                if (isBlowTransitioning()) {
+                    return;
+                }
+
+                if (startClean) {
+                    blower->goNone();
+                }
+            },
+
+            .whileActive = [this] {
+                blower->updateWhenRotationPressed(true);
+            },
+
+            .whileInactive = [this] {}
+        }
+    };
+
+    m_broomPressWatcher = BoolStateWatcher{
+        {
+            .onActivated = [this] {
+                setButtonVisualState(ui->pushButton_centralBroomPress, nullptr, QString(), true);
+                workMode.centralBroomPress = !workMode.centralBroomPress;
+                broomCentral->setPressActive(workMode.centralBroomPress);
+
+                showWorkMode();
+                updateBroomFlowPressIcon();
+            },
+
+            .onDeactivated = [this] {},
+            .whileActive = [this] {},
+            .whileInactive = [this] {}
+        }
+    };
+    // m_broomPressWatcher = BoolStateWatcher{
+    //   {
+    //       .onActivated = [this] {
+    //           ui->pushButton_centralBroomFlow->setProperty("wasDown", true);
+    //           workMode.centralBroomPress = !workMode.centralBroomPress;
+    //           broomCentral->setPressActive(workMode.centralBroomPress);
+    //           showWorkMode();
+
+
+    //           QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
+    //           path += workMode.centralBroomFlow?(workMode.centralBroomPress? "on.png);": "up_on.png);"):(workMode.centralBroomPress? "down_on.png);": "off.png);");
+    //           view->setStyle(ui->label_centralBroomFloatPress, path);
+    //       },
+    //       .onDeactivated = [this] {},
+    //       .whileActive = [this] {},
+    //       .whileInactive = [this] {}
+    //   }};
 
 
     //-------------------------------------------------------------------------
@@ -1601,7 +2013,7 @@ void MainWindow::oneSecond(){// универсальный таймер для �
 
     if (can0->isActive()){
         // получим температуру гидрооборудования
-        const qint16 hydro_temp = hydroTempK * can->getHydraOilTmp() + hydroTempB;
+        const qint16 hydro_temp = hydroTempK * can->getOilTmp() + hydroTempB;
         qint16 filtered;
         if (hydroTempFilter.process(hydro_temp, filtered))
             ui->label_hydraulicTemperature->setText(QString::number(filtered));
@@ -1609,7 +2021,7 @@ void MainWindow::oneSecond(){// универсальный таймер для �
 }
 
 void MainWindow::repaintProgress(){
-    QString text = QString::number(hydroTempK * can->getHydraOilTmp() + hydroTempB, 'f', 1);
+    QString text = QString::number(hydroTempK * can->getOilTmp() + hydroTempB, 'f', 1);
     text = QString::number(hydraulicPressureValue(2), 'f', 1);
     if (ui->label_fan_pressure->text() != text + " P ТИ3")
         ui->label_fan_pressure->setText(text + " P ТИ3");

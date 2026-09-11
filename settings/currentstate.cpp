@@ -1,4 +1,5 @@
 #include "currentstate.h"
+#include "qdebug.h"
 #include "settingsreader.h"
 #include <qdatetime.h>
 #include <Controllers/gpiocontroller.h>
@@ -91,18 +92,36 @@ void CurrentState::setVehicleVoltage(float value){
 }
 
 void CurrentState::readValues(){
-    disableRollRequirement = _reader->readSettingsValue("Engine/disableRollRequirement").toBool();
-    lastEngineStartDate = _reader->readSettingsValue("Engine/lastStartDate").toDate();
-    if (!lastEngineStartDate.isValid())
-        lastEngineStartDate = QDate::currentDate();
+    if(_reader->isSettingsContainsValue("Engine/lastStartDate")){
+        qDebug()<<"!!! has settings ";
+    }
+    else{
+        qDebug()<<"!!! no settings ";
+    }
+
+   // if(!_reader->isSettingsContainsValue("Engine/lastStartDate")){
+        disableRollRequirement = _reader->readSettingsValue("Engine/disableRollRequirement").toBool();
+        //qDebug()<<"!!! readStartDate1: "<<lastEngineStartDate;
+        lastEngineStartDate = _reader->readSettingsValue("Engine/lastStartDate").toDate();
+        qDebug()<<"!!! readStartDate: "<<lastEngineStartDate;
+   // }
+
+    // if (!lastEngineStartDate.isValid())
+    //     lastEngineStartDate = QDate::currentDate();
 }
 
 void CurrentState::updateStartDate(){
+    qDebug()<<"!!! updateStartDate: "<<lastEngineStartDate;
     lastEngineStartDate = QDate::currentDate();
     _reader->updateStartDate(lastEngineStartDate);
 }
 
 int CurrentState::getDaysFromStart(){
+    // if (!lastEngineStartDate.isValid()){
+    //     return 100;
+    // }
+    //qDebug()<<"!!! LastStartDate  "<<lastEngineStartDate;
+    //qDebug()<<"!!! LastStartDate  "<<lastEngineStartDate.daysTo(QDate::currentDate());
     return lastEngineStartDate.daysTo(QDate::currentDate());
 }
 
@@ -121,6 +140,7 @@ bool CurrentState::isDiagOrSettingsMode(){
 bool CurrentState::isIgnitionEnabled(){
     return !_can->isDisabled();
 }
+
 bool CurrentState:: isAlarm(){
     waterAlarm = _can->getState(StateWaterSensor) && waterSensorEmergencyMode;
     airAlarm = _can->getState(StateAirFilterBad) && airFilterEmergencyMode;
