@@ -262,7 +262,6 @@ void MainWindow::configureButtons(){
                return;
            }
            if (startClean){
-               view->addLog("Отвал: движение вверх");
                frontRail->setDirection(organsEnums::Up);
            }
        },
@@ -280,7 +279,6 @@ void MainWindow::configureButtons(){
            }
 
            if (startClean){
-               view->addLog("Отвал: движение вверх завершено");
                frontRail->setDirection(organsEnums::None);}
        },
        .whileActive = [this] {},
@@ -304,7 +302,6 @@ void MainWindow::configureButtons(){
 
                 if (startClean) {
                     frontRail->setDirection(organsEnums::Down);
-                    view->addLog("Отвал: движение вниз");
                 }
             },
 
@@ -323,7 +320,6 @@ void MainWindow::configureButtons(){
 
                 if (startClean) {
                     frontRail->setDirection(organsEnums::None);
-                    view->addLog("Отвал: движение вниз завершено");
                 }
             },
 
@@ -348,7 +344,6 @@ void MainWindow::configureButtons(){
                 }
 
                 if (startClean) {
-                    view->addLog("Отвал движение влево");
                     frontRail->setDirection(organsEnums::Left);
                 } else {
                     workMode.frontDumpLeft = !workMode.frontDumpLeft;
@@ -376,7 +371,6 @@ void MainWindow::configureButtons(){
                 }
 
                 if (startClean) {
-                    view->addLog("Отвал движение влево завершено");
                     frontRail->setDirection(organsEnums::None);
                 }
             },
@@ -402,7 +396,6 @@ void MainWindow::configureButtons(){
                 }
 
                 if (startClean) {
-                    view->addLog("Отвал движение вправо");
                     frontRail->setDirection(organsEnums::Right);
                 } else {
                     workMode.frontDumpRight = !workMode.frontDumpRight;
@@ -429,7 +422,6 @@ void MainWindow::configureButtons(){
                 }
 
                 if (startClean) {
-                    view->addLog("Отвал движение вправо завершено");
                     frontRail->setDirection(organsEnums::None);
                 }
             },
@@ -476,7 +468,7 @@ void MainWindow::configureButtons(){
                 }
 
                 if (startClean) {
-                    view->addLog("Щётка: движение вверх");
+                    //view->addLog("Щётка: движение вверх");
                     broomCentral->setDirection(organsEnums::Up);
                 }
             },
@@ -494,7 +486,7 @@ void MainWindow::configureButtons(){
                 }
 
                 if (startClean) {
-                    view->addLog("Щётка движение вверх завершено");
+                    //view->addLog("Щётка движение вверх завершено");
                     broomCentral->setDirection(organsEnums::None);
                 }
             },
@@ -520,7 +512,7 @@ void MainWindow::configureButtons(){
                 }
 
                 if (startClean) {
-                    view->addLog("Щётка: движение вниз");
+                    //view->addLog("Щётка: движение вниз");
                     broomCentral->setDirection(organsEnums::Down);
                 }
             },
@@ -534,7 +526,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (startClean) {
-                    view->addLog("Щётка движение вниз завершено");
+                    //view->addLog("Щётка движение вниз завершено");
                     broomCentral->setDirection(organsEnums::None);
                 }
             },
@@ -565,7 +557,7 @@ void MainWindow::configureButtons(){
                     workMode.centralBroomLeft = !workMode.centralBroomLeft;
 
                     if (workMode.centralBroomLeft) {
-                        view->addLog("Щётка: выбрана левая сторона");
+                        view->addLog("Щетка: выбрана левая сторона");
                     }
 
                     workMode.centralBroomRight = false;
@@ -582,7 +574,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (startClean) {
-                    view->addLog("Щётка движение влево завершено");
+                    //view->addLog("Щетка движение влево завершено");
                     broomCentral->setDirection(organsEnums::None);
                 }
             },
@@ -613,7 +605,7 @@ void MainWindow::configureButtons(){
                     workMode.centralBroomRight = !workMode.centralBroomRight;
 
                     if (workMode.centralBroomRight) {
-                        view->addLog("Щётка: выбрана правая сторона");
+                        view->addLog("Щетка: выбрана правая сторона");
                     }
 
                     workMode.centralBroomLeft = false;
@@ -635,7 +627,6 @@ void MainWindow::configureButtons(){
             },
 
             .whileActive = [this] {
-                broomCentral->setDirection(organsEnums::Right);
             },
 
             .whileInactive = [this] {}
@@ -2851,9 +2842,9 @@ QString MainWindow::getBlowerDefaultIcon(){
 
 
 //==============================Messages=============================================
-void MainWindow::printOrganStatus(organsEnums::Organ organ, organsEnums::Direction direction, bool state){
-    view->screenLog->printMovementLog(organ, direction, (state? "":" завершено"));
-}
+// void MainWindow::printOrganStatus(organsEnums::Organ organ, organsEnums::Direction direction, bool state){
+//     view->screenLog->printMovementLog(organ, direction, (state? "":" завершено"));
+// }
 
 //==============================UI===================================================
 

@@ -140,7 +140,6 @@ void CentralBroom::goLeft(bool state){
     myCan->setState(StateValveA1, state);
 }
 void CentralBroom::goRight(bool state){
-
     printMovement(organsEnums::Right, state, isPressed);
     myCan->setState(StateValveF3, state);
     myCan->setState(StateValveA1, state);
@@ -160,11 +159,11 @@ void CentralBroom::goUp(bool state, bool isPressed){
     if(isPressed){
         myCan->setState(StateValveA1, state);
         myCan->setState(StateValveF2, state);
+        printMovement(organsEnums::Up, state, isPressed);
     }
     else{
         goUpImmediate(state);
     }
-    printMovement(organsEnums::Up, state, isPressed);
 }
 
 
@@ -172,11 +171,11 @@ void CentralBroom::goDown(bool state, bool isPressed){
     if(isPressed){
         myCan->setState(StateValveF8, state);
         myCan->setState(StateValveA1, state);
+        printMovement(organsEnums::Down, state, isPressed);
     }
     else{
         goDownImmediate(state);
     }
-    printMovement(organsEnums::Down, state, isPressed);
 }
 
 void CentralBroom::goUpImmediate(bool state){
@@ -283,7 +282,7 @@ void CentralBroom::setPressActive(bool state){
             break;}
     }
     isPressed = state;
-    logger->addLogWarning(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
+    logger->addLog(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
 }
 
 void CentralBroom::setFlowActive(bool state){
@@ -294,7 +293,7 @@ void CentralBroom::setFlowActive(bool state){
 }
 
 void CentralBroom::goFlow(bool state){
-    logger->addLogWarning(state?"Щетка: плавание активировано":"Щетка: плавание деактивировано");
+    logger->addLog(state?"Щетка: плавание активировано":"Щетка: плавание деактивировано");
     myCan->setState(StateValveC1, state);
     myCan->setState(StateValveC2, state);
 }
