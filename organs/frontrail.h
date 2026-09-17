@@ -10,7 +10,7 @@
 
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
-
+#include <Configuration/configuration.h>
 #include <Controllers/viewcontroller.h>
 class MainWindow;
 class FrontRail : public QObject
@@ -98,6 +98,15 @@ private:
     void goUp();
     void goDown();
     void printMovement(organsEnums::Direction dir, bool state);
+    bool hasPositionSensor(
+        organsEnums::Direction direction
+        ) const;
+
+    bool finishMovementBySensorOrTimeout(
+        bool timeoutReached,
+        bool sensorReached,
+        organsEnums::Direction direction
+        );
     MainWindow *_mainWindow;
 signals:
 

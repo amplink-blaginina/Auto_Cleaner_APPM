@@ -72,6 +72,7 @@
 #include "maintenancetracker.h"
 
 #include "log/MessageList.h"
+#include "Configuration/configuration.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -153,7 +154,7 @@ public:
     };
 
 
-
+    //class Configuration;
     MainWindow(int argc, char *argv[], QWidget *parent = nullptr);
     ~MainWindow();
 
@@ -333,6 +334,7 @@ public:
     float hydraulicPressureB[4];
 
     float hydraulicPressureValue(int index) const;
+    bool isHydraulicPressureSensorInstalled(int index) const;
     void toggleAllFrm();
 
 
@@ -374,6 +376,7 @@ public:
 
 private:
     MyCan *can0;
+    Configuration* machineConfiguration = nullptr;
     QString blowerVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
     QString blowerHorPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
     QString dumpVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
@@ -491,6 +494,9 @@ private:
     void startCleaning(bool state);
     void updateBroomFlowPressIcon();
     void setButtonVisualState(QPushButton *button, QLabel *iconLabel, const QString &style, bool wasDown);
+    void applyEquipmentAvailability();
+    void setButtonAvailability(QPushButton *button, QLabel *iconLabel, bool available);
+    void setWidgetOpacity(QWidget *widget, qreal opacity);
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
@@ -516,6 +522,7 @@ public :
     void setServiceFormName(QWidget *form, QString name);
     void changeBlowDirection(bool isRight);
     bool getGPIOInput(GPIOInput id);
+    Configuration* getMachineConfiguration() const;
 public slots:
     //void messageListPressed();
     void settingsAskPassword();

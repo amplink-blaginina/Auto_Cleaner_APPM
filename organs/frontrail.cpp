@@ -301,35 +301,25 @@ void FrontRail::printMovement(organsEnums::Direction dir, bool state){
 
 bool FrontRail::testStateTimer(){// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)
     qint64 msecs_to = startActionTime.msecsTo(QDateTime::currentDateTime());
-//    qint64 tmp_msecs = msecs_to;
-//    if (msecs_to > getTimeout() * 1000)
-//        tmp_msecs = getTimeout() * 1000;
     bool timeTest = false;
     if (msecs_to > getTimeout() * 1000){// тест по времени прошел а мы ничего не достигли. Нужны тревоги
         timeTest = true;
         //return true;
     }
 
-    // проверяем концевики
-    bool dkpAndPositionTest = false;
-    // рейка идет вверх, ждем концевик ПЕРЕДНЯЯ
-    if (state == FrontRail::FrontRailDownIn)
-    {
-        const bool sensorReached = myCan->getState(StateDKPDumpUp).toBool();
-        if (timeTest && !sensorReached)
-        {
-            if (!railAlarmed){
-                logger->addLog("Отвал: достигнут тайм-аут");
-                goNone();
-            }
-            railAlarmed = true;
-        }
-        else if (sensorReached){
-            logger->addLog("Отвал: достигнут датчик");
-        }
-        if (timeTest || sensorReached)
-            dkpAndPositionTest = true;
 
+    bool dkpAndPositionTest = false;// проверяем концевики
+    // рейка идет вверх, ждем концевик ПЕРЕДНЯЯ
+    if (state == FrontRail::FrontRailDownIn) {
+        const bool sensorReached =
+            myCan->getState(StateDKPDumpUp).toBool();
+
+        if (finishMovementBySensorOrTimeout(
+                timeTest,
+                sensorReached,
+                organsEnums::Up)) {
+            dkpAndPositionTest = true;
+        }
     }
     // вниз концевика нет. если таймер прошел то считаем что все ок
     if (state == FrontRail::FrontRailDownOut && timeTest)
@@ -341,38 +331,36 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
     if (state == FrontRail::FrontRailBounceOut && timeTest)
         dkpAndPositionTest = true;
     // щетка идет вбок, ждем концевик
-    if (state == FrontRail::FrontRailSlideOut)
-    {
-        const bool sensorReached = myCan->getState((needGoLeft ? StateDKPDumpLeft : StateDKPDumpRight)).toBool();
-        if (timeTest && !sensorReached){
-            if (!railAlarmed){
-                logger->addLog("Отвал: достигнут тайм-аут");
-                goNone();
-            }
-            railAlarmed = true;
-        }
-        else if (sensorReached){
+    if (state == FrontRail::FrontRailSlideOut) {
+        const organsEnums::Direction targetDirection =
+            needGoLeft
+                ? organsEnums::Left
+                : organsEnums::Right;
 
-            logger->addLog("Отвал: достигнут датчик");
-        }
-        if (timeTest || sensorReached){
-            dkpAndPositionTest = true;// не ждем таймера и разрешаем завершить процесс
+        const bool sensorReached =
+            myCan->getState(
+                     needGoLeft
+                         ? StateDKPDumpLeft
+                         : StateDKPDumpRight
+                     ).toBool();
+
+        if (finishMovementBySensorOrTimeout(
+                timeTest,
+                sensorReached,
+                targetDirection)) {
+            dkpAndPositionTest = true;
         }
     }
-    if (state == FrontRail::FrontRailSlideIn){
-        const bool sensorReached = myCan->getState(StateDKPDumpRight).toBool();
-        if (timeTest && !sensorReached){
-            if (!railAlarmed){
-                logger->addLog("Отвал: достигнут тайм-аут");
-                goNone();
-            }
-            railAlarmed = true;
+    if (state == FrontRail::FrontRailSlideIn) {
+        const bool sensorReached =
+            myCan->getState(StateDKPDumpRight).toBool();
+
+        if (finishMovementBySensorOrTimeout(
+                timeTest,
+                sensorReached,
+                organsEnums::Right)) {
+            dkpAndPositionTest = true;
         }
-        else if (sensorReached){
-            logger->addLog("Отвал: достигнут датчик");
-        }
-        if (timeTest || sensorReached)
-            dkpAndPositionTest = true;// не ждем таймера и разрешаем завершить процесс
     }
 
     if (dkpAndPositionTest){
@@ -621,4 +609,59 @@ FrontRail::FrontRailStates FrontRail::stateDown(){// пытаемся прогр
         break;
     }
     return state;
+}
+bool FrontRail::hasPositionSensor(
+    organsEnums::Direction direction
+    ) const
+{
+    return _mainWindow->getMachineConfiguration()
+    ->hasPositionSensor(
+        organsEnums::Dump,
+        direction
+        );
+}
+
+bool FrontRail::finishMovementBySensorOrTimeout(
+    bool timeoutReached,
+    bool sensorReached,
+    organsEnums::Direction direction
+    )
+{
+    const bool sensorInstalled =
+        hasPositionSensor(direction);
+
+    if (sensorInstalled && sensorReached) {
+        logger->printMovementLog(
+            organsEnums::Dump,
+            direction,
+            " остановлено, достигнут датчик"
+            );
+
+        return true;
+    }
+
+    if (!timeoutReached) {
+        return false;
+    }
+
+    if (!railAlarmed) {
+        if (sensorInstalled) {
+            logger->printMovementLog(
+                organsEnums::Dump,
+                direction,
+                " завершено по тайм-ауту, ДКП не сработал"
+                );
+        } else {
+            logger->printMovementLog(
+                organsEnums::Dump,
+                direction,
+                " завершено по тайм-ауту (ДКП отсутствует)"
+                );
+        }
+
+        goNone();
+    }
+
+    railAlarmed = true;
+    return true;
 }

@@ -10,7 +10,7 @@
 
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
-
+#include "Configuration/configuration.h"
 #include <Controllers/viewcontroller.h>
 class MainWindow;
 class Blower : public QObject
@@ -109,6 +109,8 @@ private:
     float speedRotationStep = 1;
     void changeRotationSpeed();
     void setTargetRotationSpeed(float speed);
+    bool areUpPositionSensorsReached() const;
+    bool hasAnyUpPositionSensor() const;
 
     BlowerStates rotate();
     MainWindow *_mainWindow;

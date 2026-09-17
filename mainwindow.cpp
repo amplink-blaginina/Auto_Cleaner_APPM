@@ -4,6 +4,7 @@
 #include "password_form.h"
 #include "ui_mainwindow.h"
 
+#include <Configuration/configuration.h>
 #include <Controllers/viewcontroller.h>
 #include <currentstate.h>
 #include <screenlog.h>
@@ -23,6 +24,7 @@
 
 #include <linux/can.h>
 #include <linux/can/j1939.h>
+#include <QGraphicsOpacityEffect>
 
 #define MAXSOCK 16
 #define DEVELOPER_MODE 0
@@ -64,78 +66,59 @@ void MainWindow::registerPhysButtons(){
 
     m_buttonManager.registerButton(GPIOInput::IN_BROOM_UP,{
                    .onPressed = [this](){},//emit broomCentral->setDirection(organsEnums::Up);
-                   .onReleased = [this](){}});//emit broomCentral->setDirection(organsEnums::None);
+                   .onReleased = [this](){}});
 
     m_buttonManager.registerButton(GPIOInput::IN_BROOM_DOWN,{
-                   .onPressed = [this](){},//broomCentral->setDirection(organsEnums::Down);
-                   .onReleased = [this](){}});//broomCentral->setDirection(organsEnums::None);
+                   .onPressed = [this](){},
+                   .onReleased = [this](){}});
 
     m_buttonManager.registerButton(GPIOInput::IN_BROOM_LEFT,{
-                   .onPressed = [this](){},//broomCentral->setDirection(organsEnums::Left);
-                   .onReleased = [this](){}});//broomCentral->setDirection(organsEnums::None);
+                   .onPressed = [this](){},
+                   .onReleased = [this](){}});
 
     m_buttonManager.registerButton( GPIOInput::IN_BROOM_RIGHT,{
-                   .onPressed = [this](){ },//broomCentral->setDirection(organsEnums::Right);
-                   .onReleased = [this](){}});//broomCentral->setDirection(organsEnums::None);
+                   .onPressed = [this](){ },
+                   .onReleased = [this](){}});
 
     m_buttonManager.registerButton(GPIOInput::IN_DUMP_UP,{
-                                                           .onPressed = [this](){ qDebug()<<"!!!DumpUp";
-                                                               //frontRail->setDirection(organsEnums::Up);
-                                                           },
-                   .onReleased = [this](){qDebug()<<"!!!DumpUp stop";
-                                                               //frontRail->setDirection(organsEnums::None);
-                                                           }});
+                    .onPressed = [this](){},
+                   .onReleased = [this](){}});
 
     m_buttonManager.registerButton( GPIOInput::IN_DUMP_DOWN,{
-                   .onPressed = [this](){qDebug()<<"!!!DumpDown";//frontRail->setDirection(organsEnums::Down);
-                                                             },
-                   .onReleased = [this](){qDebug()<<"!!!DumpDown stop";//frontRail->setDirection(organsEnums::None);
-                                                             }});
+                   .onPressed = [this](){},
+                   .onReleased = [this](){}});
 
     m_buttonManager.registerButton(GPIOInput::IN_DUMP_LEFT,{
-                   .onPressed = [this](){},//frontRail->setDirection(organsEnums::Left);
-                   .onReleased = [this](){}});//frontRail->setDirection(organsEnums::None);
+                   .onPressed = [this](){},
+                   .onReleased = [this](){}});
 
     m_buttonManager.registerButton(GPIOInput::IN_DUMP_RIGHT,{
-                   .onPressed = [this](){},//frontRail->setDirection(organsEnums::Right);
-                   .onReleased = [this](){}});//frontRail->setDirection(organsEnums::None);
+                   .onPressed = [this](){},
+                   .onReleased = [this](){}});
 
     m_buttonManager.registerButton(GPIOInput::IN_BLOW_UP,{
                    .onPressed = [this](){},
-                       // blower->goUp();
-                       // printOrganStatus(organsEnums::Blower, organsEnums::Up, true);
                    .onReleased = [this](){}});
-                       // blower->goOff();
-                       // printOrganStatus(organsEnums::Blower, organsEnums::Up, false);
 
     m_buttonManager.registerButton(GPIOInput::IN_BLOW_DOWN,{
                    .onPressed = [this](){},
-                       // blower->goDown();
-                       // printOrganStatus(organsEnums::Blower, organsEnums::Down, true);
                    .onReleased = [this](){}});
-                       // blower->goOff();
-                       // printOrganStatus(organsEnums::Blower, organsEnums::Down, false);
-
 
     m_buttonManager.registerButton(GPIOInput::IN_BLOW_LEFT,{
-                   .onPressed = [this](){},//blower->goSlide(false);printOrganStatus(organsEnums::Blower, organsEnums::Left, true);
-                   .onReleased = [this](){}});//blower->goNone();printOrganStatus(organsEnums::Blower, organsEnums::Left, false);
+                   .onPressed = [this](){},
+                   .onReleased = [this](){}});
 
     m_buttonManager.registerButton(GPIOInput::IN_BLOW_RIGHT,{
-                   .onPressed = [this](){},//blower->goSlide(true); printOrganStatus(organsEnums::Blower, organsEnums::Right, true);
-                   .onReleased = [this](){}});//blower->goNone(); printOrganStatus(organsEnums::Blower, organsEnums::Right, false);
+                   .onPressed = [this](){},
+                   .onReleased = [this](){}});
     m_buttonManager.registerButton(GPIOInput::IN_STARTER,{
-                  .onPressed = [this](){},//blower->goSlide(true); printOrganStatus(organsEnums::Blower, organsEnums::Right, true);
-                  .onReleased = [this](){}});//blower->goNone(); printOrganStatus(organsEnums::Blower, organsEnums::Right, false);
-
+                  .onPressed = [this](){},
+                  .onReleased = [this](){}});
 }
-
-
 
 void MainWindow::configureFilters(){
     m_waterSensorWatcher = BoolStateWatcher{
         {
-           // .onUpdate = []{},
             .onActivated = [this] {
                   view->addLogWarning("Вода в топливе текущие");
                   waterSensorStartedAt = TOCurValues["Engine"];},
@@ -191,6 +174,14 @@ void MainWindow::configureFilters(){
 }
 void MainWindow::setBroomFlow(bool state)
 {
+    const bool broomFloatAvailable =
+        machineConfiguration->hasCentralBroom()
+        && machineConfiguration->hasEquipment(Equipment::BroomFloat);
+
+    if (!broomFloatAvailable) {
+        return;
+    }
+
     if (state == workMode.centralBroomFlow) {
         return;
     }
@@ -206,6 +197,14 @@ void MainWindow::setBroomFlow(bool state)
 }
 
 void MainWindow::setDumpFlow(bool state){
+    const bool dumpFloatAvailable =
+        machineConfiguration->hasFrontDump()
+        && machineConfiguration->hasEquipment(Equipment::DumpFloat);
+
+    if (!dumpFloatAvailable) {
+        return;
+    }
+
     if(state == workMode.frontDumpFlow){
         return;
     }
@@ -217,26 +216,21 @@ void MainWindow::setDumpFlow(bool state){
         if(state)
             view->addLog("Отвал выбрано плавание ");
     }
-    QString path = //"background-image: url(:/Images/main/buttons/configuration_button_variable_up_";
-        "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_";////dozerBlade_lift_";
+    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_";////dozerBlade_lift_";
     view->setStyle(ui->label_dumpFloatPress, path + (state?"on_down_blocked);":"off_down_blocked);" ));
     showWorkMode();
 }
 
 void MainWindow::updateBroomFlowPressIcon()
 {
-    QString path =
-        "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
-
+    QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
     path += workMode.centralBroomFlow
                 ? (workMode.centralBroomPress ? "on.png);" : "up_on.png);")
                 : (workMode.centralBroomPress ? "down_on.png);" : "off.png);");
-
     view->setStyle(ui->label_centralBroomFloatPress, path);
 }
 
-void MainWindow::setButtonVisualState(QPushButton* button, QLabel* iconLabel, const QString& style, bool wasDown)
-{
+void MainWindow::setButtonVisualState(QPushButton* button, QLabel* iconLabel, const QString& style, bool wasDown) {
     button->setProperty("wasDown", wasDown);
 
     if (iconLabel != nullptr) {
@@ -250,12 +244,7 @@ void MainWindow::configureButtons(){
    {
        .onActivated = [this] {
 
-        setButtonVisualState(
-            ui->pushButton_dumpUp,
-            ui->label_dumpUpDown,
-            dumpVertPath + "up_off.png);",
-            true
-            );
+        setButtonVisualState( ui->pushButton_dumpUp, ui->label_dumpUpDown, dumpVertPath + "up_off.png);", true);
 
            if(isDumpTransitioning()){
                view->addLog("Отвал в движении, ожидайте");
@@ -288,12 +277,7 @@ void MainWindow::configureButtons(){
     m_dumpDownWatcher = BoolStateWatcher{
         {
             .onActivated = [this] {
-                setButtonVisualState(
-                    ui->pushButton_dumpDown,
-                    ui->label_dumpUpDown,
-                    dumpVertPath + "down_off.png);",
-                    true
-                    );
+                setButtonVisualState( ui->pushButton_dumpDown, ui->label_dumpUpDown, dumpVertPath + "down_off.png);", true);
 
                 if (isDumpTransitioning()) {
                     view->addLog("Отвал в движении, ожидайте");
@@ -306,12 +290,7 @@ void MainWindow::configureButtons(){
             },
 
             .onDeactivated = [this] {
-                setButtonVisualState(
-                    ui->pushButton_dumpDown,
-                    ui->label_dumpUpDown,
-                    dumpVertPath + "off.png);",
-                    false
-                    );
+                setButtonVisualState( ui->pushButton_dumpDown, ui->label_dumpUpDown, dumpVertPath + "off.png);", false);
 
                 if (isDumpTransitioning()) {
                     view->addLog("Отвал в движении, ожидайте");
@@ -655,6 +634,10 @@ void MainWindow::configureButtons(){
     m_broomPressWatcher = BoolStateWatcher{
         {
             .onActivated = [this] {
+                 if (!machineConfiguration->hasCentralBroom()
+                     || !machineConfiguration->hasEquipment(Equipment::BroomPress)) {
+                     return;
+                 }
                 setButtonVisualState(
                     ui->pushButton_centralBroomPress,
                     nullptr,
@@ -1096,6 +1079,26 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     _settingsReader->setDefaults();//дефолтные настройки
     settingsStore = new SettingsStore(settings);
 
+    machineConfiguration = new Configuration(_settingsReader);
+    machineConfiguration->load();
+
+    qDebug() << "Machine model:"
+             << machineConfiguration->modelName();
+
+    qDebug() << "Installed equipment:"
+             << "central broom =" << machineConfiguration->hasCentralBroom()
+             << "front dump =" << machineConfiguration->hasFrontDump()
+             << "blower =" << machineConfiguration->hasBlower()
+             << "back magnet =" << machineConfiguration->hasBackMagnet();
+
+    qDebug() << "Additional hydraulic options:"
+             << "broom float ="
+             << machineConfiguration->hasEquipment(Equipment::BroomFloat)
+             << "broom press ="
+             << machineConfiguration->hasEquipment(Equipment::BroomPress)
+             << "dump float ="
+             << machineConfiguration->hasEquipment(Equipment::DumpFloat);
+
     maintenanceTracker = new MaintenanceTracker(
         _settingsReader,
         settingsStore
@@ -1271,6 +1274,9 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     frontRail = new FrontRail(can0, NULL, settings, view, this, this);
     backMagnet = new BackMagnet(can0, NULL, settings, view, this, this);
     blower = new Blower(can0, NULL, settings, view, this, this);
+
+    applyEquipmentAvailability();
+
     resetDevices();
     //can0->setState(StateBoardsPowerOut, true);
     showWorkMode();
@@ -1695,6 +1701,7 @@ void MainWindow::readValues(){// у каждого модуля есть сво�
     cleanConfiguration.centralBroomUse = _settingsReader->readSettingsValue("CleanConfiguration/centralBroomUse").toBool();
     cleanConfiguration.blowUse = _settingsReader->readSettingsValue("CleanConfiguration/blowUse").toBool();
 
+
     showCheckEngine = _settingsReader->readSettingsValue("Global/showCheckEngine").toBool();// сознаваться ли про чек энжын?
     buttonsLightLevelEdge = _settingsReader->readSettingsValue("Global/buttonsLightLevelEdge").toInt();
    // buttonsLightLevelEdge = 10; // TODO ????
@@ -1791,6 +1798,23 @@ void MainWindow::resetDevices(){
     goHomeTimer.setInterval(1000);
     blockScreen->hide();
     emit resetComplete();
+
+    if (machineConfiguration->hasCentralBroom()) {
+        broomCentral->setState(CentralBroom::BroomOff);
+    }
+
+    if (machineConfiguration->hasBackMagnet()) {
+        backMagnet->setState(BackMagnet::BackMagnetOff);
+    }
+
+    if (machineConfiguration->hasFrontDump()) {
+        frontRail->setState(FrontRail::FrontRailOff);
+    }
+
+    if (machineConfiguration->hasBlower()) {
+        blower->setState(Blower::BlowerOff);
+    }
+
 }
 
 void MainWindow::canPOError(){
@@ -2002,35 +2026,79 @@ void MainWindow::oneSecond(){// универсальный таймер для �
             ui->POStatus->hide();
     }
 
-    if (can0->isActive()){
-        // получим температуру гидрооборудования
-        const qint16 hydro_temp = hydroTempK * can->getOilTmp() + hydroTempB;
+    const bool hydraulicOilTemperatureInstalled =
+        machineConfiguration->hasSensor(
+            Sensor::HydraulicOilTemperature
+            );
+
+    if (!hydraulicOilTemperatureInstalled) {
+        ui->label_hydraulicTemperature->setText("n/a");
+    } else if (can0->isActive()) {
+        const qint16 hydroTemp =
+            hydroTempK * can->getOilTmp() + hydroTempB;
+
         qint16 filtered;
-        if (hydroTempFilter.process(hydro_temp, filtered))
-            ui->label_hydraulicTemperature->setText(QString::number(filtered));
+
+        if (hydroTempFilter.process(hydroTemp, filtered)) {
+            ui->label_hydraulicTemperature->setText(
+                QString::number(filtered)
+                );
+        }
     }
 }
 
-void MainWindow::repaintProgress(){
-    QString text = QString::number(hydroTempK * can->getOilTmp() + hydroTempB, 'f', 1);
-    text = QString::number(hydraulicPressureValue(2), 'f', 1);
-    if (ui->label_fan_pressure->text() != text + " P ТИ3")
-        ui->label_fan_pressure->setText(text + " P ТИ3");
-    text = QString::number(hydraulicPressureValue(3), 'f', 1);
-    if (ui->label_roll_pressure->text() != text + " P ТИ4")
-        ui->label_roll_pressure->setText(text + " P ТИ4");
-    ui->label_time->repaint();// защита от залипания графики
+void MainWindow::repaintProgress()
+{
+    const QString fanPressureText =
+        isHydraulicPressureSensorInstalled(2)
+            ? QString::number(hydraulicPressureValue(2), 'f', 1)
+                  + " P ТИ3"
+            : "n/a P ТИ3";
+
+    if (ui->label_fan_pressure->text() != fanPressureText) {
+        ui->label_fan_pressure->setText(fanPressureText);
+    }
+
+    const QString rollPressureText =
+        isHydraulicPressureSensorInstalled(3)
+            ? QString::number(hydraulicPressureValue(3), 'f', 1)
+                  + " P ТИ4"
+            : "n/a P ТИ4";
+
+    if (ui->label_roll_pressure->text() != rollPressureText) {
+        ui->label_roll_pressure->setText(rollPressureText);
+    }
+
+    ui->label_time->repaint();
 }
 
-bool MainWindow::inHomeState(){
-    if ((frontRail->getState() == FrontRail::FrontRailOff || frontRail->railAlarmed)
-            && (backMagnet->getState() == BackMagnet::BackMagnetOff || backMagnet->magnetAlarmed)
-            && (broomCentral->getState() == CentralBroom::BroomOff || broomCentral->broomAlarmed)
-            && (blower->getState() == Blower::BlowerOff || blower->blowerAlarmed))
-        return true;
-    return false;
-}
+bool MainWindow::inHomeState()
+{
+    const bool dumpIsHome =
+        !machineConfiguration->hasFrontDump()
+        || frontRail->getState() == FrontRail::FrontRailOff
+        || frontRail->railAlarmed;
 
+    const bool magnetIsHome =
+        !machineConfiguration->hasBackMagnet()
+        || backMagnet->getState() == BackMagnet::BackMagnetOff
+        || backMagnet->magnetAlarmed;
+
+    const bool broomIsHome =
+        !machineConfiguration->hasCentralBroom()
+        || broomCentral->getState() == CentralBroom::BroomOff
+        || broomCentral->broomAlarmed;
+
+    const bool blowerIsHome =
+        !machineConfiguration->hasBlower()
+        || blower->getState() == Blower::BlowerOff
+        || blower->blowerAlarmed;
+
+    return dumpIsHome
+           && magnetIsHome
+           && broomIsHome
+           && blowerIsHome;
+}
 // тут проверяются узлы которые являются общими для всех (например насос воды используется 8 блоками, поэтому тут проверяем если он долго никому не нужен то выключаем воду)
 void MainWindow::checkIgnition(){
     if (!currentState->isIgnitionEnabled()){//can->isDisabled()){// вырубили зажигание-надо готовиться к остановке (или нажали кнопку пви)
@@ -2224,45 +2292,126 @@ void MainWindow::checkEngineAndRollLocks(){
     preroll->checkEmergencies();
 }
 
-void MainWindow::updateSensorAndWarningIndicators(){
-    const bool waterSensor = can0->getState(StateWaterSensor).toBool();
-    const bool airFilter = can0->getState(StateAirFilterBad).toBool();
-    const bool oilFilter = can0->getState(StateOilFilterBad).toBool();
-    const bool heatRelay = !can0->getState(StateHeatRele).toBool();
-    const bool lowTemperature = engine->online <= ENGINE_ONLINE_EDGE * 10 && engine->engineCoolantTemp < globals->lowTempRequireWarm;
+void MainWindow::updateSensorAndWarningIndicators()
+{
+    const bool waterSensorInstalled =
+        machineConfiguration->hasSensor(Sensor::WaterInFuel);
 
-    m_waterSensorWatcher.update(waterSensor);
-    m_airFilterWatcher.update(airFilter);
-    m_oilFilterWatcher.update(oilFilter);
-    m_heatRelayWatcher.update(heatRelay || lowTemperature);
+    const bool airFilterInstalled =
+        machineConfiguration->hasSensor(Sensor::AirFilter);
+
+    const bool oilFilterInstalled =
+        machineConfiguration->hasSensor(Sensor::OilFilter);
+
+    const bool heatRelayInstalled =
+        machineConfiguration->hasSensor(Sensor::HeatRelay);
+
+    const bool waterSensorActive =
+        waterSensorInstalled
+        && can0->getState(StateWaterSensor).toBool();
+
+    const bool airFilterActive =
+        airFilterInstalled
+        && can0->getState(StateAirFilterBad).toBool();
+
+    const bool oilFilterActive =
+        oilFilterInstalled
+        && can0->getState(StateOilFilterBad).toBool();
+
+    const bool heatRelayActive =
+        heatRelayInstalled
+        && !can0->getState(StateHeatRele).toBool();
+
+    // Это отдельный источник информации: температура по J1939.
+    // Она продолжает учитываться, даже если физического теплореле нет.
+    const bool lowTemperature =
+        engine->online <= ENGINE_ONLINE_EDGE * 10
+        && engine->engineCoolantTemp < globals->lowTempRequireWarm;
+
+    m_waterSensorWatcher.update(waterSensorActive);
+    m_airFilterWatcher.update(airFilterActive);
+    m_oilFilterWatcher.update(oilFilterActive);
+    m_heatRelayWatcher.update(heatRelayActive || lowTemperature);
 }
 
-void MainWindow::updateButtonsUniversal(){
-    //обновляем состояние всех кнопок: получаем правильное с антидребезгом состояние физ. кнопок и состояние кнопок на экране
-    //-----------------------------------щётка------------------------------------------
-    m_broomUpWatcher.update(ui->pushButton_centralBroomUp->isEnabled() && (ui->pushButton_centralBroomUp->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_UP)));
-    m_broomDownWatcher.update(ui->pushButton_centralBroomDown->isEnabled() && (ui->pushButton_centralBroomDown->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_DOWN)));
-    m_broomLeftWatcher.update(ui->pushButton_centralBroomLeft->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_LEFT));
-    m_broomRightWatcher.update(ui->pushButton_centralBroomRight->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_RIGHT));
+void MainWindow::updateButtonsUniversal()
+{
+    const bool broomInstalled = machineConfiguration->hasCentralBroom();
+    const bool dumpInstalled = machineConfiguration->hasFrontDump();
+    const bool blowerInstalled = machineConfiguration->hasBlower();
+    const bool broomFloatAvailable = machineConfiguration->hasCentralBroom()
+                                     && machineConfiguration->hasEquipment(Equipment::BroomFloat);
 
-    m_broomFlowWatcher.update(ui->pushButton_centralBroomFlow->isDown());
-    m_broomPressWatcher.update(ui->pushButton_centralBroomPress->isDown());
-    //-----------------------------------отвал------------------------------------------
-    m_dumpUpWatcher.update(ui->pushButton_dumpUp->isEnabled() && (ui->pushButton_dumpUp->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_UP)));
-    m_dumpDownWatcher.update(ui->pushButton_dumpDown->isEnabled() && (ui->pushButton_dumpDown->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_DOWN)));
-    m_dumpLeftWatcher.update(ui->pushButton_dumpLeft->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_LEFT));
-    m_dumpRightWatcher.update(ui->pushButton_dumpRight->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_RIGHT));
+    const bool broomPressAvailable = machineConfiguration->hasCentralBroom()
+                                     && machineConfiguration->hasEquipment(Equipment::BroomPress);
+    const bool dumpFloatAvailable = machineConfiguration->hasFrontDump()
+                                    && machineConfiguration->hasEquipment(Equipment::DumpFloat);
+    // -------------------- Центральная щётка --------------------
 
-    m_dumpFlowWatcher.update(ui->pushButton_dumpFlow->isDown());//|| m_buttonManager.isPressed(GPIOInput::)
-    //-----------------------------------обдув------------------------------------------
-    m_blowUpWatcher.update(ui->pushButton_blowerUp->isEnabled() && (ui->pushButton_blowerUp->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BLOW_UP)));
-    m_blowDownWatcher.update(ui->pushButton_blowerDown->isEnabled() &&(ui->pushButton_blowerDown->isDown()|| m_buttonManager.isPressed(GPIOInput::IN_BLOW_DOWN)));
-    m_blowLeftWatcher.update(ui->pushButton_blowerLeft->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BLOW_LEFT));
-    m_blowRightWatcher.update(ui->pushButton_blowerRight->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BLOW_RIGHT));
+    m_broomUpWatcher.update(
+        broomInstalled && ui->pushButton_centralBroomUp->isEnabled()
+        && (ui->pushButton_centralBroomUp->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_UP)));
 
-    starter->updateButtons(serviceOtherEngineLeftForm->starterBtnStatus()||gpioMatirx->keyPressed == GPIOInput::IN_STARTER);
-    //qDebug()<<"* starter"<<(gpioMatirx->keyPressed == GPIOInput::IN_STARTER);
-    //starter->updateButtons(m_buttonManager.isPressed(GPIOInput::IN_STARTER));
+    m_broomDownWatcher.update(
+        broomInstalled && ui->pushButton_centralBroomDown->isEnabled()
+        && (ui->pushButton_centralBroomDown->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_DOWN)));
+
+    m_broomLeftWatcher.update(
+        broomInstalled && ui->pushButton_centralBroomLeft->isEnabled()
+        && (ui->pushButton_centralBroomLeft->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_LEFT)));
+
+    m_broomRightWatcher.update(
+        broomInstalled
+        && ui->pushButton_centralBroomRight->isEnabled()
+        && (ui->pushButton_centralBroomRight->isDown() || m_buttonManager.isPressed(GPIOInput::IN_BROOM_RIGHT)));
+
+    m_broomFlowWatcher.update(
+        broomFloatAvailable && ui->pushButton_centralBroomFlow->isEnabled() && ui->pushButton_centralBroomFlow->isDown());
+
+    m_broomPressWatcher.update(
+        broomPressAvailable && ui->pushButton_centralBroomPress->isEnabled()
+        && ui->pushButton_centralBroomPress->isDown());
+
+    // -------------------- Передний отвал --------------------
+
+    m_dumpUpWatcher.update(
+        dumpInstalled && ui->pushButton_dumpUp->isEnabled()
+        && ( ui->pushButton_dumpUp->isDown()|| m_buttonManager.isPressed(GPIOInput::IN_DUMP_UP)));
+
+    m_dumpDownWatcher.update(
+        dumpInstalled && ui->pushButton_dumpDown->isEnabled()
+        && ( ui->pushButton_dumpDown->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_DOWN)));
+
+    m_dumpLeftWatcher.update(
+        dumpInstalled && ui->pushButton_dumpLeft->isEnabled()
+        && (ui->pushButton_dumpLeft->isDown() || m_buttonManager.isPressed(GPIOInput::IN_DUMP_LEFT)));
+
+    m_dumpRightWatcher.update(
+        dumpInstalled && ui->pushButton_dumpRight->isEnabled()
+        && (ui->pushButton_dumpRight->isDown()|| m_buttonManager.isPressed(GPIOInput::IN_DUMP_RIGHT)));
+
+    m_dumpFlowWatcher.update(
+        dumpFloatAvailable && ui->pushButton_dumpFlow->isEnabled() && ui->pushButton_dumpFlow->isDown());
+
+    // -------------------- Воздуходувка --------------------
+
+    m_blowUpWatcher.update(
+        blowerInstalled && ui->pushButton_blowerUp->isEnabled()
+        && (ui->pushButton_blowerUp->isDown()|| m_buttonManager.isPressed(GPIOInput::IN_BLOW_UP)));
+
+    m_blowDownWatcher.update(
+        blowerInstalled && ui->pushButton_blowerDown->isEnabled()
+        && (ui->pushButton_blowerDown->isDown()|| m_buttonManager.isPressed(GPIOInput::IN_BLOW_DOWN)));
+
+    m_blowLeftWatcher.update(
+        blowerInstalled && ui->pushButton_blowerLeft->isEnabled()
+        && (ui->pushButton_blowerLeft->isDown()|| m_buttonManager.isPressed(GPIOInput::IN_BLOW_LEFT)));
+
+    m_blowRightWatcher.update(
+        blowerInstalled && ui->pushButton_blowerRight->isEnabled()
+        && (ui->pushButton_blowerRight->isDown()|| m_buttonManager.isPressed(GPIOInput::IN_BLOW_RIGHT)));
+
+    starter->updateButtons(serviceOtherEngineLeftForm->starterBtnStatus()|| gpioMatirx->keyPressed == GPIOInput::IN_STARTER);
 }
 
 bool MainWindow::getGPIOInput(GPIOInput id){
@@ -2288,12 +2437,40 @@ void MainWindow::checkAndShowStatus(){
     // клапан а1
     auto valveA1State = can0->getState(StateValveA1).toBool();
     showStatus(ui->label_a1, valveA1State);//"Засорен напорный фильтр"
-    // напорный фильтр
-    auto pressureFiltersState = can0->getState(StatePressureFilter1).toBool() || can0->getState(StatePressureFilter2).toBool() || can0->getState(StatePressureFilter3).toBool();
-    showStatus(ui->label_pressure_filter, pressureFiltersState, "Засорен напорный фильтр");
-    // сливной фильтр
-    auto drainFilterState = can0->getState(StateDrainFilterD28).toBool();
+    const bool pressureFilter1Active =
+        machineConfiguration->hasSensor(Sensor::PressureFilter1)
+        && can0->getState(StatePressureFilter1).toBool();
+
+    const bool pressureFilter2Active =
+        machineConfiguration->hasSensor(Sensor::PressureFilter2)
+        && can0->getState(StatePressureFilter2).toBool();
+
+    const bool pressureFilter3Active =
+        machineConfiguration->hasSensor(Sensor::PressureFilter3)
+        && can0->getState(StatePressureFilter3).toBool();
+
+    const bool pressureFiltersState =
+        pressureFilter1Active
+        || pressureFilter2Active
+        || pressureFilter3Active;
+
+    showStatus( ui->label_pressure_filter, pressureFiltersState, "Засорен напорный фильтр");
+
+    const bool drainFilterState =
+        machineConfiguration->hasSensor(Sensor::DrainFilter)
+        && can0->getState(StateDrainFilterD28).toBool();
+
     showStatus(ui->label_drain_filter, drainFilterState, "Засорен сливной фильтр");
+
+    if (!machineConfiguration->hasSensor(Sensor::PressureFilter1)
+        && !machineConfiguration->hasSensor(Sensor::PressureFilter2)
+        && !machineConfiguration->hasSensor(Sensor::PressureFilter3)) {
+        ui->label_pressure_filter->hide();
+    }
+
+    if (!machineConfiguration->hasSensor(Sensor::DrainFilter)) {
+        ui->label_drain_filter->hide();
+    }
 
     updateSensorAndWarningIndicators();
 }
@@ -2450,6 +2627,7 @@ void MainWindow::showWorkMode(){
         updateOrgansStates();
     updateButtonsActiveState();// проверим доступность кнопошков
     updateButtonsIcons();// меняем картиночки доступности кнопок после анализа
+    applyEquipmentAvailability();
 }
 
 bool MainWindow::canStart(){
@@ -2470,6 +2648,36 @@ float MainWindow::hydraulicPressureValue(int index) const{
     return hydraulicPressureK[index] * can0->getState(pressureStates[index]).toFloat() + hydraulicPressureB[index];
 }
 
+bool MainWindow::isHydraulicPressureSensorInstalled(
+    int index
+    ) const
+{
+    switch (index) {
+    case 0:
+        return machineConfiguration->hasSensor(
+            Sensor::HydraulicDistributorPressure
+            );
+
+    case 1:
+        return machineConfiguration->hasSensor(
+            Sensor::HydraulicBroomPressure
+            );
+
+    case 2:
+        return machineConfiguration->hasSensor(
+            Sensor::HydraulicFanPressure
+            );
+
+    case 3:
+        return machineConfiguration->hasSensor(
+            Sensor::HydraulicBroomPressPressure
+            );
+
+    default:
+        return false;
+    }
+}
+
 void MainWindow::toggleAllFrm(){
     const bool enable = !(workMode.frmKung && workMode.frmBroom && workMode.frmMagnet);
     workMode.frmKung = enable;
@@ -2478,15 +2686,32 @@ void MainWindow::toggleAllFrm(){
     showWorkMode();
 }
 
-bool MainWindow::isIdleMode(){
-    // проверяекм надо ли затенять кнопки переключения режимов
-    if (blower->getState() != Blower::BlowerOff
-        || broomCentral->getState() != CentralBroom::BroomOff
-        || frontRail->getState() != FrontRail::FrontRailOff
-        || backMagnet->getState() != BackMagnet::BackMagnetOff
-        || startClean){
+bool MainWindow::isIdleMode()
+{
+    if (startClean) {
         return false;
     }
+
+    if (machineConfiguration->hasBlower()
+        && blower->getState() != Blower::BlowerOff) {
+        return false;
+    }
+
+    if (machineConfiguration->hasCentralBroom()
+        && broomCentral->getState() != CentralBroom::BroomOff) {
+        return false;
+    }
+
+    if (machineConfiguration->hasFrontDump()
+        && frontRail->getState() != FrontRail::FrontRailOff) {
+        return false;
+    }
+
+    if (machineConfiguration->hasBackMagnet()
+        && backMagnet->getState() != BackMagnet::BackMagnetOff) {
+        return false;
+    }
+
     return true;
 }
 
@@ -2518,17 +2743,28 @@ bool MainWindow::isBlowTransitioning(){
     return blower->state != blowerTarget;
 }
 
-bool MainWindow::isOrgansTransitioning(){
-    // органы в процессе перехода - ручное управление заблокировано
-    // при движении к работе цель ограничивается ableState, при выключении всегда идём к Off
-    if(isBroomTransitioning())
+bool MainWindow::isOrgansTransitioning()
+{
+    if (machineConfiguration->hasCentralBroom()
+        && isBroomTransitioning()) {
         return true;
-    if(isDumpTransitioning())
+    }
+
+    if (machineConfiguration->hasFrontDump()
+        && isDumpTransitioning()) {
         return true;
-    if(isMagnetTransitioning())
+    }
+
+    if (machineConfiguration->hasBackMagnet()
+        && isMagnetTransitioning()) {
         return true;
-    if(isBlowTransitioning())
+    }
+
+    if (machineConfiguration->hasBlower()
+        && isBlowTransitioning()) {
         return true;
+    }
+
     return false;
 }
 
@@ -3074,4 +3310,113 @@ bool MainWindow::isSpeedTooHigh(){
 void MainWindow::setServiceFormName(QWidget* form, QString name){
     serviceSetingsName->raise();
     serviceSetingsName->setText((form == settingsForm?name:""));
+}
+//======================================================
+
+void MainWindow::applyEquipmentAvailability()
+{
+    const bool broomInstalled = machineConfiguration->hasCentralBroom();
+    const bool broomFloatAvailable = machineConfiguration->hasCentralBroom()
+        && machineConfiguration->hasEquipment(Equipment::BroomFloat);
+
+    const bool broomPressAvailable = machineConfiguration->hasCentralBroom()
+        && machineConfiguration->hasEquipment(Equipment::BroomPress);
+    const bool dumpFloatAvailable = machineConfiguration->hasFrontDump()
+                                    && machineConfiguration->hasEquipment(Equipment::DumpFloat);
+
+    const bool dumpInstalled = machineConfiguration->hasFrontDump();
+
+    const bool blowerInstalled = machineConfiguration->hasBlower();
+
+    const bool magnetInstalled = machineConfiguration->hasBackMagnet();
+
+    if(!broomInstalled){
+    // Центральная щётка.
+    setButtonAvailability(ui->pushButton_centralBroomUp,ui->label_centralBroomUpDown,broomInstalled);
+    setButtonAvailability(ui->pushButton_centralBroomDown, ui->label_centralBroomUpDown,broomInstalled);
+    setButtonAvailability(ui->pushButton_centralBroomLeft,ui->label_centralBroom, broomInstalled);
+    setButtonAvailability(ui->pushButton_centralBroomRight, ui->label_centralBroom, broomInstalled);}
+
+    //setButtonAvailability(ui->pushButton_centralBroomFlow, ui->label_centralBroomFloatPress, broomInstalled);
+    if (!broomFloatAvailable) {
+        setButtonAvailability( ui->pushButton_centralBroomFlow, ui->label_centralBroomFloatPress, false);
+    }
+    if(!broomPressAvailable){
+        setButtonAvailability(ui->pushButton_centralBroomPress, ui->label_centralBroomFloatPress, false);
+
+    }
+
+    if(!dumpInstalled){
+    // Передний отвал.
+    setButtonAvailability(ui->pushButton_dumpUp, ui->label_dumpUpDown, dumpInstalled);
+    setButtonAvailability(ui->pushButton_dumpDown, ui->label_dumpUpDown, dumpInstalled);
+    setButtonAvailability(ui->pushButton_dumpLeft, ui->label_dump, dumpInstalled);
+    setButtonAvailability(ui->pushButton_dumpRight, ui->label_dump, dumpInstalled);}
+
+    if(!dumpFloatAvailable){
+        setButtonAvailability(ui->pushButton_dumpFlow, ui->label_dumpFloatPress, false);
+    }
+
+    if(!blowerInstalled){
+    // Воздуходувка.
+    setButtonAvailability(ui->pushButton_blowerUp, ui->label_blowerUpDown, blowerInstalled);
+    setButtonAvailability(ui->pushButton_blowerDown, ui->label_blowerUpDown, blowerInstalled);
+    setButtonAvailability(ui->pushButton_blowerLeft, ui->label_blower, blowerInstalled);
+    setButtonAvailability(ui->pushButton_blowerRight, ui->label_blower, blowerInstalled);}
+    if(magnetInstalled){
+    //Магнит
+        setButtonAvailability(ui->pushButton_backMagnet, nullptr, magnetInstalled);}
+
+    if(magnetInstalled){
+    // Освещение магнита. Имя кнопки уточните по вашему ui.
+        setButtonAvailability(ui->pushButton_frmMagnet, nullptr, magnetInstalled);}
+}
+
+void MainWindow::setButtonAvailability(
+    QPushButton* button,
+    QLabel* iconLabel,
+    bool available
+    )
+{
+    if (button == nullptr) {
+        return;
+    }
+
+    button->setEnabled(available);
+
+    const qreal opacity = available ? 1.0 : 0.35;
+
+    setWidgetOpacity(button, opacity);
+    setWidgetOpacity(iconLabel, opacity);
+}
+void MainWindow::setWidgetOpacity(QWidget* widget, qreal opacity)
+{
+    if (widget == nullptr) {
+        return;
+    }
+
+    auto* effect = qobject_cast<QGraphicsOpacityEffect*>(
+        widget->graphicsEffect()
+        );
+
+    if (effect == nullptr) {
+        effect = new QGraphicsOpacityEffect(widget);
+        widget->setGraphicsEffect(effect);
+    }
+
+    const bool mustBeEnabled = opacity < 1.0;
+
+    if (effect->isEnabled() == mustBeEnabled
+        && qFuzzyCompare(effect->opacity(), opacity)) {
+        return;
+    }
+
+    effect->setOpacity(opacity);
+    effect->setEnabled(mustBeEnabled);
+    widget->update();
+}
+
+Configuration* MainWindow::getMachineConfiguration() const
+{
+    return machineConfiguration;
 }

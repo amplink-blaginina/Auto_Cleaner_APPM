@@ -1,5 +1,6 @@
 #include "centralbroom.h"
 #include "mainwindow.h"
+#include <Configuration/configuration.h>
 #include <QDebug>
 #include <QTimer>
 #include <QThread>
@@ -387,22 +388,58 @@ bool CentralBroom::wereBusyAndTimeoutReached(bool timeoutReached, BroomStates st
     return false;
 }
 
-bool CentralBroom::checkMovementAndStopOnTimeout(bool timeoutReached, bool isSensorReached, organsEnums::Direction dir){
-    if(isSensorReached){
-        logger->printMovementLog(organsEnums::BroomBlock, dir, " остановлено, достигнут датчик");
+bool CentralBroom::hasPositionSensor(
+    organsEnums::Direction direction
+    ) const
+{
+    return _mainWindow->getMachineConfiguration()
+    ->hasPositionSensor(
+        organsEnums::Broom,
+        direction
+        );
+}
+bool CentralBroom::checkMovementAndStopOnTimeout(
+    bool timeoutReached,
+    bool sensorReached,
+    organsEnums::Direction dir
+    )
+{
+    const bool sensorInstalled = hasPositionSensor(dir);
+
+    if (sensorInstalled && sensorReached) {
+        logger->printMovementLog(
+            organsEnums::BroomBlock,
+            dir,
+            " остановлено, достигнут датчик"
+            );
+
         return true;
     }
-    else{
-        if(timeoutReached){
-            if (!broomAlarmed){
-                logger->printMovementLog(organsEnums::BroomBlock, dir," достигнут тайм-аут");
-                goNone();
-            }
-            broomAlarmed = true;
-            return true;
-        }
+
+    if (!timeoutReached) {
+        return false;
     }
-    return false;
+
+    if (!broomAlarmed) {
+        if (sensorInstalled) {
+            logger->printMovementLog(
+                organsEnums::BroomBlock,
+                dir,
+                " завершено по тайм-ауту, ДКП не сработал"
+                );
+        } else {
+            logger->printMovementLog(
+                organsEnums::BroomBlock,
+                dir,
+                " завершено по тайм-ауту (ДКП отсутствует)"
+                );
+        }
+
+        goNone();
+    }
+
+    broomAlarmed = true;
+    return true;
 }
 
 bool CentralBroom::testStateTimer(){// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)

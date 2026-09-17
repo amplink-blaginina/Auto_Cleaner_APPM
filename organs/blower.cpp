@@ -169,6 +169,30 @@ void Blower::checkNeedState(){// утанавливает максимальну
 int Blower::getTimeout(){//получает таймаут в секундах (сколько надо простаивать в той или иной операции)
     return timeouts.value(state, 0);
 }
+bool Blower::hasAnyUpPositionSensor() const
+{
+    const Configuration* configuration =
+        _mainWindow->getMachineConfiguration();
+
+    return configuration->hasBlowerUpSensor1()
+           || configuration->hasBlowerUpSensor2();
+}
+
+bool Blower::areUpPositionSensorsReached() const
+{
+    const Configuration* configuration =
+        _mainWindow->getMachineConfiguration();
+
+    const bool firstSensorOk =
+        !configuration->hasBlowerUpSensor1()
+        || myCan->getState(StateDKPBlowerUp1).toBool();
+
+    const bool secondSensorOk =
+        !configuration->hasBlowerUpSensor2()
+        || myCan->getState(StateDKPBlowerUp2).toBool();
+
+    return firstSensorOk && secondSensorOk;
+}
 
 bool Blower::testStateTimer(){// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)
     qint64 msecs_to = startActionTime.msecsTo(QDateTime::currentDateTime());
@@ -184,21 +208,44 @@ bool Blower::testStateTimer(){// мощная функция проверки т
     // проверяем концевики
     bool dkpAndPositionTest = false;
     // магнимт идет вверх, ждем концевик
-    if (state == Blower::BlowerDownIn){
-        const bool sensorReached = myCan->getState(StateDKPBlowerUp1).toBool() && myCan->getState(StateDKPBlowerUp2).toBool();
-        if (timeTest && !sensorReached){
-            if (!blowerAlarmed){
-                logger->addLog("Продувка: достигнут тайм-аут");
+    if (state == Blower::BlowerDownIn) {
+        const Configuration* configuration =
+            _mainWindow->getMachineConfiguration();
+
+        const bool up1Installed =
+            configuration->hasBlowerUpSensor1();
+
+        const bool up2Installed =
+            configuration->hasBlowerUpSensor2();
+
+        const bool hasAnyUpSensor =
+            up1Installed || up2Installed;
+
+        const bool upPositionReached =
+            hasAnyUpSensor
+            && (!up1Installed
+                || myCan->getState(StateDKPBlowerUp1).toBool())
+            && (!up2Installed
+                || myCan->getState(StateDKPBlowerUp2).toBool());
+
+        if (upPositionReached) {
+            logger->addLog("Продувка: достигнут верхний датчик");
+            dkpAndPositionTest = true;
+        }
+        else if (timeTest) {
+            if (!blowerAlarmed) {
+                logger->addLog(
+                    hasAnyUpSensor
+                        ? "Продувка: завершено по тайм-ауту, ДКП не сработал"
+                        : "Продувка: завершено по тайм-ауту (ДКП отсутствуют)"
+                    );
+
                 goOff();
             }
-            blowerAlarmed = true;
-        }
-        else if (sensorReached){
-            logger->addLog("Продувка: достигнут датчик");
-        }
-        if (timeTest || sensorReached)
-            dkpAndPositionTest = true;// не ждем таймера и разрешаем завершить процесс
 
+            blowerAlarmed = true;
+            dkpAndPositionTest = true;
+        }
     }
     // вниз концевика нет. если таймер прошел то считаем что все ок
     if ((state == Blower::BlowerDownOut

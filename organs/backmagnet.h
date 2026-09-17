@@ -77,6 +77,9 @@ signals:
 
 private:
     MainWindow *_mainWindow;
+    bool hasPositionSensor(
+        organsEnums::Direction direction
+        ) const;
 };
 
 #endif // BACKMAGNET_H

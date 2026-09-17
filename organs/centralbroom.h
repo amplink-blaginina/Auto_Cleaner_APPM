@@ -108,6 +108,8 @@ public slots:
 signals:
 
 private:
+    bool hasPositionSensor(organsEnums::Direction direction) const;
+
     void goLeft();
     void goLeft(bool state);
     void goRight();

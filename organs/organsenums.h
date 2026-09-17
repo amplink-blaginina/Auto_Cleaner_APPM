@@ -16,7 +16,8 @@ public:
         BroomBlock,
         Broom,
         Blower,
-        Dump
+        Dump,
+        BackMagnet
     };
 
     organsEnums();

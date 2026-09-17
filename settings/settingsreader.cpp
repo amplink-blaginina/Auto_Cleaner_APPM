@@ -164,7 +164,89 @@ void SettingsReader::setDefaults(){
     _defaultValues.insert("TOCur/PressureFilterChange", 0);
     //    defaultValues.insert("TO/WaterCheck2", 500 * 3600);
     //    defaultValues.insert("TOCur/WaterCheck2", 0);
+    //------------------------------------------------------------------------
+    // Конфигурация конкретной машины.
+    // Эти значения используются, если соответствующие ключи отсутствуют в INI.
+    _defaultValues.insert("Machine/model", "APPM318D4");
 
+    // Установленные уборочные органы.
+    _defaultValues.insert("Equipment/centralBroomInstalled", true);
+    _defaultValues.insert("Equipment/frontDumpInstalled", true);
+    _defaultValues.insert("Equipment/blowerInstalled", true);
+    _defaultValues.insert("Equipment/backMagnetInstalled", true);
+
+    // Установленные дополнительные гидравлические режимы.
+    _defaultValues.insert("Equipment/broomFloatInstalled", true);
+    _defaultValues.insert("Equipment/broomPressInstalled", true);
+    _defaultValues.insert("Equipment/dumpFloatInstalled", true);
+
+    // Наличие дискретных датчиков на конкретной машине.
+    _defaultValues.insert("Sensors/waterInFuelInstalled", true);
+    _defaultValues.insert("Sensors/airFilterInstalled", true);
+    _defaultValues.insert("Sensors/oilFilterInstalled", true);
+    _defaultValues.insert("Sensors/heatRelayInstalled", true);
+    _defaultValues.insert("Sensors/pressureFilter1Installed", true);
+    _defaultValues.insert("Sensors/pressureFilter2Installed", true);
+    _defaultValues.insert("Sensors/pressureFilter3Installed", true);
+
+    _defaultValues.insert("Sensors/drainFilterInstalled", true);
+    _defaultValues.insert("Sensors/hydraulicTankLevelInstalled", true);
+    // Аналоговые датчики гидросистемы.
+    _defaultValues.insert("Sensors/hydraulicOilTemperatureInstalled", true);
+
+    _defaultValues.insert(
+        "Sensors/hydraulicDistributorPressureInstalled",
+        true
+        );
+
+    _defaultValues.insert(
+        "Sensors/hydraulicBroomPressureInstalled",
+        true
+        );
+
+    _defaultValues.insert(
+        "Sensors/hydraulicFanPressureInstalled",
+        true
+        );
+
+    _defaultValues.insert(
+        "Sensors/hydraulicBroomPressPressureInstalled",
+        true
+        );
+
+    // Датчики крайних положений центральной щётки.
+    _defaultValues.insert("PositionSensors/Broom/up", true);
+    _defaultValues.insert("PositionSensors/Broom/down", false);
+    _defaultValues.insert("PositionSensors/Broom/left", true);
+    _defaultValues.insert("PositionSensors/Broom/right", true);
+
+    // Датчики крайних положений переднего отвала.
+    _defaultValues.insert("PositionSensors/Dump/up", true);
+    _defaultValues.insert("PositionSensors/Dump/down", false);
+    _defaultValues.insert("PositionSensors/Dump/left", true);
+    _defaultValues.insert("PositionSensors/Dump/right", true);
+
+    // Датчики крайних положений воздуходувки.
+    // В текущем железе есть два физических верхних ДКП;
+    // детализацию up1/up2 добавим вместе с логикой Blower.
+    _defaultValues.insert("PositionSensors/Blower/up", true);
+    _defaultValues.insert("PositionSensors/Blower/down", false);
+    _defaultValues.insert("PositionSensors/Blower/left", false);
+    _defaultValues.insert("PositionSensors/Blower/right", false);
+    // Датчики крайних положений заднего магнита.
+    _defaultValues.insert("PositionSensors/BackMagnet/up", true);
+    _defaultValues.insert("PositionSensors/BackMagnet/down", false);
+    _defaultValues.insert("PositionSensors/BackMagnet/left", false);
+    _defaultValues.insert("PositionSensors/BackMagnet/right", false);
+
+    // Верхние датчики положения воздуходувки.
+    _defaultValues.insert("PositionSensors/Blower/up1", true);
+    _defaultValues.insert("PositionSensors/Blower/up2", true);
+
+    _defaultValues.insert("PositionSensors/Dump/up", true);
+    _defaultValues.insert("PositionSensors/Dump/down", false);
+    _defaultValues.insert("PositionSensors/Dump/left", true);
+    _defaultValues.insert("PositionSensors/Dump/right", true);
 }
 
 

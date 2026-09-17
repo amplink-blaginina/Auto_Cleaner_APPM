@@ -343,9 +343,9 @@ void MyCan::canTimerTimeoutRecv(){
                 GO_ok = true;
             }
 
-            // êîìàíäà êîíôèãóðàöèè îò ÏÂÈ
+            // команда конфигурации от ПВИ
             #define CAN_IN_CONFIGURE_EXTERNAL_ID  0x0000C100
-            // êîìàíäà êîíôèãóðàöèè ê ÏÂÈ
+            // команда конфигурации к ПВИ
             #define CAN_OUT_CONFIGURE_EXTERNAL_ID 0x0000C200
             // тут решаем сами - может начать конфигурироваться без пожелания плат (потому что мы знаем что не конфигурировались)
             configureMutex.lock();

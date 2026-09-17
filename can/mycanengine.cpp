@@ -1,5 +1,5 @@
 #include "mycanengine.h"
-
+#include <Configuration/configuration.h>
 #include <QDebug>
 
 MyCanEngine::MyCanEngine(QString canName_, Logger * logger_, bool ableToRestart_, QObject *parent) : QObject(parent)

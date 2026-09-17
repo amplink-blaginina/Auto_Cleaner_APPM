@@ -135,6 +135,14 @@ int BackMagnet::getTimeout(){//получает таймаут в секунда
     return timeouts.value(state, 0);
 }
 
+bool BackMagnet::hasPositionSensor(organsEnums::Direction direction) const
+{
+    return _mainWindow->getMachineConfiguration()
+    ->hasPositionSensor(
+        organsEnums::BackMagnet,
+        direction
+        );
+}
 bool BackMagnet::testStateTimer(){// мощная функция проверки таймаута одновременно с концевиками и прочими условиями (для каждого состояния)
     qint64 msecs_to = startActionTime.msecsTo(QDateTime::currentDateTime());
     qint64 tmp_msecs = msecs_to;
@@ -149,21 +157,32 @@ bool BackMagnet::testStateTimer(){// мощная функция проверк�
     // проверяем концевики
     bool dkpAndPositionTest = false;
     // магнимт идет вверх, ждем концевик
-    if (state == BackMagnet::BackMagnetDownIn){
-        const bool sensorReached = myCan->getState(StateDKPBackMagnetUp).toBool();
-        if (timeTest && !sensorReached){
-            if (!magnetAlarmed){
-                logger->addLog("Магнит: достигнут тайм-аут");
+    if (state == BackMagnet::BackMagnetDownIn) {
+        const bool upSensorInstalled =
+            hasPositionSensor(organsEnums::Up);
+
+        const bool upSensorReached =
+            upSensorInstalled
+            && myCan->getState(StateDKPBackMagnetUp).toBool();
+
+        if (upSensorReached) {
+            logger->addLog("Магнит: достигнут верхний датчик");
+            dkpAndPositionTest = true;
+        }
+        else if (timeTest) {
+            if (!magnetAlarmed) {
+                logger->addLog(
+                    upSensorInstalled
+                        ? "Магнит: завершено по тайм-ауту, ДКП не сработал"
+                        : "Магнит: завершено по тайм-ауту (ДКП отсутствует)"
+                    );
+
                 goOff();
             }
-            magnetAlarmed = true;
-        }
-        else if (sensorReached){
-            logger->addLog("Магнит: достигнут датчик");
-        }
-        if (timeTest || sensorReached)
-            dkpAndPositionTest = true;// не ждем таймера и разрешаем завершить процесс
 
+            magnetAlarmed = true;
+            dkpAndPositionTest = true;
+        }
     }
     // вниз концевика нет. если таймер прошел то считаем что все ок
     if (state == BackMagnet::BackMagnetDownOut && timeTest)
