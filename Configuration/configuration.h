@@ -15,7 +15,7 @@ enum class MachineModel
     Airport
 };
 
-enum class Equipment
+enum class Equipment//физически имеющиеся органы
 {
     CentralBroom,
     FrontDump,
@@ -48,6 +48,14 @@ enum class Sensor
     HydraulicBroomPressPressure
 };
 
+enum class Feature//коммерчески разрешённые функции
+{
+    BroomFloat,
+    BroomPress,
+    DumpFloat
+};
+
+
 class Configuration
 {
 public:
@@ -59,7 +67,11 @@ public:
     QString modelName() const;
 
     bool hasEquipment(Equipment equipment) const;
+    bool isFeatureLicensed(Feature feature) const;
 
+    bool isBroomFloatAvailable() const;
+    bool isBroomPressAvailable() const;
+    bool isDumpFloatAvailable() const;
     bool hasCentralBroom() const;
     bool hasFrontDump() const;
     bool hasBlower() const;
@@ -118,6 +130,10 @@ private:
     bool m_hydraulicBroomPressureInstalled = true;
     bool m_hydraulicFanPressureInstalled = true;
     bool m_hydraulicBroomPressPressureInstalled = true;
+    //------------------------------------------
+    bool m_broomFloatLicensed = true;
+    bool m_broomPressLicensed = true;
+    bool m_dumpFloatLicensed = true;
 };
 
 

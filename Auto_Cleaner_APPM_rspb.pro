@@ -31,6 +31,7 @@ LIBS += -lpoppler -lpoppler-qt5
 QMAKE_RPATHDIR += $$(HOME)/libgpiod-1.6/lib
 
 SOURCES += \
+    Configuration/configuration.cpp \
     Controllers/cancontroller.cpp \
     Controllers/gpiocontroller.cpp \
     Controllers/prerollcontroller.cpp \
@@ -80,6 +81,94 @@ SOURCES += \
     settings/settingsmainrightform.cpp \
     settings/settingsreader.cpp \
     settings/settingsstore.cpp
+
+HEADERS += \
+    BoolStateWatcher.h \
+    Configuration/configuration.h \
+    Controllers/PhysicalButtonManager.h \
+    Controllers/cancontroller.h \
+    Controllers/gpiocontroller.h \
+    Controllers/prerollcontroller.h \
+    Controllers/startercontroller.h \
+    Controllers/viewcontroller.h \
+    DebouncedInput.h \
+    MedianFilter.h \
+    blockform.h \
+    can/mycanengine.h \
+    configure.h \
+    engine.h \
+    fogotform.h \
+    gpio/gpio_matrix.hpp \
+    gpio/gpio_types.hpp \
+    gpio/gpio_worker.hpp \
+    interface_button/interfacebutton.h \
+    log/Delegate.h \
+    log/Delegate_p.h \
+    log/MessageList.h \
+    log/screenlog.h \
+    logger.h \
+    maintenancetracker.h \
+    mainwindow.h \
+    can/mycan.h \
+    can/mycanj1939.h \
+    organs/backmagnet.h \
+    organs/blower.h \
+    organs/centralbroom.h \
+    organs/frontrail.h \
+    organs/organsenums.h \
+    password_form.h \
+    pdf/pdfscroller.h \
+    service/devices/dkp/servicedevicesdkpleftform.h \
+    service/devices/hydraulics/servicedeviceshydraulicsleftform.h \
+    service/global/password/servicegeneralpasswordleftform.h \
+    service/global/timeConfigure/serviceglobaldatetimeleftform.h \
+    service/other/intervals/servicegpioserviceintervalleftform.h \
+    service/other/intervals/servicetoelement.h \
+    service/other/engine/serviceotherengineleftform.h \
+    service/other/light/serviceotherlightleftform.h \
+    service/safetyinterlock.h \
+    service/servicemainrightform.h \
+    settings/currentstate.h \
+    settings/globalsettings.h \
+    settings/gpio/superDiag/serviceBUConfigElementform.h \
+    settings/gpio/superDiag/serviceBUConfigform.h \
+    settings/gpio/wifi/settingswifileftform.h \
+    settings/settings/configuration/settingssettingsconfigurationleftform.h \
+    settings/settingselement.h \
+    settings/settingsform.h \
+    settings/settingsmainrightform.h \
+    settings/settingsreader.h \
+    settings/settingsstore.h
+
+FORMS += \
+    blockform.ui \
+    fogotform.ui \
+    mainwindow.ui \
+    password_form.ui \
+    service/devices/dkp/servicedevicesdkpleftform.ui \
+    service/devices/hydraulics/servicedeviceshydraulicsleftform.ui \
+    service/global/password/servicegeneralpasswordleftform.ui \
+    service/global/timeConfigure/serviceglobaldatetimeleftform.ui \
+    service/other/intervals/servicegpioserviceintervalleftform.ui \
+    service/other/intervals/servicetoelement.ui \
+    service/other/engine/serviceotherengineleftform.ui \
+    service/other/light/serviceotherlightleftform.ui \
+    service/servicemainrightform.ui \
+    settings/gpio/superDiag/serviceBUConfigElementform.ui \
+    settings/gpio/superDiag/serviceBUConfigform.ui \
+    settings/gpio/wifi/settingswifileftform.ui \
+    settings/settings/configuration/settingssettingsconfigurationleftform.ui \
+    settings/settingselement.ui \
+    settings/settingsform.ui \
+    settings/settingsmainrightform.ui
+
+RESOURCES += \
+    images.qrc
+
+qnx: target.path = /tmp/$${TARGET}/bin
+else: unix:!android: target.path = /opt/$${TARGET}/bin
+!isEmpty(target.path): INSTALLS += target
+
 
 HEADERS += \
     BoolStateWatcher.h \

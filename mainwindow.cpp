@@ -2127,6 +2127,7 @@ void MainWindow::checkIgnition(){
 }
 
 void MainWindow::mainProgress(){
+    updateStartClean();
     updatePhysButtons();
     updateButtonsUniversal();
 
@@ -2207,7 +2208,7 @@ void MainWindow::mainProgress(){
     // смотрим нажат ли кто и реагируем соответствующе
     // проверка отключения зажигания (еасли нажали кнопку на пульте)
     showPultOffIgnition();
-    showStartClean();
+    //updateStartClean();
     showModeButton();
     showMatrixFRMButton();
 
@@ -2495,7 +2496,7 @@ void MainWindow::updateFRM(){
     can0->setState(StateFRMBackL2, workMode.frmMagnet);
 }
 
-void MainWindow::showStartClean(){
+void MainWindow::updateStartClean(){
     if (startCleanKey.update(gpioMatirx->keyPressed == GPIOInput::IN_STARTCLEAN))
         on_pushButton_startstop_clicked();
 }

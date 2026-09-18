@@ -201,13 +201,13 @@ public:
 
     int backGearCounter;
 
-    void showWorkMode();
+    void updateWorkMode();
     void checkAndShowStatus();
     void showStatus(QLabel *label, bool check, QString messageOn = NULL, QString messageOff = NULL);
     void showPultOffIgnition();
     void updateFRM();
 
-    void showStartClean();
+    void updateStartClean();
     void showModeButton();
     void showMatrixFRMButton();
 

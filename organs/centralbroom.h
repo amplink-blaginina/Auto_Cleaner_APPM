@@ -51,8 +51,16 @@ public:
     MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;
     QSettings *settings;
-    bool choosed;
-    bool broomAlarmed;
+    bool choosed = false;
+    bool broomAlarmed = false;
+    bool startClean = false;
+    bool needGoLeft = false; // тут главный признак-будет ли эта щетка желать развернуться или нет (это поворот ВЛЕВО)
+    bool isPressed = false;
+    bool isFlowing = false;
+    organsEnums::Direction direction = organsEnums::None;
+    BroomStates state = BroomOff; // стутус который мы предполагаем сейчас (лигические выводы)
+    BroomStates needState = BroomOff; // статус который мы желаем достичь
+    BroomStates ableState = BroomOff; // статус который мы можем достичь
 
     void readSettings();
     void checkNeedState();
@@ -61,6 +69,7 @@ public:
     void checkFriendVars();
     BroomStates stateUp();
     BroomStates stateDown();
+    BroomStates getNeedState();
 
     QDateTime startActionTime;
 
@@ -71,20 +80,11 @@ public:
     // обороты двигателя под каждый тип смета
     QMap<int, int> rpmForSweepType;
 
-    bool startClean;
-    bool needGoLeft; // тут главный признак-будет ли эта щетка желать развернуться или нет (это поворот ВЛЕВО)
-    bool isPressed;
-    bool isFlowing;
-    organsEnums::Direction direction;
 
 
     void setState(BroomStates state_);// установка и получение состояния модуля
-    BroomStates state; // стутус который мы предполагаем сейчас (лигические выводы)
-    BroomStates needState; // статус который мы желаем достичь
     void setNeedState(BroomStates state_);// установка и получение требуемого состояния модуля (к чему модуль движется так скажем)
-    BroomStates getNeedState();
 
-    BroomStates ableState; // статус который мы можем достичь
     void setAbleState(BroomStates state_);
     BroomStates getAbleState();
 

@@ -164,6 +164,16 @@ void Configuration::load()
 
     m_dumpPositionSensors.right =
         readBool("PositionSensors/Dump/right");
+    //-------------------------------------------
+
+    m_broomFloatLicensed =
+        readBool("License/broomFloat");
+
+    m_broomPressLicensed =
+        readBool("License/broomPress");
+
+    m_dumpFloatLicensed =
+        readBool("License/dumpFloat");
 }
 
 MachineModel Configuration::model() const
@@ -215,6 +225,43 @@ bool Configuration::hasEquipment(Equipment equipment) const
     }
 
     return false;
+}
+
+bool Configuration::isFeatureLicensed(Feature feature) const
+{
+    switch (feature) {
+    case Feature::BroomFloat:
+        return m_broomFloatLicensed;
+
+    case Feature::BroomPress:
+        return m_broomPressLicensed;
+
+    case Feature::DumpFloat:
+        return m_dumpFloatLicensed;
+    }
+
+    return false;
+}
+
+bool Configuration::isBroomFloatAvailable() const
+{
+    return hasCentralBroom()
+    && hasEquipment(Equipment::BroomFloat)
+        && isFeatureLicensed(Feature::BroomFloat);
+}
+
+bool Configuration::isBroomPressAvailable() const
+{
+    return hasCentralBroom()
+    && hasEquipment(Equipment::BroomPress)
+        && isFeatureLicensed(Feature::BroomPress);
+}
+
+bool Configuration::isDumpFloatAvailable() const
+{
+    return hasFrontDump()
+    && hasEquipment(Equipment::DumpFloat)
+        && isFeatureLicensed(Feature::DumpFloat);
 }
 
 bool Configuration::hasCentralBroom() const
