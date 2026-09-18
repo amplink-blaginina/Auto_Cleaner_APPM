@@ -11,6 +11,7 @@
 #include <QGraphicsOpacityEffect>
 #include <QPalette>
 #include <QDate>
+#include <QList>
 #include <globalsettings.h>
 #include <currentstate.h>
 #include <settingsstore.h>
@@ -23,7 +24,6 @@
 #include <math.h>
 #include <linux/can.h>
 #include <sys/ioctl.h>
-
 #include "camera/cameraplayer.h"
 #include "camera/camerawidget.h"
 #include "camera/cameraview.h"
@@ -104,7 +104,7 @@ Q_DECLARE_METATYPE(struct can_frame);
 #define PVI_TEMP_EDGE_OFF   52
 #define PVI_TEMP_EDGE_ON    54
 
-
+class OrganController;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -375,6 +375,7 @@ public:
     MyCanJ1939 *canj1939Main;
 
 private:
+    QList<OrganController*> organs;
     MyCan *can0;
     Configuration* machineConfiguration = nullptr;
     QString blowerVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";

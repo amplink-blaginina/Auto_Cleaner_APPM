@@ -1,12 +1,23 @@
 #include "backmagnet.h"
 
 #include "mainwindow.h"
-
+#include "Configuration/configuration.h"
 #include <QDebug>
 #include <QTimer>
 #include <QThread>
 
-BackMagnet::BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_)
+BackMagnet::BackMagnet(
+    MyCan *myCan_,
+    MyCanJ1939 *myCanJ1939_,
+    QSettings *settings_,
+    ViewController *logger_,
+    MainWindow* mainWindow,
+    QObject *parent_
+    )
+    : OrganController(
+          organsEnums::BackMagnet,
+          parent_
+          )
 {
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
@@ -266,4 +277,92 @@ BackMagnet::BackMagnetStates BackMagnet::stateDown()
         break;
     }
     return state;
+}
+bool BackMagnet::isInstalled() const
+{
+    return _mainWindow->getMachineConfiguration()
+    ->hasBackMagnet();
+}
+
+bool BackMagnet::isSelected() const
+{
+    return choosed;
+}
+
+void BackMagnet::setSelected(bool selected)
+{
+    choosed = selected;
+}
+
+bool BackMagnet::isTransitioning() const
+{
+    BackMagnetStates targetState = needState;
+
+    if (needState != BackMagnetOff
+        && ableState < needState) {
+        targetState = ableState;
+    }
+
+    return state != targetState;
+}
+
+bool BackMagnet::isInHomeState() const
+{
+    return state == BackMagnetOff || magnetAlarmed;
+}
+
+bool BackMagnet::isInWorkingState() const
+{
+    return state == BackMagnetDowned;
+}
+
+void BackMagnet::requestHomeState()
+{
+    setNeedState(BackMagnetOff);
+}
+
+void BackMagnet::updateTargetFromWorkMode()
+{
+    const bool active = _mainWindow->workMode.backMagnet;
+
+    setNeedState(
+        active
+            ? BackMagnetDowned
+            : BackMagnetOff
+        );
+
+    choosed = active;
+}
+
+void BackMagnet::stopAllOutputs()
+{
+    goOff();
+}
+
+bool BackMagnet::supportsDirection(
+    organsEnums::Direction direction
+    ) const
+{
+    return direction == organsEnums::Up
+           || direction == organsEnums::Down;
+}
+
+void BackMagnet::setManualDirection(
+    organsEnums::Direction direction
+    )
+{
+    switch (direction) {
+    case organsEnums::Up:
+        goUp();
+        break;
+
+    case organsEnums::Down:
+        goDown();
+        break;
+
+    case organsEnums::None:
+    default:
+        goOff();
+        break;
+    }
 }

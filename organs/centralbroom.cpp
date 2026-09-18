@@ -6,10 +6,109 @@
 #include <QThread>
 
 class MainWindow;
-CentralBroom::CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_){
+
+bool CentralBroom::isInstalled() const
+{
+    return _mainWindow->getMachineConfiguration()
+    ->hasCentralBroom();
+}
+
+bool CentralBroom::isSelected() const
+{
+    return choosed;
+}
+
+void CentralBroom::setSelected(bool selected)
+{
+    choosed = selected;
+}
+
+bool CentralBroom::isTransitioning() const
+{
+    BroomStates targetState = needState;
+
+    if (needState != BroomOff
+        && ableState < needState) {
+        targetState = ableState;
+    }
+
+    return state != targetState;
+}
+
+bool CentralBroom::isInHomeState() const
+{
+    return state == BroomOff || broomAlarmed;
+}
+
+bool CentralBroom::isInWorkingState() const
+{
+    return state == BroomFlowed;
+}
+
+void CentralBroom::requestHomeState()
+{
+    setNeedState(BroomOff);
+}
+
+void CentralBroom::updateTargetFromWorkMode()
+{
+    const bool active =
+        _mainWindow->workMode.centralBroomLeft
+        || _mainWindow->workMode.centralBroomRight;
+
+    setNeedState(
+        active
+            ? BroomFlowed
+            : BroomOff
+        );
+
+    choosed = active;
+
+    needGoLeft =
+        _mainWindow->workMode.centralBroomLeft;
+}
+
+void CentralBroom::stopAllOutputs()
+{
+    setFlowActive(false);
+    stopPress();
+    goNoRotate();
+    goNone();
+}
+
+bool CentralBroom::supportsDirection(
+    organsEnums::Direction direction
+    ) const
+{
+    return direction == organsEnums::Up
+           || direction == organsEnums::Down
+           || direction == organsEnums::Left
+           || direction == organsEnums::Right;
+}
+
+void CentralBroom::setManualDirection(
+    organsEnums::Direction direction
+    )
+{
+    setDirection(direction);
+}
+//----------------------------------------------------
+CentralBroom::CentralBroom(
+    MyCan *myCan_,
+    MyCanJ1939 *myCanJ1939_,
+    QSettings *settings_,
+    ViewController *view_,
+    MainWindow* mainWindow,
+    QObject *parent_
+    )
+    : OrganController(
+          organsEnums::Broom,
+          parent_
+          )
+{
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
-    logger = logger_;
+    view = view_;
     _mainWindow = mainWindow;
     parent = parent_;
     setState(BroomOff);
@@ -78,7 +177,7 @@ void CentralBroom::setState(BroomStates state_){
         if (timeouts.value(BroomBounceOut, 0) > 0) {
             goNone();
             goSlide(!needGoLeft);
-            logger->addLog("Щетка: отскок");
+            view->addLog("Щетка: отскок");
         }
     }
 
@@ -98,11 +197,11 @@ void CentralBroom::setState(BroomStates state_){
     //----------------------------------------------------------------------------
     startActionTime = QDateTime::currentDateTime();
     if (state == CentralBroom::BroomRotateOut){
-        logger->addLog("Щетка раскручивается");
+        view->addLog("Щетка раскручивается");
     }
     if (state == CentralBroom::BroomRotateIn){// тормозим щетки
         goNoRotate();
-        logger->addLog("Щетка останавливается");
+        view->addLog("Щетка останавливается");
     }
     //----------------------------------------------------------------------------
     goNone();
@@ -198,7 +297,7 @@ void CentralBroom::goDownImmediate(bool state){
 }
 
 void CentralBroom::printMovement(organsEnums::Direction dir, bool state, bool isPressed){
-    logger->printMovementLog(isPressed && (dir == organsEnums::Up||dir == organsEnums::Down)?
+    view->printMovementLog(isPressed && (dir == organsEnums::Up||dir == organsEnums::Down)?
                                  organsEnums::Broom:
                                  organsEnums::BroomBlock,
                              dir,
@@ -283,7 +382,7 @@ void CentralBroom::setPressActive(bool state){
             break;}
     }
     isPressed = state;
-    logger->addLog(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
+    view->addLog(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
 }
 
 void CentralBroom::setFlowActive(bool state){
@@ -294,7 +393,7 @@ void CentralBroom::setFlowActive(bool state){
 }
 
 void CentralBroom::goFlow(bool state){
-    logger->addLog(state?"Щетка: плавание активировано":"Щетка: плавание деактивировано");
+    view->addLog(state?"Щетка: плавание активировано":"Щетка: плавание деактивировано");
     myCan->setState(StateValveC1, state);
     myCan->setState(StateValveC2, state);
 }
@@ -407,7 +506,7 @@ bool CentralBroom::checkMovementAndStopOnTimeout(
     const bool sensorInstalled = hasPositionSensor(dir);
 
     if (sensorInstalled && sensorReached) {
-        logger->printMovementLog(
+        view->printMovementLog(
             organsEnums::BroomBlock,
             dir,
             " остановлено, достигнут датчик"
@@ -422,13 +521,13 @@ bool CentralBroom::checkMovementAndStopOnTimeout(
 
     if (!broomAlarmed) {
         if (sensorInstalled) {
-            logger->printMovementLog(
+            view->printMovementLog(
                 organsEnums::BroomBlock,
                 dir,
                 " завершено по тайм-ауту, ДКП не сработал"
                 );
         } else {
-            logger->printMovementLog(
+            view->printMovementLog(
                 organsEnums::BroomBlock,
                 dir,
                 " завершено по тайм-ауту (ДКП отсутствует)"
@@ -460,7 +559,7 @@ bool CentralBroom::testStateTimer(){// мощная функция провер�
 
     if (state == CentralBroom::BroomDownOut){// проверяем концевики
         if (timeoutReached){
-            logger->printMovementLog( organsEnums::BroomBlock, organsEnums::Down, " достигнут тайм-аут");
+            view->printMovementLog( organsEnums::BroomBlock, organsEnums::Down, " достигнут тайм-аут");
             movementFinished = true;
         }
     }

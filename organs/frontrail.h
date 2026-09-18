@@ -10,10 +10,11 @@
 
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
+#include "organs/organcontroller.h"
 #include <Configuration/configuration.h>
 #include <Controllers/viewcontroller.h>
 class MainWindow;
-class FrontRail : public QObject
+class FrontRail : public OrganController
 {
     Q_OBJECT
 public:
@@ -34,9 +35,32 @@ public:
         FrontRailFlowed     = 11
     };
     Q_ENUM(FrontRailStates)
+
+    bool isInstalled() const override;
+
+    bool isSelected() const override;
+    void setSelected(bool selected) override;
+
+    bool isTransitioning() const override;
+    bool isInHomeState() const override;
+    bool isInWorkingState() const override;
+
+    void requestHomeState() override;
+    void updateTargetFromWorkMode() override;
+
+    void stopAllOutputs() override;
+
+    bool supportsDirection(
+        organsEnums::Direction direction
+        ) const override;
+
+    void setManualDirection(
+        organsEnums::Direction direction
+        ) override;
+
     explicit FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
     QObject * parent;
-    ViewController *logger;
+    ViewController *view;
     MyCan *myCan;
     MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;

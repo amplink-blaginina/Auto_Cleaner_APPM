@@ -57,6 +57,7 @@ SOURCES += \
     organs/centralbroom.cpp \
     organs/blower.cpp \
     organs/frontrail.cpp \
+    organs/organcontroller.cpp \
     organs/organsenums.cpp \
     password_form.cpp \
     pdf/pdfscroller.cpp \
@@ -115,6 +116,7 @@ HEADERS += \
     organs/blower.h \
     organs/centralbroom.h \
     organs/frontrail.h \
+    organs/organcontroller.h \
     organs/organsenums.h \
     password_form.h \
     pdf/pdfscroller.h \

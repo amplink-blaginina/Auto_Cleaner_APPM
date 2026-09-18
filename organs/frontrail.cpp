@@ -6,12 +6,12 @@
 #include <QTimer>
 #include <QThread>
 
-FrontRail::FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_){
+FrontRail::FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *view_, MainWindow* mainWindow, QObject *parent_) : OrganController(organsEnums::Dump, parent_){
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
     parent = parent_;
     _mainWindow = mainWindow;
-    logger= logger_;
+    view = view_;
     setState(FrontRailOff);
     setNeedState(FrontRailOff);
     needGoLeft = false;
@@ -167,7 +167,7 @@ void FrontRail::setState(FrontRailStates state_){
             //     goLeft();
             // else
             //     goRight();
-            logger->addLog("Отвал: отскок");
+            view->addLog("Отвал: отскок");
         }
     }
     if (state == FrontRail::FrontRailBounced){// отскок завершён
@@ -239,7 +239,7 @@ void FrontRail::goUp(bool state){
 }
 
 void FrontRail::goFlow(bool state){
-    logger->addLog(state?"Отвал: плавание активировано":"Отвал: плавание деактивировано");
+    view->addLog(state?"Отвал: плавание активировано":"Отвал: плавание деактивировано");
     myCan->setState(StateValveC3, state);
     myCan->setState(StateValveC4, state);
 }
@@ -293,7 +293,7 @@ float FrontRail::getTimeout(){//получает таймаут в секунд�
 }
 
 void FrontRail::printMovement(organsEnums::Direction dir, bool state){
-    logger->printMovementLog(organsEnums::Dump,
+    view->printMovementLog(organsEnums::Dump,
                              dir,
                              state?"": " завершено");
 }
@@ -631,7 +631,7 @@ bool FrontRail::finishMovementBySensorOrTimeout(
         hasPositionSensor(direction);
 
     if (sensorInstalled && sensorReached) {
-        logger->printMovementLog(
+        view->printMovementLog(
             organsEnums::Dump,
             direction,
             " остановлено, достигнут датчик"
@@ -646,13 +646,13 @@ bool FrontRail::finishMovementBySensorOrTimeout(
 
     if (!railAlarmed) {
         if (sensorInstalled) {
-            logger->printMovementLog(
+            view->printMovementLog(
                 organsEnums::Dump,
                 direction,
                 " завершено по тайм-ауту, ДКП не сработал"
                 );
         } else {
-            logger->printMovementLog(
+            view->printMovementLog(
                 organsEnums::Dump,
                 direction,
                 " завершено по тайм-ауту (ДКП отсутствует)"
@@ -664,4 +664,120 @@ bool FrontRail::finishMovementBySensorOrTimeout(
 
     railAlarmed = true;
     return true;
+}
+bool FrontRail::isInstalled() const
+{
+    return _mainWindow != nullptr
+           && _mainWindow->getMachineConfiguration() != nullptr
+           && _mainWindow->getMachineConfiguration()->hasFrontDump();
+}
+
+bool FrontRail::isSelected() const
+{
+    return choosed;
+}
+
+void FrontRail::setSelected(bool selected)
+{
+    choosed = selected;
+}
+
+bool FrontRail::isTransitioning() const
+{
+    FrontRailStates targetState = needState;
+
+    /*
+     * ableState ограничивает максимально доступное состояние,
+     * например когда отсутствует нужная конфигурация или условие.
+     */
+    if (needState != FrontRailOff && ableState < needState) {
+        targetState = ableState;
+    }
+
+    return state != targetState;
+}
+
+bool FrontRail::isInHomeState() const
+{
+    /*
+     * При аварии считаем орган «дома», чтобы общий reset/idle
+     * не ожидал завершения невозможного движения.
+     */
+    return state == FrontRailOff || railAlarmed;
+}
+
+bool FrontRail::isInWorkingState() const
+{
+    return state == FrontRailFlowed;
+}
+
+void FrontRail::requestHomeState()
+{
+    setNeedState(FrontRailOff);
+}
+
+void FrontRail::updateTargetFromWorkMode()
+{
+    if (_mainWindow == nullptr) {
+        setNeedState(FrontRailOff);
+        choosed = false;
+        needGoLeft = false;
+        return;
+    }
+
+    const bool leftEnabled = _mainWindow->workMode.frontDumpLeft;
+    const bool rightEnabled = _mainWindow->workMode.frontDumpRight;
+    const bool active = leftEnabled || rightEnabled;
+
+    choosed = active;
+
+    /*
+     * `needGoLeft` используется существующим автоматом состояний
+     * как целевое направление передней рейки.
+     */
+    needGoLeft = leftEnabled;
+
+    setNeedState(
+        active
+            ? FrontRailFlowed
+            : FrontRailOff
+        );
+}
+
+void FrontRail::stopAllOutputs()
+{
+    /*
+     * Отключаем поток/рабочий исполнительный механизм,
+     * затем снимаем направление движения.
+     */
+    setFlowActive(false);
+    goNone();
+}
+
+bool FrontRail::supportsDirection(
+    organsEnums::Direction direction
+    ) const
+{
+    switch (direction) {
+    case organsEnums::Up:
+    case organsEnums::Down:
+    case organsEnums::Left:
+    case organsEnums::Right:
+        return true;
+
+    case organsEnums::None:
+    default:
+        return false;
+    }
+}
+
+void FrontRail::setManualDirection(
+    organsEnums::Direction direction
+    )
+{
+    /*
+     * Существующий `setDirection()` должен сам вызвать нужную
+     * логику `goUp/goDown/goLeft/goRight/goNone`.
+     */
+    setDirection(direction);
 }

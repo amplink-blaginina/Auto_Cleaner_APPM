@@ -192,7 +192,7 @@ void MainWindow::setBroomFlow(bool state)
         broomCentral->setFlowActive(state);
     }
 
-    showWorkMode();
+    updateWorkMode();
     updateBroomFlowPressIcon();
 }
 
@@ -218,7 +218,7 @@ void MainWindow::setDumpFlow(bool state){
     }
     QString path = "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_up_";////dozerBlade_lift_";
     view->setStyle(ui->label_dumpFloatPress, path + (state?"on_down_blocked);":"off_down_blocked);" ));
-    showWorkMode();
+    updateWorkMode();
 }
 
 void MainWindow::updateBroomFlowPressIcon()
@@ -332,7 +332,7 @@ void MainWindow::configureButtons(){
                     }
 
                     workMode.frontDumpRight = false;
-                    showWorkMode();
+                    updateWorkMode();
                 }
             },
 
@@ -384,7 +384,7 @@ void MainWindow::configureButtons(){
                     }
 
                     workMode.frontDumpLeft = false;
-                    showWorkMode();
+                    updateWorkMode();
                 }
             },
 
@@ -540,7 +540,7 @@ void MainWindow::configureButtons(){
                     }
 
                     workMode.centralBroomRight = false;
-                    showWorkMode();
+                    updateWorkMode();
                 }
             },
 
@@ -588,7 +588,7 @@ void MainWindow::configureButtons(){
                     }
 
                     workMode.centralBroomLeft = false;
-                    showWorkMode();
+                    updateWorkMode();
                 }
             },
 
@@ -647,7 +647,7 @@ void MainWindow::configureButtons(){
 
                 workMode.centralBroomPress = !workMode.centralBroomPress;
                 broomCentral->setPressActive(workMode.centralBroomPress);
-                showWorkMode();
+                updateWorkMode();
 
                 QString path =
                     "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
@@ -796,7 +796,7 @@ void MainWindow::configureButtons(){
                     view->addLog("Обдув: выбрана левая сторона");
                     workMode.blowLeft = !workMode.blowLeft;
                     workMode.blowRight = false;
-                    showWorkMode();
+                    updateWorkMode();
                 }
             },
 
@@ -853,7 +853,7 @@ void MainWindow::configureButtons(){
                     view->addLog("Обдув: выбрана правая сторона");
                     workMode.blowRight = !workMode.blowRight;
                     workMode.blowLeft = false;
-                    showWorkMode();
+                    updateWorkMode();
                 }
             },
 
@@ -889,7 +889,7 @@ void MainWindow::configureButtons(){
                 workMode.centralBroomPress = !workMode.centralBroomPress;
                 broomCentral->setPressActive(workMode.centralBroomPress);
 
-                showWorkMode();
+                updateWorkMode();
                 updateBroomFlowPressIcon();
             },
 
@@ -1012,7 +1012,7 @@ void MainWindow::configureButtons(){
                      view->addLog("Обдув: выбрана левая сторона");
                      workMode.blowLeft = !workMode.blowLeft;
                      workMode.blowRight = false;
-                     showWorkMode();
+                     updateWorkMode();
                  }
                 },
             .onDeactivated = [this] {
@@ -1049,7 +1049,7 @@ void MainWindow::configureButtons(){
                      view->addLog("Обдув: выбрана правая сторона");
                      workMode.blowRight = !workMode.blowRight;
                      workMode.blowLeft = false;
-                     showWorkMode();
+                     updateWorkMode();
                  }},
             .onDeactivated = [this] {
                  ui->pushButton_blowerRight->setProperty("wasDown", false);
@@ -1275,11 +1275,17 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     backMagnet = new BackMagnet(can0, NULL, settings, view, this, this);
     blower = new Blower(can0, NULL, settings, view, this, this);
 
+    organs.clear();
+    organs.append(broomCentral);
+    organs.append(frontRail);
+    organs.append(blower);
+    organs.append(backMagnet);
+
     applyEquipmentAvailability();
 
     resetDevices();
     //can0->setState(StateBoardsPowerOut, true);
-    showWorkMode();
+    updateWorkMode();
 
     starter->setIgnition(true);
 
@@ -2208,7 +2214,7 @@ void MainWindow::mainProgress(){
     // смотрим нажат ли кто и реагируем соответствующе
     // проверка отключения зажигания (еасли нажали кнопку на пульте)
     showPultOffIgnition();
-    //updateStartClean();
+    updateStartClean();
     showModeButton();
     showMatrixFRMButton();
 
@@ -2239,6 +2245,7 @@ void MainWindow::mainProgress(){
         //showBlower();
     }
     organsWereTransitioning = transitioning;
+
     showPauseButton();
 
     // если нажата аварийка или грибок питания то завершаем все
@@ -2623,7 +2630,7 @@ void MainWindow::settingsClosed(){// нужно перезачитьать вс�
     canForEngine->setEngineAddr(globals->enigneAddr);
 }
 
-void MainWindow::showWorkMode(){
+void MainWindow::updateWorkMode(){
     if (!pauseActive)
         updateOrgansStates();
     updateButtonsActiveState();// проверим доступность кнопошков
@@ -2684,7 +2691,7 @@ void MainWindow::toggleAllFrm(){
     workMode.frmKung = enable;
     workMode.frmBroom = enable;
     workMode.frmMagnet = enable;
-    showWorkMode();
+    updateWorkMode();
 }
 
 bool MainWindow::isIdleMode()
@@ -2746,23 +2753,19 @@ bool MainWindow::isBlowTransitioning(){
 
 bool MainWindow::isOrgansTransitioning()
 {
-    if (machineConfiguration->hasCentralBroom()
-        && isBroomTransitioning()) {
+    if (machineConfiguration->hasCentralBroom() && isBroomTransitioning()) {
         return true;
     }
 
-    if (machineConfiguration->hasFrontDump()
-        && isDumpTransitioning()) {
+    if (machineConfiguration->hasFrontDump() && isDumpTransitioning()) {
         return true;
     }
 
-    if (machineConfiguration->hasBackMagnet()
-        && isMagnetTransitioning()) {
+    if (machineConfiguration->hasBackMagnet() && isMagnetTransitioning()) {
         return true;
     }
 
-    if (machineConfiguration->hasBlower()
-        && isBlowTransitioning()) {
+    if (machineConfiguration->hasBlower() && isBlowTransitioning()) {
         return true;
     }
 
@@ -2837,7 +2840,7 @@ void MainWindow::showPauseButton(){
             view->addLog("Пауза снята");
         }
 
-        showWorkMode();
+        updateWorkMode();
     }
     else{
         // В режиме простоя эта же физическая кнопка
@@ -2861,7 +2864,7 @@ void MainWindow::tryToDisableBroomFlow(){
 void MainWindow::changeBlowDirection(bool isRight){
     workMode.blowLeft = !isRight;
     workMode.blowRight = isRight;
-    showWorkMode();
+    updateWorkMode();
 }
 //=============================================================
 //====================Buttons click handlers===================
@@ -2873,7 +2876,7 @@ void MainWindow::on_pushButton_startstop_clicked(){
         if (pauseActive){// снимаем паузу, уборка продолжается
             pauseActive = false;
             view->addLog("Пауза снята");
-            showWorkMode();
+            updateWorkMode();
             return;
         }
         view->addLogWarning("Уборка окончена");
@@ -2883,7 +2886,7 @@ void MainWindow::on_pushButton_startstop_clicked(){
         view->addLogWarning("Уборка начата");
         startCleaning(true);
     }
-    showWorkMode();
+    updateWorkMode();
 }
 void MainWindow:: startCleaning(bool state){
     blower->setDirection(workMode.blowRight);
@@ -2962,22 +2965,22 @@ void MainWindow::on_pushButton_centralBroomPress_clicked(){
 
 void MainWindow::on_pushButton_backMagnet_clicked(){
     workMode.backMagnet = !workMode.backMagnet;
-    showWorkMode();
+    updateWorkMode();
 }
 
 void MainWindow::on_pushButton_frmKung_clicked(){
     workMode.frmKung = !workMode.frmKung;
-    showWorkMode();
+    updateWorkMode();
 }
 
 void MainWindow::on_pushButton_frmBroom_clicked(){
     workMode.frmBroom = !workMode.frmBroom;
-    showWorkMode();
+    updateWorkMode();
 }
 
 void MainWindow::on_pushButton_frmMagnet_clicked(){
     workMode.frmMagnet = !workMode.frmMagnet;
-    showWorkMode();
+    updateWorkMode();
 }
 
 void MainWindow::on_pushButton_homeState_clicked(){
@@ -3051,7 +3054,7 @@ void MainWindow::updateOrgansStates(){// задаем режимы органа�
 void MainWindow:: changeSweepMode(quint8 mode){
     if (workMode.sweepType != mode){
         workMode.sweepType = mode;
-        showWorkMode();
+        updateWorkMode();
     }
 }
 

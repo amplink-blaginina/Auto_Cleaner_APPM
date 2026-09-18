@@ -1,12 +1,23 @@
 #include "blower.h"
 
 #include "mainwindow.h"
-
+#include "Configuration/configuration.h"
 #include <QDebug>
 #include <QTimer>
 #include <QThread>
 
-Blower::Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_)
+Blower::Blower(
+    MyCan *myCan_,
+    MyCanJ1939 *myCanJ1939_,
+    QSettings *settings_,
+    ViewController *logger_,
+    MainWindow* mainWindow,
+    QObject *parent_
+    )
+    : OrganController(
+          organsEnums::Blower,
+          parent_
+          )
 {
     myCan = myCan_;
     myCanJ1939 = myCanJ1939_;
@@ -621,4 +632,107 @@ Blower::BlowerStates Blower::stateDown()
         break;
     }
     return state;
+}
+bool Blower::isInstalled() const
+{
+    return _mainWindow->getMachineConfiguration()
+    ->hasBlower();
+}
+
+bool Blower::isSelected() const
+{
+    return choosed;
+}
+
+void Blower::setSelected(bool selected)
+{
+    choosed = selected;
+}
+
+bool Blower::isTransitioning() const
+{
+    BlowerStates targetState = needState;
+
+    if (needState != BlowerOff
+        && ableState < needState) {
+        targetState = ableState;
+    }
+
+    return state != targetState;
+}
+
+bool Blower::isInHomeState() const
+{
+    return state == BlowerOff || blowerAlarmed;
+}
+
+bool Blower::isInWorkingState() const
+{
+    return state == BlowerRotated;
+}
+
+void Blower::requestHomeState()
+{
+    setNeedState(BlowerOff);
+}
+
+void Blower::updateTargetFromWorkMode()
+{
+    const bool active =
+        _mainWindow->workMode.blowLeft
+        || _mainWindow->workMode.blowRight;
+
+    setNeedState(
+        active
+            ? BlowerRotated
+            : BlowerOff
+        );
+
+    choosed = active;
+}
+
+void Blower::stopAllOutputs()
+{
+    setTargetRotationSpeed(0);
+    currentRotationSpeed = 0;
+    goRotate(0);
+    goNone();
+}
+
+bool Blower::supportsDirection(
+    organsEnums::Direction direction
+    ) const
+{
+    return direction == organsEnums::Up
+           || direction == organsEnums::Down
+           || direction == organsEnums::Left
+           || direction == organsEnums::Right;
+}
+
+void Blower::setManualDirection(
+    organsEnums::Direction direction
+    )
+{
+    switch (direction) {
+    case organsEnums::Up:
+        goUp();
+        break;
+
+    case organsEnums::Down:
+        goDown();
+        break;
+
+    case organsEnums::Left:
+        goSlide(false);
+        break;
+
+    case organsEnums::Right:
+        goSlide(true);
+        break;
+
+    case organsEnums::None:
+    default:
+        goNone();
+        break;
+    }
 }

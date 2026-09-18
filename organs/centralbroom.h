@@ -1,6 +1,7 @@
 #ifndef CENTRALBROOM_H
 #define CENTRALBROOM_H
 
+#include "organcontroller.h"
 #include "organsenums.h"
 
 #include <QObject>
@@ -16,7 +17,7 @@
 
 #include <Controllers/viewcontroller.h>
 class MainWindow;
-class CentralBroom : public QObject
+class CentralBroom : public OrganController
 {
     Q_OBJECT
 public:
@@ -44,9 +45,34 @@ public:
     };
     Q_ENUM(BroomStates);
 
-    explicit CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
+    bool isInstalled() const override;
+
+    bool isSelected() const override;
+    void setSelected(bool selected) override;
+
+    bool isTransitioning() const override;
+    bool isInHomeState() const override;
+    bool isInWorkingState() const override;
+
+    void requestHomeState() override;
+    void updateTargetFromWorkMode() override;
+
+    void stopAllOutputs() override;
+
+    bool supportsDirection(
+        organsEnums::Direction direction
+        ) const override;
+
+    void setManualDirection(
+        organsEnums::Direction direction
+        ) override;
+
+    //------------------------------------------
+    explicit CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *view, MainWindow* mainWindow, QObject *parent_);
+
+
     QObject * parent;
-    ViewController *logger;
+    ViewController *view;
     MyCan *myCan;
     MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;

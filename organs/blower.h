@@ -7,13 +7,13 @@
 #include <QMap>
 #include <QSettings>
 #include <screenlog.h>
-
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
+#include "organs/organcontroller.h"
 #include "Configuration/configuration.h"
 #include <Controllers/viewcontroller.h>
 class MainWindow;
-class Blower : public QObject
+class Blower : public OrganController
 {
     Q_OBJECT
 public:
@@ -32,6 +32,27 @@ public:
         BlowerRotated     = 9
     };
     Q_ENUM(BlowerStates)
+    bool isInstalled() const override;
+
+    bool isSelected() const override;
+    void setSelected(bool selected) override;
+
+    bool isTransitioning() const override;
+    bool isInHomeState() const override;
+    bool isInWorkingState() const override;
+
+    void requestHomeState() override;
+    void updateTargetFromWorkMode() override;
+
+    void stopAllOutputs() override;
+
+    bool supportsDirection(
+        organsEnums::Direction direction
+        ) const override;
+
+    void setManualDirection(
+        organsEnums::Direction direction
+        ) override;
 
     explicit Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
     QObject * parent;
@@ -40,8 +61,13 @@ public:
     MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;
     QSettings *settings;
-    bool choosed;
-    bool blowerAlarmed;
+    bool choosed = false;
+    bool blowerAlarmed = false;
+    bool rightBlow = false;
+    bool startClean = false;
+    BlowerStates state = BlowerOff; // стутус который мы предполагаем сейчас (лигические выводы)
+    BlowerStates needState = BlowerOff; // статус который мы желаем достичь
+    BlowerStates ableState = BlowerOff; // статус который мы можем достичь
 
     void readSettings();
     void checkNeedState();
@@ -61,14 +87,9 @@ public:
     // обороты двигателя под каждый тип смета
     QMap<int, int> rpmForSweepType;
 
-    bool startClean;
-    bool rightBlow;
 
     // установка и получение состояния модуля
     void setState(BlowerStates state_);
-    BlowerStates state; // стутус который мы предполагаем сейчас (лигические выводы)
-    BlowerStates needState; // статус который мы желаем достичь
-    BlowerStates ableState; // статус который мы можем достичь
     BlowerStates getState();
     QString toString(BlowerStates s);
 

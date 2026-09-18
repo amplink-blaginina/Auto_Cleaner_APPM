@@ -12,8 +12,11 @@
 #include <can/mycanj1939.h>
 
 #include <Controllers/viewcontroller.h>
+#include "organs/organcontroller.h"
+#include "organs/organsenums.h"
+
 class MainWindow;
-class BackMagnet : public QObject
+class BackMagnet : public OrganController
 {
     Q_OBJECT
 public:
@@ -27,6 +30,27 @@ public:
     };
     Q_ENUM(BackMagnetStates)
 
+    bool isInstalled() const override;
+
+    bool isSelected() const override;
+    void setSelected(bool selected) override;
+
+    bool isTransitioning() const override;
+    bool isInHomeState() const override;
+    bool isInWorkingState() const override;
+
+    void requestHomeState() override;
+    void updateTargetFromWorkMode() override;
+
+    void stopAllOutputs() override;
+
+    bool supportsDirection(
+        organsEnums::Direction direction
+        ) const override;
+
+    void setManualDirection(
+        organsEnums::Direction direction
+        ) override;
     explicit BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
     QObject * parent;
     ViewController *logger;
@@ -34,8 +58,12 @@ public:
     MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;
     QSettings *settings;
-    bool choosed;
-    bool magnetAlarmed;
+    bool choosed = false;
+    bool magnetAlarmed = false;
+    bool startClean = false;
+    BackMagnetStates state = BackMagnetOff; // стутус который мы предполагаем сейчас (лигические выводы)
+    BackMagnetStates needState = BackMagnetOff; // статус который мы желаем достичь
+    BackMagnetStates ableState = BackMagnetOff; // статус который мы можем достичь
 
     void readSettings();
     void checkNeedState();
@@ -50,14 +78,10 @@ public:
     // таймауты на каждую длительную операцию
     QMap<BackMagnetStates, float> timeouts;
 
-    bool startClean;
 
     // установка и получение состояния модуля
-    void setState(BackMagnetStates state_);
-    BackMagnetStates state; // стутус который мы предполагаем сейчас (лигические выводы)
-    BackMagnetStates needState; // статус который мы желаем достичь
-    BackMagnetStates ableState; // статус который мы можем достичь
     BackMagnetStates getState();
+    void setState(BackMagnetStates state_);
     QString toString(BackMagnetStates s);
 
     void goOff();
