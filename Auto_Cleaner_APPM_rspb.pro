@@ -59,6 +59,7 @@ SOURCES += \
     organs/frontrail.cpp \
     organs/organcontroller.cpp \
     organs/newdevice.cpp \
+    organs/organcoordinator.cpp \
     organs/organregistry.cpp \
     organs/organsenums.cpp \
     password_form.cpp \
@@ -120,6 +121,7 @@ HEADERS += \
     organs/frontrail.h \
     organs/organcontroller.h \
     organs/newdevice.h \
+    organs/organcoordinator.h \
     organs/organregistry.h \
     organs/organsenums.h \
     organs/organworkmode.h \

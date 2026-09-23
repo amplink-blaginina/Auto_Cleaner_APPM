@@ -16,6 +16,7 @@
 #include <currentstate.h>
 #include <settingsstore.h>
 #include <DebouncedInput.h>
+#include <organcoordinator.h>
 
 #include <sys/socket.h>
 #include <net/if.h>
@@ -41,9 +42,10 @@
 #include "organs/centralbroom.h"
 #include "organs/blower.h"
 #include "organs/frontrail.h"
+
 #include "organs/organsenums.h"
-#include "organs/organregistry.h"
 #include "organs/organworkmode.h"
+#include "organs/organregistry.h"
 // диагностика
 #include <service/servicemainrightform.h>
 #include <service/global/timeConfigure/serviceglobaldatetimeleftform.h>
@@ -395,10 +397,11 @@ public:
     MyCanJ1939 *canj1939Main;
 
 private:
-    QList<OrganController*> organs;
+   // QList<OrganController*> organs;
     OrganRegistry organRegistry;
-    MyCan *can0;
+    OrganCoordinator *organCoordinator = nullptr;
     Configuration* machineConfiguration = nullptr;
+    MyCan *can0;
     QString blowerVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
     QString blowerHorPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
     QString dumpVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
@@ -520,11 +523,13 @@ private:
     void setButtonAvailability(QPushButton *button, QLabel *iconLabel, bool available);
     void setWidgetOpacity(QWidget *widget, qreal opacity);
     OrganWorkMode makeOrganWorkMode() const;
+    void publishOrganWorkMode();
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
     void Send_SecretPass_2_pass_form(int);
     void Pass_close();
+    void organWorkModeChanged( const OrganWorkMode &mode );
 public :
     bool isBroomTransitioning();
     bool isDumpTransitioning();

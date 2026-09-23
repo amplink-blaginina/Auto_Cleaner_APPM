@@ -1,5 +1,6 @@
 #ifndef ORGANWORKMODE_H
 #define ORGANWORKMODE_H
+#include <QMetaType>
 
 struct OrganWorkMode
 {
@@ -18,6 +19,10 @@ struct OrganWorkMode
     bool blowerRight = false;
 
     bool backMagnet = false;
+
+    int sweepType = 0;
 };
+
+Q_DECLARE_METATYPE(OrganWorkMode)
 
 #endif // ORGANWORKMODE_H

@@ -211,7 +211,7 @@ void MainWindow::setDumpFlow(bool state){
     }
     workMode.frontDumpFlow = state;
     if (startClean){
-        view->addLog(state? "Отвал плавание": "Отвал плавание завершено");
+        //view->addLog(state? "Отвал плавание": "Отвал плавание завершено");
         frontRail->setFlowActive(state);}
     else{
         if(state)
@@ -798,6 +798,7 @@ void MainWindow::configureButtons(){
                     workMode.blowLeft = !workMode.blowLeft;
                     workMode.blowRight = false;
                     updateWorkMode();
+                    updateAllOrganTargets();
                 }
             },
 
@@ -856,6 +857,7 @@ void MainWindow::configureButtons(){
                     workMode.blowRight = !workMode.blowRight;
                     workMode.blowLeft = false;
                     updateWorkMode();
+                    updateAllOrganTargets();
                 }
             },
 
@@ -1016,6 +1018,7 @@ void MainWindow::configureButtons(){
                      workMode.blowLeft = !workMode.blowLeft;
                      workMode.blowRight = false;
                      updateWorkMode();
+                     updateAllOrganTargets();
                  }
                 },
             .onDeactivated = [this] {
@@ -1054,6 +1057,7 @@ void MainWindow::configureButtons(){
                      workMode.blowRight = !workMode.blowRight;
                      workMode.blowLeft = false;
                      updateWorkMode();
+                     updateAllOrganTargets();
                  }},
             .onDeactivated = [this] {
                  ui->pushButton_blowerRight->setProperty("wasDown", false);
@@ -1076,6 +1080,8 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    qRegisterMetaType<OrganWorkMode>( "OrganWorkMode" );
+
     ui->setupUi(this);
     can0 = NULL;
     settings = new QSettings(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini", QSettings::IniFormat);
@@ -1283,11 +1289,23 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     blower = new Blower(can0, NULL, settings, view, this, this);
     organRegistry.add(blower);
 
-    organs.clear();
-    organs.append(broomCentral);
-    organs.append(frontRail);
-    organs.append(blower);
-    organs.append(backMagnet);
+    // organs.clear();
+    // organs.append(broomCentral);
+    // organs.append(frontRail);
+    // organs.append(blower);
+    // organs.append(backMagnet);
+
+    organCoordinator = new OrganCoordinator(
+        &organRegistry,
+        this
+        );
+
+    connect(
+        this,
+        &MainWindow::organWorkModeChanged,
+        organCoordinator,
+        &OrganCoordinator::applyWorkMode
+        );
 
     applyEquipmentAvailability();
 
@@ -1408,6 +1426,7 @@ void MainWindow::setDefaultValues(){
     pauseActive = false;
 
     globals->setDefaults();
+    updateAllOrganTargets();
 }
 
 void MainWindow::loadAndSetFonts(){
@@ -1453,6 +1472,7 @@ void MainWindow::setDefaultWorkMode(){
     workMode.frmMagnet = false;
     workMode.frmKung = false;
     workMode.sweepType = LightSweep;
+    updateAllOrganTargets();
 }
 
 void MainWindow::setDefaultSettings(){}
@@ -2086,32 +2106,37 @@ void MainWindow::repaintProgress()
     ui->label_time->repaint();
 }
 
+// bool MainWindow::inHomeState()
+// {
+//     const bool dumpIsHome =
+//         !machineConfiguration->hasFrontDump()
+//         || frontRail->getState() == FrontRail::FrontRailOff
+//         || frontRail->railAlarmed;
+
+//     const bool magnetIsHome =
+//         !machineConfiguration->hasBackMagnet()
+//         || backMagnet->getState() == BackMagnet::BackMagnetOff
+//         || backMagnet->magnetAlarmed;
+
+//     const bool broomIsHome =
+//         !machineConfiguration->hasCentralBroom()
+//         || broomCentral->getState() == CentralBroom::BroomOff
+//         || broomCentral->broomAlarmed;
+
+//     const bool blowerIsHome =
+//         !machineConfiguration->hasBlower()
+//         || blower->getState() == Blower::BlowerOff
+//         || blower->blowerAlarmed;
+
+//     return dumpIsHome
+//            && magnetIsHome
+//            && broomIsHome
+//            && blowerIsHome;
+// }
 bool MainWindow::inHomeState()
 {
-    const bool dumpIsHome =
-        !machineConfiguration->hasFrontDump()
-        || frontRail->getState() == FrontRail::FrontRailOff
-        || frontRail->railAlarmed;
-
-    const bool magnetIsHome =
-        !machineConfiguration->hasBackMagnet()
-        || backMagnet->getState() == BackMagnet::BackMagnetOff
-        || backMagnet->magnetAlarmed;
-
-    const bool broomIsHome =
-        !machineConfiguration->hasCentralBroom()
-        || broomCentral->getState() == CentralBroom::BroomOff
-        || broomCentral->broomAlarmed;
-
-    const bool blowerIsHome =
-        !machineConfiguration->hasBlower()
-        || blower->getState() == Blower::BlowerOff
-        || blower->blowerAlarmed;
-
-    return dumpIsHome
-           && magnetIsHome
-           && broomIsHome
-           && blowerIsHome;
+    return organCoordinator != nullptr
+           && organCoordinator->areAllInHomeState();
 }
 // тут проверяются узлы которые являются общими для всех (например насос воды используется 8 блоками, поэтому тут проверяем если он долго никому не нужен то выключаем воду)
 void MainWindow::checkIgnition(){
@@ -2762,23 +2787,25 @@ bool MainWindow::isBlowTransitioning(){
 
 bool MainWindow::isOrgansTransitioning()
 {
-    if (machineConfiguration->hasCentralBroom() && isBroomTransitioning()) {
-        return true;
-    }
+    return organCoordinator != nullptr
+           && organCoordinator->isAnyTransitioning();
+    // if (machineConfiguration->hasCentralBroom() && isBroomTransitioning()) {
+    //     return true;
+    // }
 
-    if (machineConfiguration->hasFrontDump() && isDumpTransitioning()) {
-        return true;
-    }
+    // if (machineConfiguration->hasFrontDump() && isDumpTransitioning()) {
+    //     return true;
+    // }
 
-    if (machineConfiguration->hasBackMagnet() && isMagnetTransitioning()) {
-        return true;
-    }
+    // if (machineConfiguration->hasBackMagnet() && isMagnetTransitioning()) {
+    //     return true;
+    // }
 
-    if (machineConfiguration->hasBlower() && isBlowTransitioning()) {
-        return true;
-    }
+    // if (machineConfiguration->hasBlower() && isBlowTransitioning()) {
+    //     return true;
+    // }
 
-    return false;
+    // return false;
 }
 
 
@@ -2874,6 +2901,7 @@ void MainWindow::changeBlowDirection(bool isRight){
     workMode.blowLeft = !isRight;
     workMode.blowRight = isRight;
     updateWorkMode();
+    updateAllOrganTargets();
 }
 //=============================================================
 //====================Buttons click handlers===================
@@ -2900,6 +2928,7 @@ void MainWindow::on_pushButton_startstop_clicked(){
 void MainWindow:: startCleaning(bool state){
     blower->setDirection(workMode.blowRight);
     startClean = state;
+    updateAllOrganTargets();
 }
 void MainWindow::on_pushButton_service_clicked(){
     logger->addUserLogInfo(Logger::UF_SERVICE_PRESSED, 1);
@@ -3499,11 +3528,7 @@ void MainWindow::stopAllOrganOutputs()
 
 void MainWindow::updateAllOrganTargets()
 {
-    const OrganWorkMode mode = makeOrganWorkMode();
-
-    for (OrganController *organ : organRegistry.installed()) {
-        organ->updateTargetFromWorkMode(mode);
-    }
+    publishOrganWorkMode();
 }
 
 OrganWorkMode MainWindow::makeOrganWorkMode() const
@@ -3516,23 +3541,24 @@ OrganWorkMode MainWindow::makeOrganWorkMode() const
     mode.frontDumpRight = workMode.frontDumpRight;
     mode.frontDumpFlow = workMode.frontDumpFlow;
 
-    /*
-     * Названия полей ниже нужно сверить с вашим фактическим
-     * определением workMode. Пока вставляйте только те строки,
-     * для которых поля уже реально существуют.
-     */
+    mode.centralBroomLeft = workMode.centralBroomLeft;
+    mode.centralBroomRight = workMode.centralBroomRight;
+    mode.centralBroomFlow = workMode.centralBroomFlow;
+    mode.centralBroomPress = workMode.centralBroomPress;
 
-    // mode.centralBroomLeft = workMode.centralBroomLeft;
-    // mode.centralBroomRight = workMode.centralBroomRight;
-    // mode.centralBroomFlow = workMode.centralBroomFlow;
-    // mode.centralBroomPress = workMode.centralBroomPress;
+    mode.blowerLeft = workMode.blowLeft;
+    mode.blowerRight = workMode.blowRight;
+    mode.backMagnet = workMode.backMagnet;
 
-    // mode.blowerLeft = workMode.blowerLeft;
-    // mode.blowerRight = workMode.blowerRight;
-
-    // mode.backMagnet = workMode.backMagnet;
-
+    mode.sweepType = workMode.sweepType;
     return mode;
+}
+
+void MainWindow::publishOrganWorkMode()
+{
+    emit organWorkModeChanged(
+        makeOrganWorkMode()
+        );
 }
 
 // void MainWindow::updateAllOrganInputs()

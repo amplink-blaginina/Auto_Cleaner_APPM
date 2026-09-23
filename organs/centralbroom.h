@@ -85,6 +85,8 @@ public:
     bool needGoLeft = false; // тут главный признак-будет ли эта щетка желать развернуться или нет (это поворот ВЛЕВО)
     bool isPressed = false;
     bool isFlowing = false;
+    bool centralBroomFlow = false;
+    int sweepType = 0;
     organsEnums::Direction direction = organsEnums::None;
     BroomStates state = BroomOff; // стутус который мы предполагаем сейчас (лигические выводы)
     BroomStates needState = BroomOff; // статус который мы желаем достичь

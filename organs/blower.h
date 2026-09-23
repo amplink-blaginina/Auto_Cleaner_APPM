@@ -66,6 +66,7 @@ public:
     bool blowerAlarmed = false;
     bool rightBlow = false;
     bool startClean = false;
+    int sweepType = 0;
     BlowerStates state = BlowerOff; // стутус который мы предполагаем сейчас (лигические выводы)
     BlowerStates needState = BlowerOff; // статус который мы желаем достичь
     BlowerStates ableState = BlowerOff; // статус который мы можем достичь

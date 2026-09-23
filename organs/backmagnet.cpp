@@ -206,13 +206,13 @@ bool BackMagnet::testStateTimer(){// мощная функция проверк�
     return false;
 }
 
-void BackMagnet::checkFriendVars(){
-    startClean = _mainWindow->startClean;
-}
+// void BackMagnet::checkFriendVars(){
+//     //startClean = _mainWindow->startClean;
+// }
 
 void BackMagnet::progressLoop(){
     // проверяет соседние модули и собирает информацию о их состояниях (нажатые кнопки, обороты, статусы и пр.)
-    checkFriendVars();
+    //checkFriendVars();
     // проверяет до какого состояния может добираться щетка
     checkNeedState();
     if (state < needState && state < ableState)
@@ -321,9 +321,11 @@ void BackMagnet::requestHomeState()
     setNeedState(BackMagnetOff);
 }
 
-void BackMagnet::updateTargetFromWorkMode(const OrganWorkMode &mode)
+void BackMagnet::updateTargetFromWorkMode( const OrganWorkMode &mode)
 {
-    const bool active = _mainWindow->workMode.backMagnet;
+    startClean = mode.startClean;
+
+    const bool active = mode.backMagnet;
 
     setNeedState(
         active

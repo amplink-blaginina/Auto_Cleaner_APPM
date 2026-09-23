@@ -30,10 +30,7 @@ public:
     virtual void requestHomeState() = 0;
     virtual void updateTargetFromWorkMode(
         const OrganWorkMode &mode
-        )
-    {
-        Q_UNUSED(mode);
-    }
+        ) = 0;
 
     virtual void stopAllOutputs() = 0;
 

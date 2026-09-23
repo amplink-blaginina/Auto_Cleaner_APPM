@@ -50,11 +50,17 @@ void CentralBroom::requestHomeState()
     setNeedState(BroomOff);
 }
 
-void CentralBroom::updateTargetFromWorkMode(const OrganWorkMode &mode)
+void CentralBroom::updateTargetFromWorkMode(
+    const OrganWorkMode &mode
+    )
 {
+    startClean = mode.startClean;
+    centralBroomFlow = mode.centralBroomFlow;
+    sweepType = mode.sweepType;
+
     const bool active =
-        _mainWindow->workMode.centralBroomLeft
-        || _mainWindow->workMode.centralBroomRight;
+        mode.centralBroomLeft
+        || mode.centralBroomRight;
 
     setNeedState(
         active
@@ -64,8 +70,11 @@ void CentralBroom::updateTargetFromWorkMode(const OrganWorkMode &mode)
 
     choosed = active;
 
-    needGoLeft =
-        _mainWindow->workMode.centralBroomLeft;
+    /*
+     * Сохраняем прежнее правило:
+     * при активных обоих флагах приоритет получает левый.
+     */
+    needGoLeft = mode.centralBroomLeft;
 }
 
 void CentralBroom::stopAllOutputs()
@@ -186,11 +195,10 @@ void CentralBroom::setState(BroomStates state_){
         setFlowActive(true);
         goNone();
     }
-
-    if (state == CentralBroom::BroomFlowed){// закончилось плавание
-        auto isFlowing = _mainWindow->workMode.centralBroomFlow;
-        setFlowActive(isFlowing);
+    if (state == CentralBroom::BroomFlowed) {
+        setFlowActive(centralBroomFlow);
     }
+
     if (state == CentralBroom::BroomFlowIn){// заканчиваем плавание
         setFlowActive(false);
     }
@@ -444,7 +452,7 @@ CentralBroom::BroomStates CentralBroom::getNeedState(){
 void CentralBroom::checkNeedState()
 {// утанавливает максимальную границу до которой может дойти щетка (при текущих параметрах)
     // проверяет соседние модули и собирает информацию о их состояниях (нажатые кнопки, обороты, статусы и пр.)
-    checkFriendVars();
+    //checkFriendVars();
 
     if (needState != BroomOff){
         if (!startClean){// пуск отжат или никакой режим смета не выбран или если щетки не выдвинуты
@@ -592,19 +600,22 @@ bool CentralBroom::testStateTimer(){// мощная функция провер�
     return false;
 }
 
-void CentralBroom::checkFriendVars(){
-    startClean = _mainWindow->startClean;
-}
+// void CentralBroom::checkFriendVars(){
+//     startClean = _mainWindow->startClean;
+// }
 
 void CentralBroom::progressLoop(){
     // рисуем положение щетки (в зависимости от прижима)
     //broomWidget->setGeometry(broomWidget->geometry().x(), 418 + myCan->getState(StateBroomPressLevelD7).toUInt(), broomWidget->geometry().width(), broomWidget->geometry().height());
 
-    if (state >= CentralBroom::BroomRotateOut){
-        //обороты движка
-        _mainWindow->canForEngine->setEngineCommand(rpmForSweepType.value(_mainWindow->workMode.sweepType) * 8);
-        // скорость щеток
-        goRotate(speedForSweepType.value(_mainWindow->workMode.sweepType));
+    if (state >= CentralBroom::BroomRotateOut) {
+        _mainWindow->canForEngine->setEngineCommand(
+            rpmForSweepType.value(sweepType) * 8
+            );
+
+        goRotate(
+            speedForSweepType.value(sweepType)
+            );
     }
 
     // проверяет до какого состояния может добираться щетка

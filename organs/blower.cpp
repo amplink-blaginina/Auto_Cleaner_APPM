@@ -274,12 +274,12 @@ bool Blower::testStateTimer(){// мощная функция проверки т
     return false;
 }
 
-void Blower::checkFriendVars(){
-    startClean = _mainWindow->startClean;
-    rightBlow = _mainWindow->workMode.blowRight;
-    //qDebug()<<"# Set target direction 3: "<<(isTargetRight?"right":"left");
-    //isTargetRight = rightBlow;
-}
+// void Blower::checkFriendVars(){
+//     startClean = _mainWindow->startClean;
+//     rightBlow = _mainWindow->workMode.blowRight;
+//     //qDebug()<<"# Set target direction 3: "<<(isTargetRight?"right":"left");
+//     //isTargetRight = rightBlow;
+// }
 
 void Blower::setTargetRotationSpeed(float speed){
     targetRotationSpeed = speed;
@@ -311,14 +311,17 @@ void Blower::changeRotationSpeed(){
 
 void Blower::progressLoop(){
     //qDebug()<<"# 1";
-    checkFriendVars();// проверяет соседние модули и собирает информацию о их состояниях (нажатые кнопки, обороты, статусы и пр.)
+    //checkFriendVars();// проверяет соседние модули и собирает информацию о их состояниях (нажатые кнопки, обороты, статусы и пр.)
     checkNeedState();// проверяет до какого состояния может добираться щетка
 
-    if (state >= Blower::BlowerRotateOut){
-        auto type = _mainWindow->workMode.sweepType;
-        _mainWindow->canForEngine->setEngineCommand(rpmForSweepType.value(type * 8));//обороты движка
-        setTargetRotationSpeed(speedForSweepType.value(type));// скорость щеток
-        //goRotate();
+    if (state >= Blower::BlowerRotateOut) {
+        _mainWindow->canForEngine->setEngineCommand(
+            rpmForSweepType.value(sweepType * 8)
+            );
+
+        setTargetRotationSpeed(
+            speedForSweepType.value(sweepType)
+            );
     }
     //qDebug()<<"# 2";
     updateTransitioning();
@@ -348,7 +351,7 @@ void Blower::progressLoop(){
 void Blower::updateTransitioning(){
     //qDebug()<<"# "<<isTargetRight<<"/"<<rightBlow;
 
-    if(_mainWindow->startClean && isTargetRight != rightBlow){
+    if (startClean && isTargetRight != rightBlow) {
         qDebug()<<"## ";
         rotate();
         return;
@@ -676,19 +679,23 @@ void Blower::requestHomeState()
     setNeedState(BlowerOff);
 }
 
-void Blower::updateTargetFromWorkMode(const OrganWorkMode &mode)
+void Blower::updateTargetFromWorkMode( const OrganWorkMode &mode)
 {
+    startClean = mode.startClean;
+    rightBlow = mode.blowerRight;
+    sweepType = mode.sweepType;
+
     const bool active =
-        _mainWindow->workMode.blowLeft
-        || _mainWindow->workMode.blowRight;
+        mode.blowerLeft
+        || mode.blowerRight;
+
+    choosed = active;
 
     setNeedState(
         active
             ? BlowerRotated
             : BlowerOff
         );
-
-    choosed = active;
 }
 
 void Blower::stopAllOutputs()
