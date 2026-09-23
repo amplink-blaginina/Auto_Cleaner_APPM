@@ -26,6 +26,24 @@ void ScreenLog::printMovementLog(organsEnums::Organ organ, organsEnums::Directio
     printLog(getOrganText(organ)+": "+getMovementText(dir) + additionalMsg);
 }
 
+void ScreenLog::printBusyLog(organsEnums::Organ organ){
+    printLog(getOrganText(organ)+" в движении, ожидайте");
+}
+void ScreenLog::printDirectonSelectedLog(organsEnums::Organ organ, organsEnums::Direction side){
+    printLog(getOrganText(organ)+": выбрана "+getSideText(side)+" сторона");
+}
+
+QString ScreenLog::getSideText(organsEnums::Direction direction){
+    switch (direction) {
+    case organsEnums::Left:
+        return "левая" ;
+    case organsEnums::Right:
+        return "правая" ;
+    default:
+        return "Error";
+    }
+}
+
 QString ScreenLog::getMovementText(organsEnums::Direction direction){
     switch (direction) {
     case organsEnums::Up:

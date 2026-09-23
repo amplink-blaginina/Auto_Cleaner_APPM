@@ -108,5 +108,10 @@ void ViewController::addLogError(QString msg){
 void ViewController::printMovementLog(organsEnums::Organ organ, organsEnums::Direction dir, QString additionalMsg) {
     screenLog->printMovementLog(organ, dir, additionalMsg);
 }
+void ViewController::printDirectionSelectedLog(organsEnums::Organ organ, organsEnums::Direction dir){
+    screenLog->printDirectonSelectedLog(organ, dir);
+}
 
-
+void ViewController::printBusyLog(organsEnums::Organ organ) {
+    screenLog->printBusyLog(organ);
+}

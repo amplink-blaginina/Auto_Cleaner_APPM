@@ -46,6 +46,8 @@ public:
     Logger *_logger;
     MessageList *getMessageList();
     void printMovementLog(organsEnums::Organ organ, organsEnums::Direction dir, QString additionalMsg);
+    void printBusyLog(organsEnums::Organ organ);
+    void printDirectionSelectedLog(organsEnums::Organ organ, organsEnums::Direction dir);
     void updateFRM(QPushButton *btn, bool state, QString key){
         //QString frmPath = "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_";
         setStyle(btn, frmPath + key + (state? "_on.png);": "_off.png);"));
@@ -55,8 +57,6 @@ public slots:
 private:
     QWidget *_parent;
     QString frmPath = "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_";
-
-
 };
 
 #endif // VIEWCONTROLLER_H

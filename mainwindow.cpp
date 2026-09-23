@@ -248,7 +248,7 @@ void MainWindow::configureButtons(){
         setButtonVisualState( ui->pushButton_dumpUp, ui->label_dumpUpDown, dumpVertPath + "up_off.png);", true);
 
            if(isDumpTransitioning()){
-               view->addLog("Отвал в движении, ожидайте");
+               view->printBusyLog(organsEnums::Dump);
                return;
            }
            if (startClean){
@@ -264,7 +264,7 @@ void MainWindow::configureButtons(){
                  );
 
            if(isDumpTransitioning()){
-               view->addLog("Отвал в движении, ожидайте");
+               view->printBusyLog(organsEnums::Dump);
                return;
            }
 
@@ -281,7 +281,7 @@ void MainWindow::configureButtons(){
                 setButtonVisualState( ui->pushButton_dumpDown, ui->label_dumpUpDown, dumpVertPath + "down_off.png);", true);
 
                 if (isDumpTransitioning()) {
-                    view->addLog("Отвал в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Dump);
                     return;
                 }
 
@@ -294,7 +294,7 @@ void MainWindow::configureButtons(){
                 setButtonVisualState( ui->pushButton_dumpDown, ui->label_dumpUpDown, dumpVertPath + "off.png);", false);
 
                 if (isDumpTransitioning()) {
-                    view->addLog("Отвал в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Dump);
                     return;
                 }
 
@@ -319,7 +319,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (isDumpTransitioning()) {
-                    view->addLog("Отвал в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Dump);
                     return;
                 }
 
@@ -329,7 +329,7 @@ void MainWindow::configureButtons(){
                     workMode.frontDumpLeft = !workMode.frontDumpLeft;
 
                     if (workMode.frontDumpLeft) {
-                        view->addLog("Отвал: выбрана левая сторона");
+                        view->printDirectionSelectedLog(organsEnums::Dump, organsEnums::Left);//addLog("Отвал: выбрана левая сторона");
                     }
 
                     workMode.frontDumpRight = false;
@@ -346,7 +346,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (isDumpTransitioning()) {
-                    view->addLog("Отвал в движении, ожидайте");
+                    //view->printBusyLog(organsEnums::Dump);//addLog("Отвал в движении, ожидайте");
                     return;
                 }
 
@@ -371,7 +371,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (isDumpTransitioning()) {
-                    view->addLog("Отвал в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Dump);
                     return;
                 }
 
@@ -381,7 +381,7 @@ void MainWindow::configureButtons(){
                     workMode.frontDumpRight = !workMode.frontDumpRight;
 
                     if (workMode.frontDumpRight) {
-                        view->addLog("Отвал: выбрана правая сторона");
+                        view->printDirectionSelectedLog(organsEnums::Dump, organsEnums::Right);
                     }
 
                     workMode.frontDumpLeft = false;
@@ -443,7 +443,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (isBroomTransitioning()) {
-                    view->addLog("Щетка в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Broom);
                     return;
                 }
 
@@ -487,7 +487,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (isBroomTransitioning()) {
-                    view->addLog("Щетка в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Broom);
                     return;
                 }
 
@@ -506,7 +506,6 @@ void MainWindow::configureButtons(){
                     );
 
                 if (startClean) {
-                    //view->addLog("Щётка движение вниз завершено");
                     broomCentral->setDirection(organsEnums::None);
                 }
             },
@@ -527,7 +526,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (isBroomTransitioning()) {
-                    view->addLog("Щетка в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Broom);
                     return;
                 }
 
@@ -537,7 +536,8 @@ void MainWindow::configureButtons(){
                     workMode.centralBroomLeft = !workMode.centralBroomLeft;
 
                     if (workMode.centralBroomLeft) {
-                        view->addLog("Щетка: выбрана левая сторона");
+                        view->printDirectionSelectedLog(organsEnums::Broom, organsEnums::Left);
+                        //view->addLog("Щетка: выбрана левая сторона");
                     }
 
                     workMode.centralBroomRight = false;
@@ -554,7 +554,6 @@ void MainWindow::configureButtons(){
                     );
 
                 if (startClean) {
-                    //view->addLog("Щетка движение влево завершено");
                     broomCentral->setDirection(organsEnums::None);
                 }
             },
@@ -575,7 +574,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (isBroomTransitioning()) {
-                    view->addLog("Щетка в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Broom);
                     return;
                 }
 
@@ -585,7 +584,8 @@ void MainWindow::configureButtons(){
                     workMode.centralBroomRight = !workMode.centralBroomRight;
 
                     if (workMode.centralBroomRight) {
-                        view->addLog("Щетка: выбрана правая сторона");
+                        view->printDirectionSelectedLog(organsEnums::Broom, organsEnums::Right);
+                       // view->addLog("Щетка: выбрана правая сторона");
                     }
 
                     workMode.centralBroomLeft = false;
@@ -679,7 +679,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (isBlowTransitioning()) {
-                    view->addLog("Обдув в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Blower);
                     return;
                 }
 
@@ -731,7 +731,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (isBlowTransitioning()) {
-                    view->addLog("Обдув в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Blower);
                     return;
                 }
 
@@ -780,7 +780,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (isBlowTransitioning()) {
-                    view->addLog("Обдув в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Blower);
                     return;
                 }
 
@@ -837,7 +837,7 @@ void MainWindow::configureButtons(){
                     );
 
                 if (isBlowTransitioning()) {
-                    view->addLog("Обдув в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Blower);
                     return;
                 }
 
@@ -851,7 +851,8 @@ void MainWindow::configureButtons(){
                         blower->goSlide(true);
                     }
                 } else {
-                    view->addLog("Обдув: выбрана правая сторона");
+                    view->printDirectionSelectedLog(organsEnums::Blower, organsEnums::Right);
+                    //view->addLog("Обдув: выбрана правая сторона");
                     workMode.blowRight = !workMode.blowRight;
                     workMode.blowLeft = false;
                     updateWorkMode();
@@ -927,7 +928,7 @@ void MainWindow::configureButtons(){
                 view->setStyle(ui->label_blowerUpDown, blowerVertPath + "up_on.png);");
 
                 if(isBlowTransitioning()){
-                    view->addLog("Обдув в движении, ожидайте");
+                    view->printBusyLog(organsEnums::Blower);
                     return;
                 }
 
@@ -965,7 +966,7 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_blowerUpDown, blowerVertPath + "down_on.png);");
 
                  if(isBlowTransitioning()){
-                     view->addLog("Обдув в движении, ожидайте");
+                     view->printBusyLog(organsEnums::Blower);
                      return;
                  }
                  if(startClean){
@@ -997,7 +998,7 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_blower, blowerHorPath + "left_on.png);");
 
                  if(isBlowTransitioning()){
-                     view->addLog("Обдув в движении, ожидайте");
+                     view->printBusyLog(organsEnums::Blower);
                      return;
                  }
                  if(startClean){
@@ -1010,7 +1011,8 @@ void MainWindow::configureButtons(){
                      }
                  }
                  else{
-                     view->addLog("Обдув: выбрана левая сторона");
+                     view->printDirectionSelectedLog(organsEnums::Blower, organsEnums::Left);
+                     //view->addLog("Обдув: выбрана левая сторона");
                      workMode.blowLeft = !workMode.blowLeft;
                      workMode.blowRight = false;
                      updateWorkMode();
@@ -1035,7 +1037,7 @@ void MainWindow::configureButtons(){
                  view->setStyle(ui->label_blower, blowerHorPath + "right_on.png);");
 
                  if(isBlowTransitioning()){
-                     view->addLog("Обдув в движении, ожидайте");
+                     view->printBusyLog(organsEnums::Blower);
                      return;
                  }
                  if(startClean){
@@ -1047,7 +1049,8 @@ void MainWindow::configureButtons(){
                          blower->goSlide(true);}
                  }
                  else{
-                     view->addLog("Обдув: выбрана правая сторона");
+                     view->printDirectionSelectedLog(organsEnums::Blower, organsEnums::Right);
+                     //view->addLog("Обдув: выбрана правая сторона");
                      workMode.blowRight = !workMode.blowRight;
                      workMode.blowLeft = false;
                      updateWorkMode();
