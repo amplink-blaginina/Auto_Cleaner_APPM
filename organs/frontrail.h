@@ -1,6 +1,7 @@
 #ifndef FRONTRAIL_H
 #define FRONTRAIL_H
 
+#include "organworkmode.h"
 #include "screenlog.h"
 #include <QObject>
 #include <QWidget>
@@ -46,7 +47,9 @@ public:
     bool isInWorkingState() const override;
 
     void requestHomeState() override;
-    void updateTargetFromWorkMode() override;
+    void updateTargetFromWorkMode(
+        const OrganWorkMode &mode
+        ) override;
 
     void stopAllOutputs() override;
 
@@ -58,7 +61,12 @@ public:
         organsEnums::Direction direction
         ) override;
 
-    explicit FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
+    explicit FrontRail(MyCan *myCan_,
+                       MyCanJ1939 *myCanJ1939_,
+                       QSettings *settings_,
+                       ViewController *logger,
+                       MainWindow* mainWindow,
+                       QObject *parent_);
     QObject * parent;
     ViewController *view;
     MyCan *myCan;

@@ -14,6 +14,7 @@
 #include <QPushButton>
 #include <QScroller>
 #include <QScrollBar>
+#include <organworkmode.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -1271,9 +1272,13 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     // создаем виджеты щеток и прочих модулей
     broomCentral = new CentralBroom(can0, NULL, settings, view, this, this);
+    organRegistry.add(broomCentral);
     frontRail = new FrontRail(can0, NULL, settings, view, this, this);
+    organRegistry.add(frontRail);
     backMagnet = new BackMagnet(can0, NULL, settings, view, this, this);
+    organRegistry.add(backMagnet);
     blower = new Blower(can0, NULL, settings, view, this, this);
+    organRegistry.add(blower);
 
     organs.clear();
     organs.append(broomCentral);
@@ -2136,6 +2141,7 @@ void MainWindow::mainProgress(){
     updateStartClean();
     updatePhysButtons();
     updateButtonsUniversal();
+    updateAllOrganTargets();
 
     buttonsLightCheck();// проверка подсветки
 
@@ -3424,3 +3430,117 @@ Configuration* MainWindow::getMachineConfiguration() const
 {
     return machineConfiguration;
 }
+
+bool MainWindow::isAnyOrganTransitioning() const
+{
+    for (OrganController *organ : organRegistry.installed()) {
+        if (organ->isTransitioning()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool MainWindow::areAllOrgansInHomeState() const
+{
+    for (OrganController *organ : organRegistry.installed()) {
+        if (!organ->isInHomeState()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool MainWindow::areAllOrgansStopped() const
+{
+    for (OrganController *organ : organRegistry.installed()) {
+        if (organ->isSelected()
+            || organ->isInWorkingState()
+            || organ->isTransitioning()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// void MainWindow::requestAllOrgansHome()
+// {
+//     for (OrganController *organ : organRegistry.installed()) {
+//         organ->requestHomeState();
+//     }
+// }
+
+void MainWindow::requestAllOrgansHome()
+{
+    for (OrganController *organ : organRegistry.installed()) {
+        organ->requestHomeState();
+    }
+}
+
+void MainWindow::stopAllOrganOutputs()
+{
+    for (OrganController *organ : organRegistry.installed()) {
+        organ->stopAllOutputs();
+    }
+}
+
+// void MainWindow::updateAllOrganTargets()
+// {
+//     for (OrganController *organ : organRegistry.installed()) {
+//         organ->updateTargetFromWorkMode();
+//     }
+// }
+
+void MainWindow::updateAllOrganTargets()
+{
+    const OrganWorkMode mode = makeOrganWorkMode();
+
+    for (OrganController *organ : organRegistry.installed()) {
+        organ->updateTargetFromWorkMode(mode);
+    }
+}
+
+OrganWorkMode MainWindow::makeOrganWorkMode() const
+{
+    OrganWorkMode mode;
+
+    mode.startClean = startClean;
+
+    mode.frontDumpLeft = workMode.frontDumpLeft;
+    mode.frontDumpRight = workMode.frontDumpRight;
+    mode.frontDumpFlow = workMode.frontDumpFlow;
+
+    /*
+     * Названия полей ниже нужно сверить с вашим фактическим
+     * определением workMode. Пока вставляйте только те строки,
+     * для которых поля уже реально существуют.
+     */
+
+    // mode.centralBroomLeft = workMode.centralBroomLeft;
+    // mode.centralBroomRight = workMode.centralBroomRight;
+    // mode.centralBroomFlow = workMode.centralBroomFlow;
+    // mode.centralBroomPress = workMode.centralBroomPress;
+
+    // mode.blowerLeft = workMode.blowerLeft;
+    // mode.blowerRight = workMode.blowerRight;
+
+    // mode.backMagnet = workMode.backMagnet;
+
+    return mode;
+}
+
+// void MainWindow::updateAllOrganInputs()
+// {
+//     const OrganWorkMode mode = makeOrganWorkMode();
+
+//     for (OrganController *organ : organs) {
+//         if (organ == nullptr || !organ->isInstalled()) {
+//             continue;
+//         }
+
+//         organ->updateInputs(mode);
+//     }
+// }

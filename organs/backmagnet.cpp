@@ -321,7 +321,7 @@ void BackMagnet::requestHomeState()
     setNeedState(BackMagnetOff);
 }
 
-void BackMagnet::updateTargetFromWorkMode()
+void BackMagnet::updateTargetFromWorkMode(const OrganWorkMode &mode)
 {
     const bool active = _mainWindow->workMode.backMagnet;
 

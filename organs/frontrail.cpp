@@ -273,7 +273,7 @@ FrontRail::FrontRailStates FrontRail::getAbleState(){
 void FrontRail::checkNeedState()
 {// утанавливает максимальную границу до которой может дойти щетка (при текущих параметрах)
     // проверяет соседние модули и собирает информацию о их состояниях (нажатые кнопки, обороты, статусы и пр.)
-    checkFriendVars();
+   // checkFriendVars();
     if (needState != FrontRailOff){
         if (!startClean)
         {// пуск отжат или никакой режим смета не выбран или если щетки не выдвинуты
@@ -490,9 +490,9 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
     return false;
 }
 
-void FrontRail::checkFriendVars(){
-    startClean = _mainWindow->startClean;
-}
+// void FrontRail::checkFriendVars(){
+//     startClean = _mainWindow->startClean;
+// }
 
 void FrontRail::progressLoop(){
     // проверяет до какого состояния может добираться щетка
@@ -716,24 +716,19 @@ void FrontRail::requestHomeState()
     setNeedState(FrontRailOff);
 }
 
-void FrontRail::updateTargetFromWorkMode()
+void FrontRail::updateTargetFromWorkMode(const OrganWorkMode &mode)
 {
-    if (_mainWindow == nullptr) {
-        setNeedState(FrontRailOff);
-        choosed = false;
-        needGoLeft = false;
-        return;
-    }
+    startClean = mode.startClean;
 
-    const bool leftEnabled = _mainWindow->workMode.frontDumpLeft;
-    const bool rightEnabled = _mainWindow->workMode.frontDumpRight;
+    const bool leftEnabled = mode.frontDumpLeft;
+    const bool rightEnabled = mode.frontDumpRight;
     const bool active = leftEnabled || rightEnabled;
 
     choosed = active;
 
     /*
-     * `needGoLeft` используется существующим автоматом состояний
-     * как целевое направление передней рейки.
+     * Текущее правило автомата FrontRail:
+     * левое направление имеет приоритет, если включены оба.
      */
     needGoLeft = leftEnabled;
 
@@ -781,3 +776,4 @@ void FrontRail::setManualDirection(
      */
     setDirection(direction);
 }
+

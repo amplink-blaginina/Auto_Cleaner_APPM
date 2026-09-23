@@ -676,7 +676,7 @@ void Blower::requestHomeState()
     setNeedState(BlowerOff);
 }
 
-void Blower::updateTargetFromWorkMode()
+void Blower::updateTargetFromWorkMode(const OrganWorkMode &mode)
 {
     const bool active =
         _mainWindow->workMode.blowLeft

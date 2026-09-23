@@ -50,7 +50,7 @@ void CentralBroom::requestHomeState()
     setNeedState(BroomOff);
 }
 
-void CentralBroom::updateTargetFromWorkMode()
+void CentralBroom::updateTargetFromWorkMode(const OrganWorkMode &mode)
 {
     const bool active =
         _mainWindow->workMode.centralBroomLeft

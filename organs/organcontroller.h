@@ -2,7 +2,7 @@
 #define ORGANCONTROLLER_H
 
 #include <QObject>
-
+#include "organs/organworkmode.h"
 #include "organs/organsenums.h"
 
 class OrganController : public QObject
@@ -28,7 +28,12 @@ public:
     virtual bool isInWorkingState() const = 0;
 
     virtual void requestHomeState() = 0;
-    virtual void updateTargetFromWorkMode() = 0;
+    virtual void updateTargetFromWorkMode(
+        const OrganWorkMode &mode
+        )
+    {
+        Q_UNUSED(mode);
+    }
 
     virtual void stopAllOutputs() = 0;
 

@@ -122,6 +122,7 @@ HEADERS += \
     organs/newdevice.h \
     organs/organregistry.h \
     organs/organsenums.h \
+    organs/organworkmode.h \
     password_form.h \
     pdf/pdfscroller.h \
     service/devices/dkp/servicedevicesdkpleftform.h \

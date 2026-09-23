@@ -42,7 +42,8 @@
 #include "organs/blower.h"
 #include "organs/frontrail.h"
 #include "organs/organsenums.h"
-
+#include "organs/organregistry.h"
+#include "organs/organworkmode.h"
 // диагностика
 #include <service/servicemainrightform.h>
 #include <service/global/timeConfigure/serviceglobaldatetimeleftform.h>
@@ -144,6 +145,23 @@ public:
         bool blowUse;
     };
 
+    // struct OrganWorkMode
+    // {
+    //     bool centralBroomLeft = false;
+    //     bool centralBroomRight = false;
+
+    //     bool frontDumpLeft = false;
+    //     bool frontDumpRight = false;
+    //     bool frontDumpFlow = false;
+
+    //     bool blowerLeft = false;
+    //     bool blowerRight = false;
+
+    //     bool backMagnet = false;
+
+    //     bool startClean = false;
+    // };
+
     enum SmetType
     {
         NoneSweep   = 0,
@@ -157,6 +175,7 @@ public:
     //class Configuration;
     MainWindow(int argc, char *argv[], QWidget *parent = nullptr);
     ~MainWindow();
+
 
     void removeBadSettings();
 
@@ -245,11 +264,12 @@ public:
     DebouncedInput frmKey;
     DebouncedInput pauseKey;
 
+    CentralBroom *broomCentral = nullptr;
+    Blower *blower = nullptr;
+    BackMagnet *backMagnet = nullptr;
+    FrontRail *frontRail = nullptr;
+
     Engine *engine;
-    CentralBroom *broomCentral;
-    Blower *blower;
-    BackMagnet *backMagnet;
-    FrontRail *frontRail;
     GPIOController *_gpio;
 
     quint8 currentKV;
@@ -376,6 +396,7 @@ public:
 
 private:
     QList<OrganController*> organs;
+    OrganRegistry organRegistry;
     MyCan *can0;
     Configuration* machineConfiguration = nullptr;
     QString blowerVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
@@ -498,6 +519,7 @@ private:
     void applyEquipmentAvailability();
     void setButtonAvailability(QPushButton *button, QLabel *iconLabel, bool available);
     void setWidgetOpacity(QWidget *widget, qreal opacity);
+    OrganWorkMode makeOrganWorkMode() const;
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
@@ -524,6 +546,13 @@ public :
     void changeBlowDirection(bool isRight);
     bool getGPIOInput(GPIOInput id);
     Configuration* getMachineConfiguration() const;
+    bool isAnyOrganTransitioning() const;
+    bool areAllOrgansInHomeState() const;
+    bool areAllOrgansStopped() const;
+    void requestAllOrgansHome();
+    void stopAllOrganOutputs();
+    void updateAllOrganTargets();
+   // void updateAllOrganInputs();
 public slots:
     //void messageListPressed();
     void settingsAskPassword();

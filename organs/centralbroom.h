@@ -55,7 +55,9 @@ public:
     bool isInWorkingState() const override;
 
     void requestHomeState() override;
-    void updateTargetFromWorkMode() override;
+    void updateTargetFromWorkMode(
+        const OrganWorkMode &mode
+        ) override;
 
     void stopAllOutputs() override;
 
