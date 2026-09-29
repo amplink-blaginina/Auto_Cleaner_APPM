@@ -466,7 +466,7 @@ void CentralBroom::progressLoop(){
 
     if (state >= CentralBroom::BroomRotateOut){
         //обороты движка
-        _mainWindow->canForEngine->setEngineCommand(rpmForSweepType.value(_mainWindow->workMode.sweepType) * 8);
+        _mainWindow->canForEngine->setEngineCommand(rpmForSweepType.value(_mainWindow->workMode.sweepType * 8));
         // скорость щеток
         goRotate(speedForSweepType.value(_mainWindow->workMode.sweepType));
     }
