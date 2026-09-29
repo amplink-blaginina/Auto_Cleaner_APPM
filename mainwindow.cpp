@@ -715,7 +715,7 @@ void MainWindow::configureButtons(){
                 setButtonVisualState(
                     ui->pushButton_blowerUp,
                     ui->label_blowerUpDown,
-                    blowerVertPath + "off.png);",
+                    getBlowerVertIcon(),
                     false
                     );
 
@@ -764,7 +764,7 @@ void MainWindow::configureButtons(){
                 setButtonVisualState(
                     ui->pushButton_blowerDown,
                     ui->label_blowerUpDown,
-                    blowerVertPath + "off.png);",
+                    getBlowerVertIcon(),
                     false
                     );
 
@@ -1278,6 +1278,7 @@ void MainWindow::setDefaultWorkMode(){
     workMode.centralBroomPress = false;
     workMode.blowLeft = false;
     workMode.blowRight = false;
+    workMode.blowLifted = false;
     workMode.frontDumpLeft = false;
     workMode.frontDumpRight = false;
     workMode.frontDumpFlow = false;
@@ -1890,6 +1891,10 @@ void MainWindow::checkHydraulicOverheat(qint16 temp){// проверка пер�
 }
 
 void MainWindow::repaintProgress(){
+    // положение обдува меняется само по себе - обновляем иконку, если кнопки вверх/вниз не нажаты
+    if (!ui->pushButton_blowerUp->property("wasDown").toBool() && !ui->pushButton_blowerDown->property("wasDown").toBool())
+        view->setStyle(ui->label_blowerUpDown, getBlowerVertIcon());
+
     QString text = QString::number(hydroTempK * can->getOilTmp() + hydroTempB, 'f', 1);
     text = QString::number(hydraulicPressureValue(2), 'f', 1);
     if (ui->label_fan_pressure->text() != text + " P ТИ3")
@@ -2468,7 +2473,7 @@ void MainWindow::setVertButtonsView(bool state){
     if(state){
         view->setStyle(ui->label_dumpUpDown, dumpVertPath + "off.png);");
         view->setStyle(ui->label_centralBroomUpDown, broomVertPath +  "off.png);");
-        view->setStyle(ui->label_blowerUpDown, blowerVertPath +"off.png);");
+        view->setStyle(ui->label_blowerUpDown, getBlowerVertIcon());
     }
     else{
         view->setStyle(ui->label_dumpUpDown, dumpVertPath + "blocked.png);");
@@ -2558,9 +2563,8 @@ void MainWindow::changeBlowDirection(bool isRight){
     showWorkMode();
 }
 
-void MainWindow::clearBlowDirection(){
-    workMode.blowLeft = false;
-    workMode.blowRight = false;
+void MainWindow::setBlowerLifted(bool lifted){
+    workMode.blowLifted = lifted;
     showWorkMode();
 }
 //=============================================================
@@ -2587,6 +2591,7 @@ void MainWindow::on_pushButton_startstop_clicked(){
 }
 void MainWindow:: startCleaning(bool state){
     blower->setDirection(workMode.blowRight);
+    workMode.blowLifted = false;// при старте уборки выбранная сторона снова разворачивает обдув
     startClean = state;
 }
 void MainWindow::on_pushButton_service_clicked(){
@@ -2702,7 +2707,7 @@ void MainWindow::updateOrgansStates(){// задаем режимы органа�
     frontRail->choosed = isDumpActive;
     frontRail->needGoLeft = workMode.frontDumpLeft;
     // дулка
-    bool isBlowerActive = workMode.blowLeft||workMode.blowRight;
+    bool isBlowerActive = (workMode.blowLeft||workMode.blowRight) && !workMode.blowLifted;
     blower->setNeedState(isBlowerActive? Blower::BlowerRotated: Blower::BlowerOff);
     blower->choosed = isBlowerActive;
     // магнит
@@ -2771,6 +2776,13 @@ QString MainWindow::getDumpDefaultIcon(){
 }
 
 //==============================Blower===============================================
+QString MainWindow::getBlowerVertIcon(){// положение обдува по датчикам верхнего положения
+    if (!ui->pushButton_blowerDown->isEnabled())
+        return blowerVertPath + "blocked.png);";
+    const bool raised = can0->getState(StateDKPBlowerUp1).toBool() && can0->getState(StateDKPBlowerUp2).toBool();
+    return blowerVertPath + (raised ? "up_on.png);" : "down_on.png);");
+}
+
 QString MainWindow::getBlowerDefaultIcon(){
     return workMode.blowLeft ? blowerHorPath + "left_on.png);":
         workMode.blowRight? blowerHorPath + "right_on.png);":
@@ -2896,8 +2908,7 @@ void MainWindow::updateButtonsIcons(){
     view->setStyle(ui->pushButton_heavySweep, path + (workMode.sweepType == HeavySweep ? "leafHarvesting_on.png);" : "leafHarvesting_off.png);"));// смет тяжелый
 
     // дулка
-    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
-    view->setStyle(ui->label_blowerUpDown, path +(ui->pushButton_blowerDown->isEnabled()?"off.png);":"blocked.png);"));
+    view->setStyle(ui->label_blowerUpDown, getBlowerVertIcon());
 
     // щетка
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_";
