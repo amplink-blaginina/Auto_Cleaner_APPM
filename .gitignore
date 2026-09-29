@@ -1,4 +1,15 @@
 /updater/
-/build
-/build
-/build
+CLAUDE.local.md
+
+# Артефакты сборки qmake / Qt Creator
+/build/
+*.o
+moc_*
+ui_*.h
+qrc_*.cpp
+Makefile
+.qmake.stash
+*.pro.user
+*.pro.user.*
+/.qtcreator/
+/Auto_Cleaner_APPM_rspb
