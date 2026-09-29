@@ -36,8 +36,8 @@ void SettingsReader::setDefaults(){
     _defaultValues.insert("Global/engineTempCrit", 100);// C
     _defaultValues.insert("Global/engineTempWarnTime", 5);// минут на охлаждение
 
-    _defaultValues.insert("Hydraulic/temperatures.Warning", 50);
-    _defaultValues.insert("Hydraulic/temperatures.Critical", 80);
+    _defaultValues.insert("Global/hydroTempWarn", 50);// C
+    _defaultValues.insert("Global/hydroTempCrit", 80);// C
 
     _defaultValues.insert("Dump/timeouts.DumpDownOut", 10);
     _defaultValues.insert("Dump/timeouts.DumpDownIn", 10);

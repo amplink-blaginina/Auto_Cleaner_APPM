@@ -453,6 +453,7 @@ private:
     bool isSpeedTooHigh();
     void stopCleaningForSafety(const QString &reason);
     void checkEngineOverheat();
+    void checkHydraulicOverheat(qint16 temp);
     void setBroomPressed(bool);
     void registerPhysButtons();
     void updatePhysButtons();

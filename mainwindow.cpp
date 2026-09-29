@@ -1860,8 +1860,32 @@ void MainWindow::oneSecond(){// универсальный таймер для �
         // получим температуру гидрооборудования
         const qint16 hydro_temp = hydroTempK * can->getOilTmp() + hydroTempB;
         qint16 filtered;
-        if (hydroTempFilter.process(hydro_temp, filtered))
+        if (hydroTempFilter.process(hydro_temp, filtered)){
             ui->label_hydraulicTemperature->setText(QString::number(filtered));
+            checkHydraulicOverheat(filtered);
+        }
+    }
+}
+
+void MainWindow::checkHydraulicOverheat(qint16 temp){// проверка перегрева гидросистемы
+    if (hydroTempK == 0 || hydroTempWarnValue <= 0 || hydroTempCritValue <= 0)
+        return;// датчик не откалиброван или пороги не заданы
+
+    if (temp > hydroTempCritValue){
+        if (!hydroTempCrit)
+            view->addLog("Гидросистема перегрелась!!!", ViewController::FatalStatus);
+        hydroTempCrit = true;
+        hydroTempWarn = true;
+    }
+    else if (temp > hydroTempWarnValue){
+        hydroTempCrit = false;
+        if (!hydroTempWarn)
+            view->addLogWarning("Гидросистема перегревается");
+        hydroTempWarn = true;
+    }
+    else{
+        hydroTempCrit = false;
+        hydroTempWarn = false;
     }
 }
 
