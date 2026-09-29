@@ -2626,6 +2626,12 @@ void MainWindow::changeBlowDirection(bool isRight){
     workMode.blowRight = isRight;
     showWorkMode();
 }
+
+void MainWindow::clearBlowDirection(){
+    workMode.blowLeft = false;
+    workMode.blowRight = false;
+    showWorkMode();
+}
 //=============================================================
 //====================Buttons click handlers===================
 //=============================================================

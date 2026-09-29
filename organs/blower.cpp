@@ -360,6 +360,10 @@ void Blower::updateWhenRotationPressed(bool isRight){
 void Blower::updateWhenUpPressed(){
     const int elapsed = qAbs(stoppingStartedAt.secsTo(QDateTime::currentDateTime().time()));
     if(elapsed > stopDelay){
+        // снимаем выбор стороны, иначе showWorkMode() снова запустит обдув
+        if (_mainWindow->startClean && needState != BlowerOff){
+            _mainWindow->clearBlowDirection();
+        }
         setNeedState(BlowerOff);
     }
     else{
@@ -378,6 +382,13 @@ void Blower::updateWhenUpPressed(){
 void Blower::updateWhenDownPressed(){
     const int elapsed = qAbs(startingStartedAt.secsTo(QDateTime::currentDateTime().time()));
     if(elapsed > stopDelay){
+        // запуск удержанием: подсвечиваем сторону обдува, по умолчанию правую
+        if (_mainWindow->startClean && needState != BlowerRotated){
+            const bool right = !_mainWindow->workMode.blowLeft;
+            isTargetRight = right;
+            rightBlow = right;
+            _mainWindow->changeBlowDirection(right);
+        }
         setNeedState(BlowerRotated);//setState(BlowerOff);
     }
     else{

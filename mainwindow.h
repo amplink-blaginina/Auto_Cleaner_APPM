@@ -515,6 +515,7 @@ public :
     void tryToDisableDumpFlow();
     void setServiceFormName(QWidget *form, QString name);
     void changeBlowDirection(bool isRight);
+    void clearBlowDirection();
     bool getGPIOInput(GPIOInput id);
 public slots:
     //void messageListPressed();
