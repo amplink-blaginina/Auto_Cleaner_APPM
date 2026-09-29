@@ -1,7 +1,5 @@
 #include "blower.h"
-
 #include "mainwindow.h"
-
 #include <QDebug>
 #include <QTimer>
 #include <QThread>
@@ -58,9 +56,11 @@ QString Blower::toString(BlowerStates s){
     const char *key = QMetaEnum::fromType<BlowerStates>().valueToKey(s);
     return key ? QString::fromLatin1(key) : QStringLiteral("UnknownState");
 }
+
 void Blower::setDirection(bool isRight){
     isTargetRight = isRight;
 }
+
 void Blower::setState(BlowerStates state_){
     state = state_;
 
@@ -112,7 +112,7 @@ void Blower::goOff(){
 }
 
 void Blower::goRotate(quint8 speed){
-    qDebug()<<"# RotationSpeed: "<<speed;
+    //qDebug()<<"# RotationSpeed: "<<speed;
     myCan->setState(StateValveD3, speed);
 }
 
@@ -225,11 +225,9 @@ void Blower::checkFriendVars(){
 
 void Blower::setTargetRotationSpeed(float speed){
     targetRotationSpeed = speed;
-    //qDebug()<<"# targetSpeed: "<<targetRotationSpeed;
 }
 
 void Blower::changeRotationSpeed(){
-    //qDebug()<<"# "<<currentRotationSpeed<<"/"<<targetRotationSpeed;
     if(currentRotationSpeed < targetRotationSpeed){
         currentRotationSpeed += speedRotationStep;
         if (currentRotationSpeed>targetRotationSpeed){
@@ -252,7 +250,6 @@ void Blower::changeRotationSpeed(){
 }
 
 void Blower::progressLoop(){
-    //qDebug()<<"# 1";
     checkFriendVars();// проверяет соседние модули и собирает информацию о их состояниях (нажатые кнопки, обороты, статусы и пр.)
     checkNeedState();// проверяет до какого состояния может добираться щетка
 
@@ -262,7 +259,6 @@ void Blower::progressLoop(){
         setTargetRotationSpeed(speedForSweepType.value(type));// скорость щеток
         //goRotate();
     }
-    //qDebug()<<"# 2";
     updateTransitioning();
     // if(isTargetRight != rightBlow){
     //     rotate();
@@ -291,7 +287,7 @@ void Blower::updateTransitioning(){
     //qDebug()<<"# "<<isTargetRight<<"/"<<rightBlow;
 
     if(_mainWindow->startClean && isTargetRight != rightBlow){
-        qDebug()<<"## ";
+        //qDebug()<<"## ";
         rotate();
         return;
     }
@@ -319,12 +315,12 @@ bool Blower::isRotating(){
 }
 
 void Blower::setStartMomentForStopping(){
-    qDebug()<<"# wait for stop!";
+    //qDebug()<<"# wait for stop!";
     stoppingStartedAt = QDateTime::currentDateTime().time();
 }
 
 void Blower::setStartMomentForStarting(){
-    qDebug()<<"# wait for start!";
+    //qDebug()<<"# wait for start!";
     startingStartedAt = QDateTime::currentDateTime().time();
 }
 
@@ -336,13 +332,13 @@ void Blower::updateWhenRotationPressed(bool isRight){
     const int elapsed = qAbs(rotationStartedAt.secsTo(QDateTime::currentDateTime().time()));
     if(elapsed > stopDelay){
         //setState (BlowerOff);
-        qDebug()<<"# Set target direction 2: "<<(isTargetRight?"right":"left");
+        //qDebug()<<"# Set target direction 2: "<<(isTargetRight?"right":"left");
         isTargetRight = isRight;
         //_mainWindow->changeBlowDirection(isRight);
         setNeedState(BlowerRotated);
     }
     else{
-        qDebug()<<"# wait: "<<elapsed;
+        //qDebug()<<"# wait: "<<elapsed;
     }
 
     if(!isRotating()){
@@ -353,11 +349,11 @@ void Blower::updateWhenRotationPressed(bool isRight){
         // else{
         //     goLeft();
         // }
-        qDebug()<<"# blower slide";
+        //qDebug()<<"# blower slide";
         //goUp();
     }
     else{
-        qDebug()<<"# side: "<<isTargetRight<<"/"<<rightBlow;
+        //qDebug()<<"# side: "<<isTargetRight<<"/"<<rightBlow;
     }
 }
 
@@ -382,8 +378,7 @@ void Blower::updateWhenUpPressed(){
 void Blower::updateWhenDownPressed(){
     const int elapsed = qAbs(startingStartedAt.secsTo(QDateTime::currentDateTime().time()));
     if(elapsed > stopDelay){
-        //setState(BlowerOff);
-        setNeedState(BlowerRotated);
+        setNeedState(BlowerRotated);//setState(BlowerOff);
     }
     else{
         qDebug()<<"# wait: "<<elapsed;
@@ -399,7 +394,7 @@ void Blower::updateWhenDownPressed(){
 }
 
 Blower::BlowerStates Blower::rotate(){
-    qDebug()<<"# rotate: "<<isTargetRight<<"/"<<rightBlow;
+    //qDebug()<<"# rotate: "<<isTargetRight<<"/"<<rightBlow;
     //QString message = (isTargetRight + "#" + rightBlow);
     //logger->addLog(message);
     //logger->addLog(" # Rotation state: "+ state);
@@ -425,7 +420,7 @@ Blower::BlowerStates Blower::rotate(){
         logger->addLog("Обдув: выставлем направление обдува");
 
         if(isTargetRight != rightBlow){
-            qDebug()<<"# Set target direction 1: "<<(isTargetRight?"right":"left");
+            //qDebug()<<"# Set target direction 1: "<<(isTargetRight?"right":"left");
             rightBlow = isTargetRight;
             _mainWindow->changeBlowDirection(isTargetRight);
         }
