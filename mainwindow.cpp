@@ -2776,10 +2776,11 @@ QString MainWindow::getDumpDefaultIcon(){
 }
 
 //==============================Blower===============================================
-QString MainWindow::getBlowerVertIcon(){// положение обдува по датчикам верхнего положения
+QString MainWindow::getBlowerVertIcon(){// положение обдува по состоянию автомата (концевиков может не быть, он ориентируется на время)
     if (!ui->pushButton_blowerDown->isEnabled())
         return blowerVertPath + "blocked.png);";
-    const bool raised = can0->getState(StateDKPBlowerUp1).toBool() && can0->getState(StateDKPBlowerUp2).toBool();
+    const Blower::BlowerStates state = blower->getState();
+    const bool raised = state == Blower::BlowerOff || state == Blower::BlowerDownIn;// поднят или поднимается
     return blowerVertPath + (raised ? "up_on.png);" : "down_on.png);");
 }
 
