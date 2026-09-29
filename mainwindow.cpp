@@ -1218,6 +1218,8 @@ void MainWindow::setDefaultValues(){
     Password_accepted = false;
     engineTempCrit = false;
     engineTempWarn = false;
+    engineTempWarnTimer = 0;
+    speedCounter = 51;// до первых данных показываем n/a
     hydroTempCrit = false;
     hydroTempWarn = false;
     chooseGabaritCount = 0;
@@ -1791,6 +1793,7 @@ void MainWindow::oneSecond(){// универсальный таймер для �
 
     if (engineTempWarnTimer > 0)
         engineTempWarnTimer--;
+    checkEngineOverheat();
 
     // узнаем моточасы за сегодня
     if (DateAndTime.date() != dateToday){// надо записать сегодняшний срез и сохранить его
@@ -1943,6 +1946,10 @@ void MainWindow::mainProgress(){
     if (frontRPMCounter > 50){
         frontRPM = 0;
     }
+    if (speedCounter > 50)// нет данных о скорости дольше 5 с
+        view->setText(ui->label_speed, "n/a");
+    else
+        view->setText(ui->label_speed, QString::number(currentState->vehicleSpeed));
     if (engine->online > ENGINE_ONLINE_EDGE * 10){
         view->setText(ui->label_engineTemp, "n/a");
         view->setText(ui->label_engineRPM, "n/a");
@@ -2034,10 +2041,59 @@ void MainWindow::mainProgress(){
     }
 
     //защита по скорости - если едем слишком быстро надо выключать режим работы (скорость 50 условная - обозначает что нет данных от двигателя)
-    if (isSpeedTooHigh() && startClean){
-        on_pushButton_startstop_clicked();
-        view->addLogWarning("Превышена скорость уборки. Останавливаем уборку");
+    if (isSpeedTooHigh()){
+        stopCleaningForSafety("Превышена скорость уборки. Уборка остановлена");
     }
+}
+
+void MainWindow::stopCleaningForSafety(const QString &reason){// аварийная остановка уборки, в том числе из паузы
+    if (!startClean)
+        return;
+    pauseActive = false;
+    view->addLogError(reason);
+    startCleaning(false);
+    showWorkMode();
+}
+
+void MainWindow::checkEngineOverheat(){// проверка перегрева двигателя (раз в секунду)
+    const bool engineTempValid = engine->coolantTempEverReceived && (engine->online <= ENGINE_ONLINE_EDGE * 10);
+    if (!engineTempValid || engineTempWarnValue <= 0 || engineTempCritValue <= 0)
+        return;// нет свежих данных (например, зажигание выключено) или пороги не заданы - состояние не меняем
+
+    const int temp = engine->engineCoolantTemp;
+
+    if (temp > engineTempCritValue){
+        if (!engineTempCrit){
+            view->addLog("Двигатель перегрелся!!! Зажигание выключено", ViewController::FatalStatus);
+            starter->forceStopIgnition();
+        }
+        engineTempCrit = true;
+        engineTempWarn = true;
+        stopCleaningForSafety("Перегрев двигателя. Уборка остановлена");
+        return;
+    }
+
+    if (temp > engineTempWarnValue){
+        if (!engineTempWarn){
+            view->addLogError("Двигатель перегревается. Ожидайте охлаждения");
+            engineTempWarnTimer = engineTempWarnEdge * 60;// столько секунд ждём, прежде чем заглушить двигатель
+        }
+        engineTempWarn = true;
+        stopCleaningForSafety("Перегрев двигателя. Уборка остановлена");
+
+        if (engine->getRpm() > 700 && engineTempWarnTimer == 0 && !engineTempCrit){// всё ещё перегрет
+            view->addLog("Двигатель не смог охладиться!!! Зажигание выключено", ViewController::FatalStatus);
+            engineTempCrit = true;
+            starter->forceStopIgnition();
+        }
+        return;
+    }
+
+    if (engineTempWarn || engineTempCrit)
+        view->addLog("Температура двигателя в норме");
+    engineTempWarnTimer = 0;
+    engineTempWarn = false;
+    engineTempCrit = false;
 }
 
 
@@ -2151,7 +2207,7 @@ void MainWindow::checkAndShowStatus(){
 
 
 void MainWindow::showPultOffIgnition(){
-    if (serviceIgnitionAutoRestoreBlocked)
+    if (serviceIgnitionAutoRestoreBlocked || engineTempCrit)// после перегрева зажигание само не восстанавливаем
         return;
     starter->increaseIgnitionTimer();
 }
@@ -2304,7 +2360,7 @@ void MainWindow::showWorkMode(){
 }
 
 bool MainWindow::canStart(){
-    return true;
+    return !engineTempWarn;// при перегреве двигателя уборку не начинаем
 }
 
 float MainWindow::hydraulicPressureValue(int index) const{
@@ -2925,6 +2981,8 @@ SettingsReader* MainWindow::getReader(){return _settingsReader;}
 
 bool MainWindow::isSpeedTooHigh(){
     auto speed = currentState->vehicleSpeed;
+    if (globals->disableCleanSpeed <= 0)// порог не задан - проверку не выполняем
+        return false;
     return (speed > globals->disableCleanSpeed && speed != 199 && speed < 200);
 }
 

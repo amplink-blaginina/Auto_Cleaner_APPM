@@ -346,6 +346,72 @@ font: 75 16pt bold &quot;Vemana2000&quot;;</string>
      <string>(С)</string>
     </property>
    </widget>
+   <widget class="QLabel" name="label_speedCaption">
+    <property name="geometry">
+     <rect>
+      <x>398</x>
+      <y>100</y>
+      <width>85</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
+    </property>
+    <property name="text">
+     <string>Скорость</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_speed">
+    <property name="geometry">
+     <rect>
+      <x>474</x>
+      <y>88</y>
+      <width>67</width>
+      <height>37</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>25</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white;</string>
+    </property>
+    <property name="text">
+     <string>n/a</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_speedUnit">
+    <property name="geometry">
+     <rect>
+      <x>544</x>
+      <y>100</y>
+      <width>70</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
+    </property>
+    <property name="text">
+     <string>(км/ч)</string>
+    </property>
+   </widget>
    <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>

@@ -451,6 +451,8 @@ private:
     void configureChannelTypes();
     void insertValues();
     bool isSpeedTooHigh();
+    void stopCleaningForSafety(const QString &reason);
+    void checkEngineOverheat();
     void setBroomPressed(bool);
     void registerPhysButtons();
     void updatePhysButtons();
