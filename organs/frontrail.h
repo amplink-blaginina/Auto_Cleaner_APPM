@@ -47,6 +47,7 @@ public:
     bool isInWorkingState() const override;
 
     void requestHomeState() override;
+    void forceSafeState() override;
     void updateTargetFromWorkMode(
         const OrganWorkMode &mode
         ) override;
@@ -119,6 +120,7 @@ public:
     void setDirection(organsEnums::Direction dir);
     //void setDirection(organsEnums::Direction dir, bool isPressed);
     void setFlowActive(bool state);
+    QList<OrganButtonDef> buttonDefinitions() const override;
 
 public slots:
     // слот для получания данных из CAN
@@ -139,6 +141,8 @@ private:
         bool sensorReached,
         organsEnums::Direction direction
         );
+    QString dumpVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";
+    QString dumpHorPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_turn_";
     MainWindow *_mainWindow;
 signals:
 

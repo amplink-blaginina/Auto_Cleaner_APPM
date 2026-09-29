@@ -50,6 +50,12 @@ void CentralBroom::requestHomeState()
     setNeedState(BroomOff);
 }
 
+void CentralBroom::forceSafeState()
+{
+    setNeedState(BroomOff);
+    setState(BroomOff);
+}
+
 void CentralBroom::updateTargetFromWorkMode(
     const OrganWorkMode &mode
     )
@@ -170,6 +176,9 @@ void CentralBroom::setState(BroomStates state_){
         return;
     }
     state = state_;
+    publishStateChanged(
+        static_cast<int>(state)
+        );
 
     if (state == CentralBroom::BroomOff||//щётка в крайне верхнем положении // остановим поднимаение
         state == CentralBroom::BroomDowned||//щётка в крайне нижнем положении
@@ -332,44 +341,80 @@ void CentralBroom::setDirection(organsEnums::Direction dir){
     setDirection(dir, isPressed);
 }
 
-void CentralBroom::setDirection(organsEnums::Direction dir, bool pressed){
-    if(dir == direction && pressed == isPressed)
+void CentralBroom::setDirection(
+    organsEnums::Direction dir,
+    bool pressed
+    )
+{
+    if (dir == direction
+        && pressed == isPressed) {
         return;
-    switch (direction) {
-        case organsEnums::Up:
-            goUp(false, isPressed);
-            break;
-        case organsEnums::Down:
-            goDown(false, isPressed);
-            break;
-        case organsEnums::Left:
-            goLeft(false);
-            break;
-        case organsEnums::Right:
-            goRight(false);
-            break;
-        default:
-            break;
     }
+
+    const organsEnums::Direction previousDirection =
+        direction;
+
+    switch (previousDirection) {
+    case organsEnums::Up:
+        goUp(false, isPressed);
+        break;
+
+    case organsEnums::Down:
+        goDown(false, isPressed);
+        break;
+
+    case organsEnums::Left:
+        goLeft(false);
+        break;
+
+    case organsEnums::Right:
+        goRight(false);
+        break;
+
+    case organsEnums::None:
+    default:
+        break;
+    }
+
+    if (previousDirection != organsEnums::None) {
+        publishMovementChanged(
+            previousDirection,
+            false
+            );
+    }
+
     direction = dir;
+
     setPressActive(pressed);
 
-    switch (dir) {
-        case organsEnums::Up:
-            goUp(true, pressed);
-            break;
-        case organsEnums::Down:
-            goDown(true, pressed);
-            break;
-        case organsEnums::Left:
-            goLeft(true);
-            break;
-        case organsEnums::Right:
-            goRight(true);
-            break;
-        default:
-            goNone();
-            break;
+    switch (direction) {
+    case organsEnums::Up:
+        goUp(true, pressed);
+        break;
+
+    case organsEnums::Down:
+        goDown(true, pressed);
+        break;
+
+    case organsEnums::Left:
+        goLeft(true);
+        break;
+
+    case organsEnums::Right:
+        goRight(true);
+        break;
+
+    case organsEnums::None:
+    default:
+        goNone();
+        break;
+    }
+
+    if (direction != organsEnums::None) {
+        publishMovementChanged(
+            direction,
+            true
+            );
     }
 }
 
@@ -390,13 +435,26 @@ void CentralBroom::setPressActive(bool state){
             break;}
     }
     isPressed = state;
+    publishModeChanged(
+        QStringLiteral("press"),
+        isPressed
+        );
     view->addLog(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
 }
 
-void CentralBroom::setFlowActive(bool state){
-    if(isFlowing == state)
+void CentralBroom::setFlowActive(bool state)
+{
+    if (isFlowing == state) {
         return;
+    }
+
     isFlowing = state;
+
+    publishModeChanged(
+        QStringLiteral("flow"),
+        isFlowing
+        );
+
     goFlow(state);
 }
 
@@ -610,7 +668,7 @@ void CentralBroom::progressLoop(){
 
     if (state >= CentralBroom::BroomRotateOut) {
         _mainWindow->canForEngine->setEngineCommand(
-            rpmForSweepType.value(sweepType) * 8
+            rpmForSweepType.value(sweepType * 8)
             );
 
         goRotate(
@@ -708,4 +766,16 @@ CentralBroom::BroomStates CentralBroom::stateDown()
         setState(newState);
     }
     return state;
+}
+
+QList<OrganButtonDef> CentralBroom::buttonDefinitions() const {
+    using DE = organsEnums;
+    return {
+            {DE::Up,    GPIOInput::IN_BROOM_UP,    "pushButton_centralBroomUp",   "label_centralBroomUpDown", broomVertPath + "up_on.png)",  broomVertPath + "off.png)"},
+            {DE::Down,  GPIOInput::IN_BROOM_DOWN,  "pushButton_centralBroomDown", "label_centralBroomUpDown", broomVertPath + "down_on.png)", broomVertPath + "off.png)"},
+            {DE::Left,  GPIOInput::IN_BROOM_LEFT,  "pushButton_centralBroomLeft",  "label_centralBroom", broomHorPath + "left_on.png);",  {}, true},
+            {DE::Right, GPIOInput::IN_BROOM_RIGHT, "pushButton_centralBroomRight", "label_centralBroom", broomHorPath + "right_on.png);", {}, true},
+            {DE::None,  {},           "pushButton_centralBroomFlow", "", {}, {}, false, "flow"},
+            {DE::None,  {},           "pushButton_centralBroomPress","", {}, {}, false, "press"},
+            };
 }

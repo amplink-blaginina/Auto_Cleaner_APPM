@@ -12,12 +12,16 @@
 #include <QPalette>
 #include <QDate>
 #include <QList>
+#include <QLabel>
+#include <QPushButton>
 #include <globalsettings.h>
 #include <currentstate.h>
 #include <settingsstore.h>
-#include <DebouncedInput.h>
-#include <organcoordinator.h>
+#include <debouncedinput.h>
+#include <organs/organcoordinator.h>
 
+#include "organcontroller.h"
+#include "boolstatewatcher.h"
 #include <sys/socket.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -55,7 +59,7 @@
 #include <service/other/engine/serviceotherengineleftform.h>
 #include <service/other/light/serviceotherlightleftform.h>
 #include <service/other/intervals/servicegpioserviceintervalleftform.h>
-#include <Controllers/PhysicalButtonManager.h>
+#include <Controllers/physicalbuttonmanager.h>
 #include <Controllers/cancontroller.h>
 #include <Controllers/prerollcontroller.h>
 #include <Controllers/startercontroller.h>
@@ -69,8 +73,8 @@
 #include "screenlog.h"
 
 //логгер (черный ящик)
-#include "BoolStateWatcher.h"
-#include "MedianFilter.h"
+#include "boolstatewatcher.h"
+#include "medianfilter.h"
 #include "logger.h"
 #include "maintenancetracker.h"
 
@@ -397,7 +401,23 @@ public:
     MyCanJ1939 *canj1939Main;
 
 private:
-   // QList<OrganController*> organs;
+
+    struct BoundOrganButton {
+        OrganController* organ = nullptr;
+        OrganButtonDef def;
+        QPushButton* button = nullptr;
+        QLabel* icon = nullptr;
+        BoolStateWatcher watcher = BoolStateWatcher{BoolStateWatcher::Handlers{}};
+    };
+
+    QList<BoundOrganButton> m_organButtonBindings;
+    void bindOrganButtons(OrganController* organ);
+    void bindDirectionButton(OrganController* organ,
+                             const OrganButtonDef& def);
+    QString defaultDirectionIcon(organsEnums::Organ organId);
+    void selectDirectionInWorkMode(organsEnums::Organ organId,
+                                   organsEnums::Direction direction);
+
     OrganRegistry organRegistry;
     OrganCoordinator *organCoordinator = nullptr;
     Configuration* machineConfiguration = nullptr;
@@ -489,18 +509,18 @@ private:
     BoolStateWatcher m_heatRelayWatcher;
     void configureButtons();
 
-    BoolStateWatcher m_broomUpWatcher;
-    BoolStateWatcher m_broomDownWatcher;
-    BoolStateWatcher m_broomLeftWatcher;
-    BoolStateWatcher m_broomRightWatcher;
-    BoolStateWatcher m_dumpUpWatcher;
-    BoolStateWatcher m_dumpDownWatcher;
-    BoolStateWatcher m_dumpLeftWatcher;
-    BoolStateWatcher m_dumpRightWatcher;
-    BoolStateWatcher m_blowUpWatcher;
-    BoolStateWatcher m_blowDownWatcher;
-    BoolStateWatcher m_blowLeftWatcher;
-    BoolStateWatcher m_blowRightWatcher;
+    // BoolStateWatcher m_broomUpWatcher;
+    // BoolStateWatcher m_broomDownWatcher;
+    // BoolStateWatcher m_broomLeftWatcher;
+    // BoolStateWatcher m_broomRightWatcher;
+    // BoolStateWatcher m_dumpUpWatcher;
+    // BoolStateWatcher m_dumpDownWatcher;
+    // BoolStateWatcher m_dumpLeftWatcher;
+    // BoolStateWatcher m_dumpRightWatcher;
+    // BoolStateWatcher m_blowUpWatcher;
+    // BoolStateWatcher m_blowDownWatcher;
+    // BoolStateWatcher m_blowLeftWatcher;
+    // BoolStateWatcher m_blowRightWatcher;
     BoolStateWatcher m_dumpFlowWatcher;
     BoolStateWatcher m_broomFlowWatcher;
 
@@ -524,12 +544,15 @@ private:
     void setWidgetOpacity(QWidget *widget, qreal opacity);
     OrganWorkMode makeOrganWorkMode() const;
     void publishOrganWorkMode();
+    void triggerOrganButton(organsEnums::Organ organId,
+                            organsEnums::Direction direction);
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
     void Send_SecretPass_2_pass_form(int);
     void Pass_close();
     void organWorkModeChanged( const OrganWorkMode &mode );
+
 public :
     bool isBroomTransitioning();
     bool isDumpTransitioning();
@@ -557,7 +580,9 @@ public :
     void requestAllOrgansHome();
     void stopAllOrganOutputs();
     void updateAllOrganTargets();
-   // void updateAllOrganInputs();
+
+
+    QString defaultDirectionIcon(organsEnums::Organ organId) const;
 public slots:
     //void messageListPressed();
     void settingsAskPassword();

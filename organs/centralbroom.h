@@ -55,6 +55,7 @@ public:
     bool isInWorkingState() const override;
 
     void requestHomeState() override;
+    void forceSafeState() override;
     void updateTargetFromWorkMode(
         const OrganWorkMode &mode
         ) override;
@@ -132,12 +133,16 @@ public:
     void goUpImmediate(bool state);
     void goDownImmediate(bool);
 
+    QList<OrganButtonDef> buttonDefinitions() const override;
 public slots:
     // слот для получания данных из CAN
     void progressLoop();
 signals:
 
 private:
+    QString broomVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_";
+    QString broomHorPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsBelow_";
+
     bool hasPositionSensor(organsEnums::Direction direction) const;
 
     void goLeft();

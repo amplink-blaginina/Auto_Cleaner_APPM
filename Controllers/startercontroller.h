@@ -4,7 +4,7 @@
 #include "cancontroller.h"
 #include "gpiocontroller.h"
 
-#include <BoolStateWatcher.h>
+#include <boolstatewatcher.h>
 #include <currentstate.h>
 #include <engine.h>
 #include <globalsettings.h>

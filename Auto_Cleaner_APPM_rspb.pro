@@ -87,19 +87,18 @@ SOURCES += \
     settings/settingsstore.cpp
 
 HEADERS += \
-    BoolStateWatcher.h \
     Configuration/configuration.h \
-    Controllers/PhysicalButtonManager.h \
     Controllers/cancontroller.h \
     Controllers/gpiocontroller.h \
+    Controllers/physicalbuttonmanager.h \
     Controllers/prerollcontroller.h \
     Controllers/startercontroller.h \
     Controllers/viewcontroller.h \
-    DebouncedInput.h \
-    MedianFilter.h \
     blockform.h \
+    boolstatewatcher.h \
     can/mycanengine.h \
     configure.h \
+    debouncedinput.h \
     engine.h \
     fogotform.h \
     gpio/gpio_matrix.hpp \
@@ -115,10 +114,12 @@ HEADERS += \
     mainwindow.h \
     can/mycan.h \
     can/mycanj1939.h \
+    medianfilter.h \
     organs/backmagnet.h \
     organs/blower.h \
     organs/centralbroom.h \
     organs/frontrail.h \
+    organs/organbuttondef.h \
     organs/organcontroller.h \
     organs/newdevice.h \
     organs/organcoordinator.h \
@@ -180,18 +181,17 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 
 HEADERS += \
-    BoolStateWatcher.h \
-    Controllers/PhysicalButtonManager.h \
     Controllers/cancontroller.h \
     Controllers/gpiocontroller.h \
+    Controllers/physicalbuttonmanager.h \
     Controllers/prerollcontroller.h \
     Controllers/startercontroller.h \
     Controllers/viewcontroller.h \
-    DebouncedInput.h \
-    MedianFilter.h \
     blockform.h \
+    boolstatewatcher.h \
     can/mycanengine.h \
     configure.h \
+    debouncedinput.h \
     engine.h \
     fogotform.h \
     gpio/gpio_matrix.hpp \
@@ -207,6 +207,7 @@ HEADERS += \
     mainwindow.h \
     can/mycan.h \
     can/mycanj1939.h \
+    medianfilter.h \
     organs/backmagnet.h \
     organs/blower.h \
     organs/centralbroom.h \

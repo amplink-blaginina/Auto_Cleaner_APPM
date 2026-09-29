@@ -42,6 +42,7 @@ public:
     bool isInWorkingState() const override;
 
     void requestHomeState() override;
+    void forceSafeState() override;
     void updateTargetFromWorkMode(
         const OrganWorkMode &mode
         ) override;
@@ -57,7 +58,7 @@ public:
 
     explicit Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
     QObject * parent;
-    ViewController *logger;
+    ViewController *view;
     MyCan *myCan;
     MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;
@@ -120,21 +121,40 @@ public:
     void updateWhenDownPressed();
     void updateWhenRotationPressed(bool isRight);
     void setDirection(bool);
+    void updateManualDirection(organsEnums::Direction direction);
+    QList<OrganButtonDef> buttonDefinitions() const override;
+    void holdTick(organsEnums::Direction direction) override;
+    QString blowerVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
+    QString blowerHorPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
+
 public slots:
     // слот для получания данных из CAN
     void progressLoop();
 signals:
 private:
-    void updateTransitioning();
     bool isTargetRight = false;
+
+    organsEnums::Direction activeDirection =
+        organsEnums::None;
+
+    organsEnums::Direction targetDirection =
+        organsEnums::None;
+    organsEnums::Direction selectedSide =
+        organsEnums::None;
+    bool rotationActive = false;
     float targetRotationSpeed = 0;
     float currentRotationSpeed =0;
     float speedRotationStep = 1;
+    void updateTransitioning();
     void changeRotationSpeed();
     void setTargetRotationSpeed(float speed);
     bool areUpPositionSensorsReached() const;
     bool hasAnyUpPositionSensor() const;
+    void setMovementDirection(
+        organsEnums::Direction direction
+        );
 
+    void applyTargetDirection();
     BlowerStates rotate();
     MainWindow *_mainWindow;
 };

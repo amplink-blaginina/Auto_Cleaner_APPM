@@ -40,6 +40,7 @@ public:
     bool isInWorkingState() const override;
 
     void requestHomeState() override;
+    void forceSafeState() override;
     void updateTargetFromWorkMode(
         const OrganWorkMode &mode
         ) override;
@@ -73,7 +74,8 @@ public:
     void checkFriendVars();
     BackMagnetStates stateUp();
     BackMagnetStates stateDown();
-
+    organsEnums::Direction activeDirection =
+        organsEnums::None;
     QDateTime startActionTime;
 
     // таймауты на каждую длительную операцию

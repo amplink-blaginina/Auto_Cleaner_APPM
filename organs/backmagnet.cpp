@@ -52,6 +52,9 @@ QString BackMagnet::toString(BackMagnetStates s){
 void BackMagnet::setState(BackMagnetStates state_)
 {
     state = state_;
+    publishStateChanged(
+        static_cast<int>(state)
+        );
 
     if (state == BackMagnet::BackMagnetOff)
     {// выключили
@@ -92,22 +95,63 @@ void BackMagnet::goOff()
 {
     myCan->setState(StateValveE2, false);
     myCan->setState(StateValveE6, false);
+
+    if (activeDirection != organsEnums::None) {
+        publishMovementChanged(
+            activeDirection,
+            false
+            );
+
+        activeDirection = organsEnums::None;
+    }
 }
 
 void BackMagnet::goUp()
 {
-    //myCan->setState(StateValveK1, true);
+    if (activeDirection != organsEnums::None
+        && activeDirection != organsEnums::Up) {
+        publishMovementChanged(
+            activeDirection,
+            false
+            );
+    }
+
     myCan->setState(StateValveA1, true);
     myCan->setState(StateValveE2, true);
     myCan->setState(StateValveE6, false);
+
+    if (activeDirection != organsEnums::Up) {
+        activeDirection = organsEnums::Up;
+
+        publishMovementChanged(
+            activeDirection,
+            true
+            );
+    }
 }
 
 void BackMagnet::goDown()
 {
-    //myCan->setState(StateValveK1, true);
+    if (activeDirection != organsEnums::None
+        && activeDirection != organsEnums::Down) {
+        publishMovementChanged(
+            activeDirection,
+            false
+            );
+    }
+
     myCan->setState(StateValveA1, true);
     myCan->setState(StateValveE2, false);
     myCan->setState(StateValveE6, true);
+
+    if (activeDirection != organsEnums::Down) {
+        activeDirection = organsEnums::Down;
+
+        publishMovementChanged(
+            activeDirection,
+            true
+            );
+    }
 }
 
 BackMagnet::BackMagnetStates BackMagnet::getState()
@@ -319,6 +363,12 @@ bool BackMagnet::isInWorkingState() const
 void BackMagnet::requestHomeState()
 {
     setNeedState(BackMagnetOff);
+}
+
+void BackMagnet::forceSafeState()
+{
+    setNeedState(BackMagnetOff);
+    setState(BackMagnetOff);
 }
 
 void BackMagnet::updateTargetFromWorkMode( const OrganWorkMode &mode)

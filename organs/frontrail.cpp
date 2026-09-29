@@ -49,52 +49,84 @@ QString FrontRail::toString(FrontRailStates s){
 // void FrontRail::setDirection(organsEnums::Direction dir){
 //     setDirection(dir, isPressed);
 // }
-void FrontRail::setDirection(organsEnums::Direction dir){
-    if(dir == direction)
+void FrontRail::setDirection(
+    organsEnums::Direction dir
+    )
+{
+    if (dir == direction) {
         return;
+    }
 
-    switch (direction) {
+    const organsEnums::Direction previousDirection =
+        direction;
+
+    switch (previousDirection) {
     case organsEnums::Up:
         goUp(false);
         break;
+
     case organsEnums::Down:
         goDown(false);
         break;
+
     case organsEnums::Left:
         goLeft(false);
         break;
+
     case organsEnums::Right:
         goRight(false);
         break;
+
+    case organsEnums::None:
     default:
         break;
     }
-    //printMovement(dir, false, isPressed);
-    direction = dir;
-    //setPressActive(pressed);
 
-    switch (dir) {
+    if (previousDirection != organsEnums::None) {
+        publishMovementChanged(
+            previousDirection,
+            false
+            );
+    }
+
+    direction = dir;
+
+    switch (direction) {
     case organsEnums::Up:
         goUp(true);
         break;
+
     case organsEnums::Down:
         goDown(true);
         break;
+
     case organsEnums::Left:
         goLeft(true);
         break;
+
     case organsEnums::Right:
         goRight(true);
         break;
+
+    case organsEnums::None:
     default:
         break;
-        //printMovement(dir, true, pressed);
+    }
+
+    if (direction != organsEnums::None) {
+        publishMovementChanged(
+            direction,
+            true
+            );
     }
 }
 
 void FrontRail::setState(FrontRailStates state_){
     qDebug()<<" статус отвала: "<<state_;
     state = state_;
+    publishStateChanged(
+        static_cast<int>(state)
+        );
     if (state == FrontRail::FrontRailOff){// перешла в домашнее щетка
         // отменить опускание
         setDirection(organsEnums::None);
@@ -248,6 +280,11 @@ void FrontRail::setFlowActive(bool state){
     if(isFlowing == state)
         return;
     isFlowing = state;
+    publishModeChanged(
+        QStringLiteral("flowing"),
+        isFlowing
+        );
+
     goFlow(state);
    // _mainWindow->setDumpFlowView(state);
 }
@@ -716,6 +753,12 @@ void FrontRail::requestHomeState()
     setNeedState(FrontRailOff);
 }
 
+void FrontRail::forceSafeState()
+{
+    setNeedState(FrontRailOff);
+    setState(FrontRailOff);
+}
+
 void FrontRail::updateTargetFromWorkMode(const OrganWorkMode &mode)
 {
     startClean = mode.startClean;
@@ -777,3 +820,15 @@ void FrontRail::setManualDirection(
     setDirection(direction);
 }
 
+QList<OrganButtonDef> FrontRail::buttonDefinitions() const
+{
+    using DE = organsEnums;
+
+    return {
+            {DE::Up,    GPIOInput::IN_DUMP_UP,    "pushButton_dumpUp",    "label_dumpUpDown", dumpVertPath + "up_off.png);",   dumpVertPath + "off.png);"},
+            {DE::Down,  GPIOInput::IN_DUMP_DOWN,  "pushButton_dumpDown",  "label_dumpUpDown", dumpVertPath + "down_off.png);", dumpVertPath + "off.png);"},
+            {DE::Left,  GPIOInput::IN_DUMP_LEFT,  "pushButton_dumpLeft",  "label_dump",       dumpHorPath + "left_on.png);",   {}, true},
+            {DE::Right, GPIOInput::IN_DUMP_RIGHT, "pushButton_dumpRight", "label_dump",       dumpHorPath + "right_on.png);",  {}, true},
+            {DE::None,  {}, "pushButton_dumpFlow", {}, {}, {}, false, "flow"},
+            };
+}
