@@ -698,18 +698,13 @@ void MainWindow::configureButtons(){
 
                 if (isBlowTransitioning()) {
                     view->addLog("Обдув в движении, ожидайте");
+                    blower->cancelHold();
                     return;
                 }
 
                 if (startClean) {
-                    if (blower->isRotating()) {
-                        blower->setStartMomentForStopping();
-                        view->addLog(
-                            "Удерживайте кнопку вверх для остановки обдува и подъёма"
-                            );
-                    } else {
-                        blower->goUp();
-                    }
+                    blower->setStartMomentForStopping();
+                    view->addLog("Удерживайте кнопку вверх для остановки обдува и подъёма");
                 }
             },
 
@@ -750,15 +745,13 @@ void MainWindow::configureButtons(){
 
                 if (isBlowTransitioning()) {
                     view->addLog("Обдув в движении, ожидайте");
+                    blower->cancelHold();
                     return;
                 }
 
                 if (startClean) {
-                    if (!blower->isRotating()) {
-                        blower->setStartMomentForStarting();
-                    }
-
-                    // blower->goDown();
+                    blower->setStartMomentForStarting();
+                    view->addLog("Удерживайте кнопку вниз для опускания и запуска обдува");
                 }
             },
 
@@ -799,6 +792,7 @@ void MainWindow::configureButtons(){
 
                 if (isBlowTransitioning()) {
                     view->addLog("Обдув в движении, ожидайте");
+                    blower->cancelHold();
                     return;
                 }
 
@@ -850,6 +844,7 @@ void MainWindow::configureButtons(){
 
                 if (isBlowTransitioning()) {
                     view->addLog("Обдув в движении, ожидайте");
+                    blower->cancelHold();
                     return;
                 }
 

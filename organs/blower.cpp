@@ -380,7 +380,17 @@ void Blower::updateWhenRotationPressed(bool isRight){
     // поворот до крайнего положения делает автомат после удержания
 }
 
+void Blower::cancelHold(){
+    // нажали, пока обдув в движении: удержание не засчитываем, пока кнопку не нажмут заново
+    stoppingStartedAt = QTime();
+    startingStartedAt = QTime();
+    rotationStartedAt = QTime();
+}
+
 void Blower::updateWhenUpPressed(){
+    if (!_context->isCleaning())
+        return;// уборка не запущена - гидравлику не трогаем
+
     if(isHeldLongEnough(stoppingStartedAt)){
         // поднимаем обдув, выбранная сторона остаётся подсвеченной
         if (_context->isCleaning() && !_lifted){
@@ -388,17 +398,13 @@ void Blower::updateWhenUpPressed(){
         }
         setNeedState(BlowerOff);
     }
-
-    if(!isRotating()){
-        qDebug()<<"# blower move up";
-        goUp();
-    }
-    else{
-        qDebug()<<"# speed: "<<currentRotationSpeed<<"/"<<targetRotationSpeed;
-    }
+    // вручную не поднимаем: остановку и подъём выполняет автомат после удержания
 }
 
 void Blower::updateWhenDownPressed(){
+    if (!_context->isCleaning())
+        return;// уборка не запущена - гидравлику не трогаем
+
     if(isHeldLongEnough(startingStartedAt)){
         // запуск удержанием: подсвечиваем сторону обдува, по умолчанию правую
         if (_context->isCleaning() && needState != BlowerRotated){
@@ -410,14 +416,7 @@ void Blower::updateWhenDownPressed(){
         }
         setNeedState(BlowerRotated);//setState(BlowerOff);
     }
-
-    if(!isRotating()){
-        qDebug()<<"# blower move down";
-        goDown();
-    }
-    else{
-        qDebug()<<"# speed: "<<currentRotationSpeed<<"/"<<targetRotationSpeed;
-    }
+    // вручную не опускаем: опускание и запуск выполняет автомат после удержания
 }
 
 Blower::BlowerStates Blower::rotate(){
