@@ -329,6 +329,9 @@ void Blower::setStartMomentForRotation(){
 
 }
 void Blower::updateWhenRotationPressed(bool isRight){
+    if (!_mainWindow->startClean)
+        return;// уборка не запущена - кнопка только выбирает сторону, гидравлику не трогаем
+
     const int elapsed = qAbs(rotationStartedAt.secsTo(QDateTime::currentDateTime().time()));
     if(elapsed > stopDelay){
         //setState (BlowerOff);
