@@ -26,8 +26,11 @@ SimIoBus::SimIoBus(QObject *parent)
              {StateDKPDumpUp}, {}, "верх", "низ", false, {StateValveC3, StateValveC4}, fallSec});
     addAxis({"Отвал: поворот", {StateValveF12}, {StateValveF6}, travelSec, 1,
              {StateDKPDumpLeft}, {StateDKPDumpRight}, "лево", "право", true});
-    addAxis({"Щётка: подъём", {StateValveF2, StateValveF10}, {StateValveF8, StateValveF4}, travelSec, 0,
+    // щётка: портал поднимается и опускается целиком (F10/F4), сама щётка ходит внутри портала - прижим/отжим (F8/F2)
+    addAxis({"Щётка: портал", {StateValveF10}, {StateValveF4}, travelSec, 0,
              {StateDKPBroomUp}, {}, "верх", "низ", false, {StateValveC1, StateValveC2}, fallSec});
+    addAxis({"Щётка: в портале", {StateValveF2}, {StateValveF8}, travelSec, 0,
+             {}, {}, "отжата", "прижата"});
     addAxis({"Щётка: поворот", {StateValveF9}, {StateValveF3}, travelSec, 1,
              {StateDKPBroomLeft}, {StateDKPBroomRight}, "лево", "право", true});
     addAxis({"Обдув: подъём", {StateValveE1}, {StateValveE5}, travelSec, 0,

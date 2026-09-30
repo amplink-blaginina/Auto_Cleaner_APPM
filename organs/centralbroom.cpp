@@ -29,7 +29,10 @@ CentralBroom::CentralBroom(const MachineIo &machine, MachineContext *context, Vi
     OrganSequence::Step rotate;
     rotate.out = {{"раскрутка", "Щетка раскручивается", nullptr, nullptr, timeout(BroomRotateOut)}};
     rotate.in = {{"торможение", "Щетка останавливается", [this]{ goNoRotate(); }, nullptr, timeout(BroomRotateIn)}};
-    rotate.done = [this]{ heightEstimate = 0; };// раскрутка перед опусканием или подъём закончен - щётка вверху
+    rotate.done = [this]{// раскрутка перед опусканием или подъём закончен - портал вверху
+        if (!isPressed)// с прижимом автомат двигает щётку внутри портала, а не портал
+            heightEstimate = 0;
+    };
     sequence.addStep(rotate);
 
     OrganSequence::Step down;
@@ -40,7 +43,10 @@ CentralBroom::CentralBroom(const MachineIo &machine, MachineContext *context, Vi
     down.in = {{"подъём", "", [this]{ setDirection(organsEnums::Up); },
                 [this]{ return io->get(StateDKPBroomUp).toBool(); },
                 timeout(BroomDownIn)}};
-    down.done = [this]{ heightEstimate = 1; };// опускание закончено - внизу
+    down.done = [this]{// опускание закончено - портал внизу
+        if (!isPressed)// с прижимом автомат двигает щётку внутри портала, а не портал
+            heightEstimate = 1;
+    };
     sequence.addStep(down);
 
     OrganSequence::Step flow;// плавание на время опускания на поверхность, потом - по выбору оператора
@@ -285,16 +291,20 @@ void CentralBroom::updateHeightEstimate(){
         heightEstimate = 0;
         return;
     }
-    if (isFlowing && direction != organsEnums::Up && direction != organsEnums::Down){
-        // плавание: щётка опускается под собственным весом и через flowDropTimeSec лежит на поверхности
+    // считаем только портал (F4 вниз, F10 вверх): прижим/отжим щётки внутри портала (F8/F2) на правило вращения
+    // не влияет - он выбирает износ щётки
+    const bool portalDown = io->get(StateValveF4).toBool();
+    const bool portalUp = io->get(StateValveF10).toBool();
+    if (isFlowing && !portalDown && !portalUp){
+        // плавание: портал опускается под собственным весом и через flowDropTimeSec щётка лежит на поверхности
         heightEstimate = flowDropSec > 0 ? qMin(1.0, heightEstimate + dt / flowDropSec) : 1.0;
         return;
     }
-    if (!hydraulics->isOn())
+    if (!hydraulics->isOn() || portalDown == portalUp)
         return;
-    if (direction == organsEnums::Down)
+    if (portalDown)
         heightEstimate = lowerTimeSec > 0 ? qMin(1.0, heightEstimate + dt / lowerTimeSec) : 1.0;
-    else if (direction == organsEnums::Up)
+    else
         heightEstimate = raiseTimeSec > 0 ? qMax(0.0, heightEstimate - dt / raiseTimeSec) : 0.0;
 }
 
@@ -308,8 +318,9 @@ bool CentralBroom::shouldSpin() const{
     case BroomRotateIn:
         return false;
     default:
-        // работа внизу и ручное управление: по высоте - у земли и в плавании крутится, выше порога стоит
-        return isFlowing || heightEstimate >= spinHeight;
+        // работа внизу, ручное управление и плавание: по высоте портала - у земли крутится, выше порога стоит
+        // (в плавании портал опускается под собственным весом - щётка раскрутится, когда подойдёт к земле)
+        return heightEstimate >= spinHeight;
     }
 }
 
@@ -327,8 +338,8 @@ void CentralBroom::updateRotation(){
     const BroomStates state = getState();
     if (spin != spinning && state != BroomRotateOut && state != BroomRotateIn && state != BroomDownOut){// о раскрутке и торможении автомат пишет сам
         const QString height = QString::number(qRound(heightEstimate * 100));
-        logger->addLog(spin ? "Щетка: раскручиваем (высота " + height + "% хода)"
-                            : "Щетка: останавливаем (высота " + height + "% хода)");
+        logger->addLog(spin ? "Щетка: раскручиваем (портал на " + height + "% хода)"
+                            : "Щетка: останавливаем (портал на " + height + "% хода)");
     }
     spinning = spin;
 }
