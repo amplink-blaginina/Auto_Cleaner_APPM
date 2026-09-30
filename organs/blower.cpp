@@ -333,12 +333,18 @@ void Blower::setStartMomentForRotation(){
     rotationStartedAt = QDateTime::currentDateTime().time();
 
 }
+
+bool Blower::isHeldLongEnough(const QTime &since) const{
+    // кнопку держат дольше stopDelay секунд (считаем в мс, иначе целые секунды дают лишнюю секунду)
+    if (!since.isValid())
+        return false;
+    return qAbs(since.msecsTo(QDateTime::currentDateTime().time())) > stopDelay * 1000;
+}
 void Blower::updateWhenRotationPressed(bool isRight){
     if (!_mainWindow->startClean)
         return;// уборка не запущена - кнопка только выбирает сторону, гидравлику не трогаем
 
-    const int elapsed = qAbs(rotationStartedAt.secsTo(QDateTime::currentDateTime().time()));
-    if(elapsed > stopDelay){
+    if(isHeldLongEnough(rotationStartedAt)){
         //setState (BlowerOff);
         //qDebug()<<"# Set target direction 2: "<<(isTargetRight?"right":"left");
         isTargetRight = isRight;
@@ -353,37 +359,17 @@ void Blower::updateWhenRotationPressed(bool isRight){
         //_mainWindow->changeBlowDirection(isRight);
         setNeedState(BlowerRotated);
     }
-    else{
-        //qDebug()<<"# wait: "<<elapsed;
-    }
-
-    if(!isRotating()){
-        goSlide(isRight);
-        // if(isRight){
-        //     goRight();
-        // }
-        // else{
-        //     goLeft();
-        // }
-        //qDebug()<<"# blower slide";
-        //goUp();
-    }
-    else{
-        //qDebug()<<"# side: "<<isTargetRight<<"/"<<rightBlow;
-    }
+    // вручную раструб не поворачиваем: включённый обдув не может стоять в промежуточном положении,
+    // поворот до крайнего положения делает автомат после удержания
 }
 
 void Blower::updateWhenUpPressed(){
-    const int elapsed = qAbs(stoppingStartedAt.secsTo(QDateTime::currentDateTime().time()));
-    if(elapsed > stopDelay){
+    if(isHeldLongEnough(stoppingStartedAt)){
         // поднимаем обдув, выбранная сторона остаётся подсвеченной
         if (_mainWindow->startClean && !_mainWindow->workMode.blowLifted){
             _mainWindow->setBlowerLifted(true);
         }
         setNeedState(BlowerOff);
-    }
-    else{
-        qDebug()<<"# wait: "<<elapsed;
     }
 
     if(!isRotating()){
@@ -396,8 +382,7 @@ void Blower::updateWhenUpPressed(){
 }
 
 void Blower::updateWhenDownPressed(){
-    const int elapsed = qAbs(startingStartedAt.secsTo(QDateTime::currentDateTime().time()));
-    if(elapsed > stopDelay){
+    if(isHeldLongEnough(startingStartedAt)){
         // запуск удержанием: подсвечиваем сторону обдува, по умолчанию правую
         if (_mainWindow->startClean && needState != BlowerRotated){
             _mainWindow->workMode.blowLifted = false;
@@ -407,9 +392,6 @@ void Blower::updateWhenDownPressed(){
             _mainWindow->changeBlowDirection(right);
         }
         setNeedState(BlowerRotated);//setState(BlowerOff);
-    }
-    else{
-        qDebug()<<"# wait: "<<elapsed;
     }
 
     if(!isRotating()){

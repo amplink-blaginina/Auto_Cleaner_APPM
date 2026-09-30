@@ -804,13 +804,9 @@ void MainWindow::configureButtons(){
 
                 if (startClean) {
                     blower->setStartMomentForRotation();// отсчёт удержания нужен и когда обдув не крутится
-                    if (blower->isRotating()) {
-                        view->addLog(
-                            "Удерживайте кнопку влево для смены направления обдува"
-                            );
-                    } else {
-                        blower->goSlide(false);
-                    }
+                    view->addLog(blower->isRotating()
+                                     ? "Удерживайте кнопку влево для смены направления обдува"
+                                     : "Удерживайте кнопку влево для запуска обдува");
                 } else {
                     view->addLog("Обдув: выбрана левая сторона");
                     workMode.blowLeft = !workMode.blowLeft;
@@ -861,13 +857,9 @@ void MainWindow::configureButtons(){
 
                 if (startClean) {
                     blower->setStartMomentForRotation();// отсчёт удержания нужен и когда обдув не крутится
-                    if (blower->isRotating()) {
-                        view->addLog(
-                            "Удерживайте кнопку вправо для смены направления обдува"
-                            );
-                    } else {
-                        blower->goSlide(true);
-                    }
+                    view->addLog(blower->isRotating()
+                                     ? "Удерживайте кнопку вправо для смены направления обдува"
+                                     : "Удерживайте кнопку вправо для запуска обдува");
                 } else {
                     view->addLog("Обдув: выбрана правая сторона");
                     workMode.blowRight = !workMode.blowRight;

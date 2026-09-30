@@ -96,6 +96,7 @@ public:
     void setStartMomentForStopping();
     void setStartMomentForStarting();
     void setStartMomentForRotation();
+    bool isHeldLongEnough(const QTime &since) const;
     void updateWhenUpPressed();
     void updateWhenDownPressed();
     void updateWhenRotationPressed(bool isRight);
