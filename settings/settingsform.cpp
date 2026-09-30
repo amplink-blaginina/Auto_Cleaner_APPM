@@ -136,6 +136,8 @@ void SettingsForm::fillElements()
     elementsFrontTimings.append(new SettingsElement("Отвал сворачивание(с)", "Dump", "timeouts.DumpSlideIn", settings->value("Dump/timeouts.DumpSlideIn").toInt(), 0, 60));
     elementsFrontTimings.append(new SettingsElement("Отвал плавающий(с)", "Dump", "timeouts.DumpFlowOut", settings->value("Dump/timeouts.DumpFlowOut").toInt(), 0, 60));
     elementsFrontTimings.append(new SettingsElement("Отвал отскок(с)", "Dump", "timeouts.DumpBounceOut", settings->value("Dump/timeouts.DumpBounceOut").toFloat(), 0, 60, 0.1));
+    // время хода: по нему программа оценивает положение отвала (датчика положения нет)
+    elementsFrontTimings.append(new SettingsElement("Отвал поворот от упора до упора(с)", "Dump", "slideTimeSec", reader->readSettingsValue("Dump/slideTimeSec").toFloat(), 0.5, 60, 0.1));
 
     elementsMiddleTimings.append(new SettingsElement("Щетка поднимание(с)", "CentralBroom", "timeouts.BroomDownIn", reader->readSettingsValue("CentralBroom/timeouts.BroomDownIn").toInt(), 0, 60));
     elementsMiddleTimings.append(new SettingsElement("Щетка опускание(с)", "CentralBroom", "timeouts.BroomDownOut", reader->readSettingsValue("CentralBroom/timeouts.BroomDownOut").toInt(), 0, 60));
@@ -145,6 +147,13 @@ void SettingsForm::fillElements()
     elementsMiddleTimings.append(new SettingsElement("Щетка остановка(с)", "CentralBroom", "timeouts.BroomRotateIn", settings->value("CentralBroom/timeouts.BroomRotateIn").toInt(), 0, 60));
     elementsMiddleTimings.append(new SettingsElement("Щетка плавающая(с)", "CentralBroom", "timeouts.BroomFlowOut", settings->value("CentralBroom/timeouts.BroomFlowOut").toInt(), 0, 60));
     elementsMiddleTimings.append(new SettingsElement("Щетка отскок(с)", "CentralBroom", "timeouts.BroomBounceOut", settings->value("CentralBroom/timeouts.BroomBounceOut").toFloat(), 0, 60, 0.1));
+    // время хода: по нему программа оценивает положение щётки (датчиков высоты и середины нет).
+    // Лучше ставить чуть меньше реального - щётка раскрутится немного раньше касания и остановится раньше при подъёме
+    elementsMiddleTimings.append(new SettingsElement("Щетка ход портала вниз(с)", "CentralBroom", "lowerTimeSec", reader->readSettingsValue("CentralBroom/lowerTimeSec").toFloat(), 0.5, 60, 0.1));
+    elementsMiddleTimings.append(new SettingsElement("Щетка ход портала вверх(с)", "CentralBroom", "raiseTimeSec", reader->readSettingsValue("CentralBroom/raiseTimeSec").toFloat(), 0.5, 60, 0.1));
+    elementsMiddleTimings.append(new SettingsElement("Щетка падение портала в плавании(с)", "CentralBroom", "flowDropTimeSec", reader->readSettingsValue("CentralBroom/flowDropTimeSec").toFloat(), 0.5, 60, 0.1));
+    elementsMiddleTimings.append(new SettingsElement("Щетка порог вращения(% хода портала)", "CentralBroom", "spinHeightPercent", reader->readSettingsValue("CentralBroom/spinHeightPercent").toInt(), 0, 100, 5));
+    elementsMiddleTimings.append(new SettingsElement("Щетка поворот от упора до упора(с)", "CentralBroom", "slideTimeSec", reader->readSettingsValue("CentralBroom/slideTimeSec").toFloat(), 0.5, 60, 0.1));
 
     elementsBackTimings.append(new SettingsElement("Продувка вниз(с)", "Blower", "timeouts.BlowerDownOut", settings->value("Blower/timeouts.BlowerDownOut").toInt(), 0, 60));
     elementsBackTimings.append(new SettingsElement("Продувка вверх(с)", "Blower", "timeouts.BlowerDownIn", settings->value("Blower/timeouts.BlowerDownIn").toInt(), 0, 60));
