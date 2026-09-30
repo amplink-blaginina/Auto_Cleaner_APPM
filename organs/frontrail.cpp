@@ -56,7 +56,7 @@ void FrontRail::readSettings(){
     timeouts.insert(FrontRailDownOut, reader->readSettingsValue("Dump/timeouts.DumpDownOut").toFloat());
     timeouts.insert(FrontRailDownIn, reader->readSettingsValue("Dump/timeouts.DumpDownIn").toFloat());
     timeouts.insert(FrontRailFlowOut, reader->readSettingsValue("Dump/timeouts.DumpFlowOut").toFloat());
-    side.setTravelSec(reader->readSettingsValue("Dump/slideTimeSec").toFloat());
+    side.setTravelSec(travelTimeSetting("Dump/slideTimeSec", 5));
 }
 
 QString FrontRail::toString(FrontRailStates s){

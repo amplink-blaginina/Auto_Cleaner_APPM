@@ -49,6 +49,9 @@ protected:
     virtual void afterStep() {}// и после
     // оператор вручную перевёл орган на другую сторону - выбор стороны переходит за ним
     void followActualSide(bool onLeft);
+    // время хода из настроек; 0, отрицательное или не число (вписано в файл вручную) - значение по умолчанию
+    // и предупреждение в журнал: иначе оценка положения органа по времени перестаёт работать
+    float travelTimeSetting(const QString &key, float fallback);
 
     IoBus *io;
     HydraulicSupply *hydraulics;

@@ -1,6 +1,7 @@
 #include "organ.h"
 
 #include <Controllers/viewcontroller.h>
+#include <settingsreader.h>
 
 Organ::Organ(const QString &name, const MachineIo &machine, MachineContext *context, ViewController *logger_, QObject *parent)
     : QObject(parent),
@@ -44,6 +45,15 @@ void Organ::followActualSide(bool onLeft){
         return;
     setSide(!onLeft);
     logger->addLog(_name + (onLeft ? ": сторона сменилась на левую" : ": сторона сменилась на правую"));
+}
+
+float Organ::travelTimeSetting(const QString &key, float fallback){
+    bool ok = false;
+    const float value = _context->settingsReader()->readSettingsValue(key).toFloat(&ok);
+    if (ok && value > 0)
+        return value;
+    logger->addLogWarning("Настройка " + key + " задана неверно, используется " + QString::number(fallback) + " с");
+    return fallback;
 }
 
 void Organ::progressLoop(){

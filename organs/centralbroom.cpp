@@ -85,11 +85,11 @@ void CentralBroom::readSettings(){
     speedForSweepType.insert(MediumSweep, reader->readSettingsValue("CentralBroom/speeds.MediumSweep").toInt());
     speedForSweepType.insert(HeavySweep, reader->readSettingsValue("CentralBroom/speeds.HeavySweep").toInt());
 
-    lowerTimeSec = reader->readSettingsValue("CentralBroom/lowerTimeSec").toFloat();
-    raiseTimeSec = reader->readSettingsValue("CentralBroom/raiseTimeSec").toFloat();
-    flowDropSec = reader->readSettingsValue("CentralBroom/flowDropTimeSec").toFloat();
+    lowerTimeSec = travelTimeSetting("CentralBroom/lowerTimeSec", 5);
+    raiseTimeSec = travelTimeSetting("CentralBroom/raiseTimeSec", 5);
+    flowDropSec = travelTimeSetting("CentralBroom/flowDropTimeSec", 5);
     spinHeight = qBound(0, reader->readSettingsValue("CentralBroom/spinHeightPercent").toInt(), 100) / 100.0;
-    side.setTravelSec(reader->readSettingsValue("CentralBroom/slideTimeSec").toFloat());
+    side.setTravelSec(travelTimeSetting("CentralBroom/slideTimeSec", 5));
 }
 
 QString CentralBroom::toString(BroomStates s){
