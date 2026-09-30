@@ -801,11 +801,11 @@ void MainWindow::configureButtons(){
                 }
 
                 if (startClean) {
+                    blower->setStartMomentForRotation();// отсчёт удержания нужен и когда обдув не крутится
                     if (blower->isRotating()) {
                         view->addLog(
                             "Удерживайте кнопку влево для смены направления обдува"
                             );
-                        blower->setStartMomentForRotation();
                     } else {
                         blower->goSlide(false);
                     }
@@ -858,11 +858,11 @@ void MainWindow::configureButtons(){
                 }
 
                 if (startClean) {
+                    blower->setStartMomentForRotation();// отсчёт удержания нужен и когда обдув не крутится
                     if (blower->isRotating()) {
                         view->addLog(
                             "Удерживайте кнопку вправо для смены направления обдува"
                             );
-                        blower->setStartMomentForRotation();
                     } else {
                         blower->goSlide(true);
                     }
@@ -2447,11 +2447,16 @@ bool MainWindow:: isMagnetTransitioning(){
     return backMagnet->state != magnetTarget;
 }
 
-bool MainWindow::isBlowTransitioning(){
+Blower::BlowerStates MainWindow::blowerTargetState(){
+    // при движении к работе цель ограничивается ableState, при выключении всегда идём к Off
     Blower::BlowerStates blowerTarget = blower->needState;
     if (blower->needState != Blower::BlowerOff && blower->ableState < blower->needState)
         blowerTarget = blower->ableState;
-    return blower->state != blowerTarget;
+    return blowerTarget;
+}
+
+bool MainWindow::isBlowTransitioning(){
+    return blower->state != blowerTargetState();
 }
 
 bool MainWindow::isOrgansTransitioning(){
@@ -2776,18 +2781,25 @@ QString MainWindow::getDumpDefaultIcon(){
 }
 
 //==============================Blower===============================================
-QString MainWindow::getBlowerVertIcon(){// положение обдува по состоянию автомата (концевиков может не быть, он ориентируется на время)
+QString MainWindow::getBlowerVertIcon(){// положение обдува, к которому идёт автомат: иконка меняется сразу, как принята команда
     if (!ui->pushButton_blowerDown->isEnabled())
         return blowerVertPath + "blocked.png);";
-    const Blower::BlowerStates state = blower->getState();
-    const bool raised = state == Blower::BlowerOff || state == Blower::BlowerDownIn;// поднят или поднимается
+    const Blower::BlowerStates target = blowerTargetState();
+    const bool raised = target == Blower::BlowerOff || target == Blower::BlowerDownIn;
     return blowerVertPath + (raised ? "up_on.png);" : "down_on.png);");
 }
 
 QString MainWindow::getBlowerDefaultIcon(){
-    return workMode.blowLeft ? blowerHorPath + "left_on.png);":
-        workMode.blowRight? blowerHorPath + "right_on.png);":
-        blowerHorPath + "off.png);";
+    return blowerHorPath + getBlowerSideIconName();
+}
+
+QString MainWindow::getBlowerSideIconName(){
+    if (!workMode.blowLeft && !workMode.blowRight)
+        return "off.png);";
+    // во время уборки показываем сторону, на которую обдув переходит, не дожидаясь реальной смены
+    // (workMode хранит текущую сторону - по ней автомат определяет, что смену надо выполнить)
+    const bool right = startClean ? blower->targetRight() : workMode.blowRight;
+    return right ? "right_on.png);" : "left_on.png);";
 }
 
 
@@ -2923,14 +2935,7 @@ void MainWindow::updateButtonsIcons(){
     view->setStyle(ui->label_backMagnet, path + (workMode.backMagnet? "on.png);": "off.png);"));
 
     // дулка
-    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
-    if (workMode.blowLeft){
-        if( !workMode.blowRight )
-            view->setStyle(ui->label_blower, path + "left_on.png);");
-    }
-    else{
-        view->setStyle(ui->label_blower, path + ( workMode.blowRight? "right_on.png);": "off.png);"));
-    }
+    view->setStyle(ui->label_blower, getBlowerDefaultIcon());
 
     // старт стоп
     path = "outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_";

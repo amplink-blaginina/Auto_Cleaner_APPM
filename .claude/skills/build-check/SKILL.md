@@ -16,4 +16,4 @@ Build out-of-source so the repo root stays free of `*.o`, `moc_*`, `ui_*.h` and 
 5. Report: success/failure, every error, and warnings only in files you changed. Don't fix unrelated pre-existing warnings.
 6. If a dependency is missing locally (e.g. `$HOME/libgpiod-1.6`, poppler-qt5, gstreamer dev packages), say so and stop — don't install anything or edit the `.pro` to work around it.
 
-Never run qmake/make in the repo root and never run the `deploy_to_pi*.sh` scripts.
+Never run qmake/make in the repo root and never run the deploy scripts in `pi/`.

@@ -337,7 +337,13 @@ void Blower::updateWhenRotationPressed(bool isRight){
         //setState (BlowerOff);
         //qDebug()<<"# Set target direction 2: "<<(isTargetRight?"right":"left");
         isTargetRight = isRight;
-        if (_mainWindow->startClean && _mainWindow->workMode.blowLifted)// удержание стороны снова разворачивает поднятый обдув
+        if (!_mainWindow->workMode.blowLeft && !_mainWindow->workMode.blowRight){
+            // сторона не выбрана - выбираем удерживаемую, иначе обдув останется выключенным
+            _mainWindow->workMode.blowLifted = false;
+            rightBlow = isRight;
+            _mainWindow->changeBlowDirection(isRight);
+        }
+        else if (_mainWindow->workMode.blowLifted)// удержание стороны снова разворачивает поднятый обдув
             _mainWindow->setBlowerLifted(false);
         //_mainWindow->changeBlowDirection(isRight);
         setNeedState(BlowerRotated);
