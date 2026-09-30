@@ -11,7 +11,11 @@ Qt 5 / C++17 qmake application for the Auto Cleaner machine, running on a Raspbe
 - Stale `ui_*.h`/`moc_*` in the repo root shadow freshly generated ones (the root is on the include path before the build dir). Keep the root clean.
 - To check a change, build out-of-source with `/build-check`. Never run qmake/make in the repo root — in-source builds litter it with `*.o`, `moc_*`, `ui_*.h`, `Makefile`.
 - New `.cpp`/`.h`/`.ui` files must be added to `SOURCES`/`HEADERS`/`FORMS` in `Auto_Cleaner_APPM_rspb.pro` by hand.
-- Do NOT run `deploy_bin_to_pi.sh`, `deploy_to_pi*.sh` or `script_to_build*.sh`: they kill the running app on a live machine and restart it. The user does hardware verification. `deploy_bin_to_pi.sh [user@host]` cross-builds, copies only the binary (the old one is kept as `.prev`) and restarts it. The old scripts rebuild on the Pi.
+- Do NOT run `deploy_test_to_pi.sh`, `deploy_default_to_pi.sh`, `rollback_default_on_pi.sh`, `deploy_to_pi*.sh` or `script_to_build*.sh`: they stop the app on a live machine and restart it. The user does hardware verification.
+  - On the Pi the app is autostarted by the systemd service `my-app` (`Restart=always`); the binary it runs is set by its `ExecStart` script and may be overridden by a drop-in, so a plain `pkill` + manual start gets replaced by the service.
+  - `deploy_test_to_pi.sh [user@host]` cross-builds, stops `my-app`, runs the fresh binary once in the terminal and starts `my-app` again on exit.
+  - `deploy_default_to_pi.sh [user@host]` replaces the binary `my-app` currently runs (old → `.prev`, asks for confirmation) and restarts the service. `rollback_default_on_pi.sh` swaps it back with `.prev`.
+  - The old scripts rebuild on the Pi.
 - No tests exist; a clean local build is the verification bar.
 
 ## Code conventions
