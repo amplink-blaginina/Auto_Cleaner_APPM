@@ -53,6 +53,7 @@ public:
     bool isLifted() const { return _lifted; }
     bool isActive() const { return isSideSelected() && !_lifted; }// обдув должен работать
     void setLifted(bool lifted);
+    void clearSelection() override;
 
 protected:
     void beforeStep() override;

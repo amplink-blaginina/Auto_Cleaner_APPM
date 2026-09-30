@@ -1,0 +1,7 @@
+{
+    "machine": "Пример: АППМ с режимами лето/зима",
+    "modes": [
+        { "id": "summer", "name": "Лето", "organs": ["centralBroom", "blower", "magnet"] },
+        { "id": "winter", "name": "Зима", "organs": ["dump", "centralBroom"] }
+    ]
+}

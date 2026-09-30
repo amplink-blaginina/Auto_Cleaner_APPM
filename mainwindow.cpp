@@ -62,6 +62,42 @@ void MainWindow::createTimers()
     oneSecondTimer.start(1000);
 }
 
+void MainWindow::createModeController(){
+    QStringList warnings;
+    const MachineProfile profile = MachineProfile::load(QCoreApplication::applicationDirPath() + "/machineProfile.json", &warnings);
+    for (const QString &warning : warnings)
+        view->addLogWarning(warning);
+
+    modeController = new ModeController(profile, settings, view, [this]{ return !startClean && isIdleMode(); }, this);
+    // кнопки и иконки органа на экране - по началу имени
+    auto widgets = [this](const QStringList &prefixes){
+        QList<QWidget *> list;
+        for (QWidget *widget : ui->widget_workOrgans->findChildren<QWidget *>())
+            for (const QString &prefix : prefixes)
+                if (widget->objectName().startsWith(prefix))
+                    list.append(widget);
+        return list;
+    };
+    modeController->addOrgan({"dump", frontRail, widgets({"pushButton_dump", "label_dump"})});
+    modeController->addOrgan({"centralBroom", broomCentral, widgets({"pushButton_centralBroom", "label_centralBroom"})});
+    modeController->addOrgan({"blower", blower, widgets({"pushButton_blower", "label_blower"})});
+    modeController->addOrgan({"magnet", backMagnet, widgets({"pushButton_backMagnet", "label_backMagnet"})});
+
+    // кнопка смены режима (видна, только если в профиле больше одного режима).
+    // Место временное - над кнопкой сервиса; у машины с режимами будет свой экран
+    auto *modeButton = new QPushButton(centralWidget());
+    modeButton->setGeometry(905, 420, 100, 64);
+    modeButton->setFocusPolicy(Qt::NoFocus);
+    modeButton->setStyleSheet("QPushButton { background: #eef0f8; border: none; border-radius: 14px;"
+                              " color: #1d2340; font: bold 15px; }"
+                              " QPushButton:disabled { color: #9a9fb5; }");
+    modeController->setButton(modeButton);
+    connect(modeController, &ModeController::modeChanged, this, &MainWindow::showWorkMode);
+    modeController->apply();
+    view->addLog("Машина: " + (profile.machine.isEmpty() ? QString("без названия") : profile.machine)
+                 + ", режим: " + modeController->mode().name);
+}
+
 void MainWindow::createOrganButtons(){
     dumpButtons = new DumpButtons({ui->pushButton_dumpUp, ui->pushButton_dumpDown, ui->pushButton_dumpLeft,
                                    ui->pushButton_dumpRight, ui->label_dumpUpDown, ui->label_dump,
@@ -408,7 +444,9 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     connect(blower, &Organ::selectionChanged, this, &MainWindow::showWorkMode);
     connect(broomCentral, &Organ::selectionChanged, this, &MainWindow::showWorkMode);
     connect(frontRail, &Organ::selectionChanged, this, &MainWindow::showWorkMode);
+    connect(backMagnet, &Organ::selectionChanged, this, &MainWindow::showWorkMode);
     createOrganButtons();
+    createModeController();
     resetDevices();
     //io->set(StateBoardsPowerOut, true);
     showWorkMode();
@@ -590,7 +628,6 @@ void MainWindow::loadAndSetFonts(){
 }
 
 void MainWindow::setDefaultWorkMode(){
-    workMode.backMagnet = false;
     workMode.frmBroom = false;
     workMode.frmMagnet = false;
     workMode.frmKung = false;
@@ -1202,6 +1239,7 @@ void MainWindow::repaintProgress(){
     // положение органов меняется само по себе - обновляем иконки (кроме нажатых кнопок)
     for (OrganButtons *buttons : organButtons)
         buttons->refreshIcons();
+    modeController->refresh();// режим можно сменить, только когда органы дома
 
     QString text = QString::number(hydroTempK * can->getOilTmp() + hydroTempB, 'f', 1);
     text = QString::number(hydraulicPressureValue(2), 'f', 1);
@@ -1871,8 +1909,7 @@ void MainWindow::on_pushButton_centralBroomFlow_clicked(){broomButtons->click(ui
 void MainWindow::on_pushButton_centralBroomPress_clicked(){broomButtons->click(ui->pushButton_centralBroomPress);}
 
 void MainWindow::on_pushButton_backMagnet_clicked(){
-    workMode.backMagnet = !workMode.backMagnet;
-    showWorkMode();
+    backMagnet->toggleSelected();
 }
 
 void MainWindow::on_pushButton_frmKung_clicked(){
@@ -1914,7 +1951,7 @@ void MainWindow::updateOrgansStates(){// задаем режимы органа�
     blower->setNeedState(isBlowerActive? Blower::BlowerRotated: Blower::BlowerOff);
     blower->choosed = isBlowerActive;
     // магнит
-    bool isMagnetActive = workMode.backMagnet;
+    bool isMagnetActive = backMagnet->isSelected();
     backMagnet->setNeedState(isMagnetActive? BackMagnet::BackMagnetDowned: BackMagnet::BackMagnetOff);
     backMagnet->choosed = isMagnetActive;
 
@@ -2015,7 +2052,7 @@ void MainWindow::updateButtonsIcons(){
 
     // магнит
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_magnet_";
-    view->setStyle(ui->label_backMagnet, path + (workMode.backMagnet? "on.png);": "off.png);"));
+    view->setStyle(ui->label_backMagnet, path + (backMagnet->isSelected()? "on.png);": "off.png);"));
 
     // старт стоп
     path = "outline: none;border-style:none;background-image: url(:/Images/Images/main/buttons/button_start_";

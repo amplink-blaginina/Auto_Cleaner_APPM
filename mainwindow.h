@@ -73,6 +73,7 @@
 
 //логгер (черный ящик)
 #include "BoolStateWatcher.h"
+#include "Controllers/modecontroller.h"
 #include "Controllers/organpanels.h"
 #include "MedianFilter.h"
 #include "logger.h"
@@ -118,7 +119,6 @@ class MainWindow : public QMainWindow, public MachineContext
 public:
     struct WorkMode
     {
-        bool backMagnet;
         bool frmBroom;
         bool frmMagnet;
         bool frmKung;
@@ -459,6 +459,8 @@ private:
     BoolStateWatcher m_heatRelayWatcher;
     // кнопки и иконки органов на главном экране
     void createOrganButtons();
+    void createModeController();// профиль машины: режимы (лето/зима) и органы в каждом
+    ModeController *modeController = nullptr;
     DumpButtons *dumpButtons = nullptr;
     BroomButtons *broomButtons = nullptr;
     BlowerButtons *blowerButtons = nullptr;

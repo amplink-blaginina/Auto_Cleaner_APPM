@@ -35,6 +35,11 @@ public:
     bool isSideSelected() const { return _left || _right; }
     void toggleSide(bool right);// кнопка стороны до начала уборки: выбрать сторону или снять выбор
     void setSide(bool right);
+    virtual void clearSelection();// снять выбор оператора (орган не участвует в уборке)
+
+    // есть ли орган в текущем режиме машины (лето/зима); недоступный орган не выходит из дома
+    bool isAvailable() const { return _available; }
+    void setAvailable(bool available) { _available = available; }
 
 signals:
     void selectionChanged();// выбор оператора изменился - перерисовать экран, пересчитать цели органов
@@ -56,6 +61,7 @@ protected:
     bool _right = false;
 
 private:
+    bool _available = true;
     void progressLoop();
     QString _name;
     QTimer progressTimer;

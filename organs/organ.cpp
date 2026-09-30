@@ -29,6 +29,14 @@ void Organ::setSide(bool right){
     emit selectionChanged();
 }
 
+void Organ::clearSelection(){
+    if (!_left && !_right)
+        return;
+    _left = false;
+    _right = false;
+    emit selectionChanged();
+}
+
 void Organ::followActualSide(bool onLeft){
     // только ручное управление разложенным органом во время уборки: пока орган дома или его движет автомат
     // (опускание, уборка домой через середину), выбор не трогаем
@@ -39,8 +47,9 @@ void Organ::followActualSide(bool onLeft){
 }
 
 void Organ::progressLoop(){
-    // работать можно только во время уборки (до beforeStep: в нём орган уже должен знать, началась ли уборка)
-    sequence.setAble(_context->isCleaning() ? sequence.topState() : 0);
+    // работать можно только во время уборки и если орган есть в текущем режиме
+    // (до beforeStep: в нём орган уже должен знать, началась ли уборка)
+    sequence.setAble(_context->isCleaning() && _available ? sequence.topState() : 0);
     beforeStep();
     sequence.tick();
     afterStep();

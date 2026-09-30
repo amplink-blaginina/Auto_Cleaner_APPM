@@ -31,7 +31,13 @@ public:
     void goUp();
     void goDown();
 
+    // выбор оператора: магнит работает во время уборки
+    bool isSelected() const { return _selected; }
+    void toggleSelected();
+    void clearSelection() override;
+
 private:
+    bool _selected = false;
     // таймауты на каждую длительную операцию
     QMap<BackMagnetStates, float> timeouts;
 };

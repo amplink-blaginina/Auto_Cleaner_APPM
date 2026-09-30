@@ -39,6 +39,18 @@ QString BackMagnet::toString(BackMagnetStates s){
     return key ? QString::fromLatin1(key) : QStringLiteral("UnknownState");
 }
 
+void BackMagnet::toggleSelected(){
+    _selected = !_selected;
+    emit selectionChanged();
+}
+
+void BackMagnet::clearSelection(){
+    if (!_selected)
+        return;
+    _selected = false;
+    emit selectionChanged();
+}
+
 void BackMagnet::goOff()
 {
     io->set(StateValveE2, false);

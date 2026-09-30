@@ -78,6 +78,11 @@ void Blower::setLifted(bool lifted){
     emit selectionChanged();
 }
 
+void Blower::clearSelection(){
+    _lifted = false;
+    Organ::clearSelection();
+}
+
 void Blower::goOff(){
     io->set(StateValveE7, false);
     io->set(StateValveE3, false);

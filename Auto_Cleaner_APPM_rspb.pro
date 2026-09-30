@@ -33,6 +33,7 @@ SOURCES += \
     Controllers/gpiocontroller.cpp \
     Controllers/prerollcontroller.cpp \
     Controllers/startercontroller.cpp \
+    Controllers/modecontroller.cpp \
     Controllers/organbuttons.cpp \
     Controllers/organpanels.cpp \
     Controllers/viewcontroller.cpp \
@@ -62,6 +63,7 @@ SOURCES += \
     io/caniobus.cpp \
     machine/enginerpmdemand.cpp \
     machine/hydraulicsupply.cpp \
+    machine/machineprofile.cpp \
     sim/simiobus.cpp \
     sim/simpanel.cpp \
     password_form.cpp \
@@ -95,6 +97,7 @@ HEADERS += \
     Controllers/gpiocontroller.h \
     Controllers/prerollcontroller.h \
     Controllers/startercontroller.h \
+    Controllers/modecontroller.h \
     Controllers/organbuttons.h \
     Controllers/organpanels.h \
     Controllers/viewcontroller.h \
@@ -132,6 +135,7 @@ HEADERS += \
     machine/hydraulicsupply.h \
     machine/machinecontext.h \
     machine/machineio.h \
+    machine/machineprofile.h \
     machine/sweeptype.h \
     sim/simiobus.h \
     sim/simpanel.h \

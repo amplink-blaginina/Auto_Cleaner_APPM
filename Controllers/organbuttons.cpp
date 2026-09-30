@@ -26,7 +26,8 @@ void OrganButtons::addIcon(QLabel *label, std::function<QString()> style){
 void OrganButtons::update(){
     for (ButtonState &state : _buttons){
         const Button &b = state.button;
-        const bool now = (!b.onlyWhenEnabled || b.screen->isEnabled())
+        // органа нет в текущем режиме машины - его кнопки (и на пульте) не работают
+        const bool now = _organ->isAvailable() && (!b.onlyWhenEnabled || b.screen->isEnabled())
                          && (b.screen->isDown() || (b.physical && b.physical()));
         if (!_initialized){// первый опрос только запоминает состояние: кнопка, зажатая при старте, не срабатывает
             state.pressed = now;
@@ -54,6 +55,8 @@ bool OrganButtons::showsPressedIcon(const ButtonState &state) const{
 }
 
 void OrganButtons::click(QPushButton *screen){
+    if (!_organ->isAvailable())
+        return;
     for (ButtonState &state : _buttons)
         if (state.button.screen == screen && !state.pressed)
             press(state);// отпускание увидит следующий опрос
