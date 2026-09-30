@@ -30,18 +30,18 @@ void Organ::setSide(bool right){
 }
 
 void Organ::followActualSide(bool onLeft){
-    // только ручное управление во время уборки: пока орган движет автомат (в том числе уборка домой
-    // через середину), выбор не трогаем
-    if (!_context->isCleaning() || isTransitioning() || !isSideSelected() || onLeft == _left)
+    // только ручное управление разложенным органом во время уборки: пока орган дома или его движет автомат
+    // (опускание, уборка домой через середину), выбор не трогаем
+    if (!_context->isCleaning() || isHome() || isTransitioning() || !isSideSelected() || onLeft == _left)
         return;
     setSide(!onLeft);
     logger->addLog(_name + (onLeft ? ": сторона сменилась на левую" : ": сторона сменилась на правую"));
 }
 
 void Organ::progressLoop(){
-    beforeStep();
-    // работать можно только во время уборки
+    // работать можно только во время уборки (до beforeStep: в нём орган уже должен знать, началась ли уборка)
     sequence.setAble(_context->isCleaning() ? sequence.topState() : 0);
+    beforeStep();
     sequence.tick();
     afterStep();
 }

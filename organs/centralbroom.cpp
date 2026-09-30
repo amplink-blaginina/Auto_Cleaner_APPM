@@ -81,6 +81,7 @@ void CentralBroom::readSettings(){
 
     lowerTimeSec = reader->readSettingsValue("CentralBroom/lowerTimeSec").toFloat();
     raiseTimeSec = reader->readSettingsValue("CentralBroom/raiseTimeSec").toFloat();
+    flowDropSec = reader->readSettingsValue("CentralBroom/flowDropTimeSec").toFloat();
     spinHeight = qBound(0, reader->readSettingsValue("CentralBroom/spinHeightPercent").toInt(), 100) / 100.0;
     side.setTravelSec(reader->readSettingsValue("CentralBroom/slideTimeSec").toFloat());
 }
@@ -282,6 +283,11 @@ void CentralBroom::updateHeightEstimate(){
 
     if (io->get(StateDKPBroomUp).toBool()){// верхний концевик - точно наверху
         heightEstimate = 0;
+        return;
+    }
+    if (isFlowing && direction != organsEnums::Up && direction != organsEnums::Down){
+        // плавание: щётка опускается под собственным весом и через flowDropTimeSec лежит на поверхности
+        heightEstimate = flowDropSec > 0 ? qMin(1.0, heightEstimate + dt / flowDropSec) : 1.0;
         return;
     }
     if (!hydraulics->isOn())

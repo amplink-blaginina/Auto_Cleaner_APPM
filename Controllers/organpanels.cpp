@@ -84,13 +84,12 @@ DumpButtons::DumpButtons(const OrganWidgets &w, FrontRail *dump, PhysicalButtonM
     addButton(flow);
 
     addIcon(w.vertIcon, vertIcon(w.down, vert));
-    addIcon(w.sideIcon, [this, dump, side]{
+    // выбор оператора; при ручном повороте за середину хода он сам переходит на новую сторону
+    // (Organ::followActualSide), поэтому иконка меняется, как только отвал перешёл середину
+    addIcon(w.sideIcon, [dump, side]{
         if (!dump->isSideSelected())
             return side + "off.png);";
-        // во время уборки - где отвал сейчас: при ручном повороте сторона меняется за серединой хода
-        // (выбор оператора переходит за ней сразу, Organ::followActualSide)
-        const bool left = context->isCleaning() ? dump->isOnLeft() : dump->isLeftSelected();
-        return side + (left ? "left_on.png);" : "right_on.png);");
+        return side + (dump->isLeftSelected() ? "left_on.png);" : "right_on.png);");
     });
     addIcon(w.flowIcon, [dump]{
         return buttonsPath + "variable_up_" + (dump->isFlowSelected() ? "on_down_blocked);" : "off_down_blocked);");
@@ -176,13 +175,12 @@ BroomButtons::BroomButtons(const OrganWidgets &w, CentralBroom *broom, PhysicalB
     addButton(press);
 
     addIcon(w.vertIcon, vertIcon(w.down, vert));
-    addIcon(w.sideIcon, [this, broom, side]{
+    // выбор оператора; при ручном повороте за середину хода он сам переходит на новую сторону
+    // (Organ::followActualSide), поэтому иконка меняется, как только щётка перешла середину
+    addIcon(w.sideIcon, [broom, side]{
         if (!broom->isSideSelected())
             return buttonsPath + "rotatingBroomsFront_off.png);";
-        // во время уборки - где щётка сейчас: при ручном повороте сторона меняется за серединой хода
-        // (выбор оператора переходит за ней сразу, Organ::followActualSide)
-        const bool left = context->isCleaning() ? broom->isOnLeft() : broom->isLeftSelected();
-        return side + (left ? "left_on.png);" : "right_on.png);");
+        return side + (broom->isLeftSelected() ? "left_on.png);" : "right_on.png);");
     });
     addIcon(w.flowIcon, [broom]{
         return buttonsPath + "variable_"

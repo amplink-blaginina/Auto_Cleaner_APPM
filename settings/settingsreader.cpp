@@ -58,6 +58,7 @@ void SettingsReader::setDefaults(){
     // высота щётки оценивается по времени хода (датчика высоты нет): ниже порога щётка крутится, выше - стоит
     _defaultValues.insert("CentralBroom/lowerTimeSec", 5);// полный ход вниз
     _defaultValues.insert("CentralBroom/raiseTimeSec", 5);// полный ход вверх
+    _defaultValues.insert("CentralBroom/flowDropTimeSec", 5);// в плавании: от верха до поверхности под собственным весом
     _defaultValues.insert("CentralBroom/spinHeightPercent", 80);// порог, % хода от верхнего положения
     _defaultValues.insert("CentralBroom/slideTimeSec", 5);// поворот от упора до упора
     _defaultValues.insert("CentralBroom/speeds.LeafSweep", 70);

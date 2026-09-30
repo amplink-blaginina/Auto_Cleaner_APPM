@@ -5,6 +5,7 @@
 namespace {
 const double travelSec = 2.5;// время хода органа от края до края в модели
 const double spinUpSec = 1.5;// разгон вращения от 0 до максимума в модели
+const double fallSec = 3;// в плавании орган опускается под собственным весом
 }
 
 double SimRotor::command() const{
@@ -22,11 +23,11 @@ SimIoBus::SimIoBus(QObject *parent)
     addAxis({"Магнит", {StateValveE2}, {StateValveE6}, travelSec, 0,
              {StateDKPBackMagnetUp}, {}, "верх", "низ"});
     addAxis({"Отвал: подъём", {StateValveF1}, {StateValveF7}, travelSec, 0,
-             {StateDKPDumpUp}, {}, "верх", "низ"});
+             {StateDKPDumpUp}, {}, "верх", "низ", false, {StateValveC3, StateValveC4}, fallSec});
     addAxis({"Отвал: поворот", {StateValveF12}, {StateValveF6}, travelSec, 1,
              {StateDKPDumpLeft}, {StateDKPDumpRight}, "лево", "право", true});
     addAxis({"Щётка: подъём", {StateValveF2, StateValveF10}, {StateValveF8, StateValveF4}, travelSec, 0,
-             {StateDKPBroomUp}, {}, "верх", "низ"});
+             {StateDKPBroomUp}, {}, "верх", "низ", false, {StateValveC1, StateValveC2}, fallSec});
     addAxis({"Щётка: поворот", {StateValveF9}, {StateValveF3}, travelSec, 1,
              {StateDKPBroomLeft}, {StateDKPBroomRight}, "лево", "право", true});
     addAxis({"Обдув: подъём", {StateValveE1}, {StateValveE5}, travelSec, 0,
@@ -116,6 +117,8 @@ void SimIoBus::step(){
             const double delta = dt / axis.travelSec;
             axis.pos = qBound(0.0, axis.pos + (toMax ? delta : -delta), 1.0);
         }
+        else if (axis.fallSec > 0 && anyOn(axis.fall))// плавание: опускается под собственным весом
+            axis.pos = qMin(1.0, axis.pos + dt / axis.fallSec);
         if (_modelEnabled)
             updateSensors(axis);
     }
