@@ -1,96 +1,47 @@
 #ifndef CENTRALBROOM_H
 #define CENTRALBROOM_H
 
+#include "organ.h"
 #include "organsenums.h"
 
-#include <QObject>
-#include <QWidget>
-#include <QDateTime>
 #include <QElapsedTimer>
 #include <QMap>
-#include <QSettings>
-#include <screenlog.h>
-//#include <mainwindow.h>
 
-#include <can/mycan.h>
-#include <can/mycanj1939.h>
-#include <machine/machinecontext.h>
-#include <machine/machineio.h>
-
-#include <Controllers/viewcontroller.h>
-class CentralBroom : public QObject
+class CentralBroom : public Organ
 {
     Q_OBJECT
 public:
-    // состояния модуля (последовательный) 0 и 255 крайние состояния которые заставляют прогрессировать модуль по этапам в какую либо сторону
+    // коды состояний движка (OrganSequence): шаги поворот, отскок, раскрутка, опускание, плавание
     enum BroomStates
     {
         BroomOff        = 0,
         BroomSlideIn    = 1,
         BroomSlideOut   = 2,
         BroomSlided     = 3,
-        BroomBounceOut  = 4,
-        BroomBounced    = 5,
-        BroomRotateIn   = 6,
-        BroomRotateOut  = 7,
-        BroomRotated    = 8,
-        BroomDownIn     = 9,
-        BroomDownOut    = 10,
-        BroomDowned     = 11,
-        BroomFlowIn     = 12,
-        BroomFlowOut    = 13,
-        BroomFlowed     = 14,
-        BroomPressOut   = 15,
-        BroomPressed    = 16,
-
+        BroomBounceIn   = 4,
+        BroomBounceOut  = 5,
+        BroomBounced    = 6,
+        BroomRotateIn   = 7,
+        BroomRotateOut  = 8,
+        BroomRotated    = 9,
+        BroomDownIn     = 10,
+        BroomDownOut    = 11,
+        BroomDowned     = 12,
+        BroomFlowIn     = 13,
+        BroomFlowOut    = 14,
+        BroomFlowed     = 15,
     };
     Q_ENUM(BroomStates);
 
     explicit CentralBroom(const MachineIo &machine, MachineContext *context, ViewController *logger, QObject *parent);
-    ViewController *logger;
-    IoBus *io;
-    HydraulicSupply *hydraulics;
-    EngineRpmDemand *engineRpm;
-    QTimer progressTimer;
-    bool choosed;
-    bool broomAlarmed;
 
-    void readSettings();
-    void checkNeedState();
-    bool testStateTimer();
-    int getTimeout();
-    void checkFriendVars();
-    BroomStates stateUp();
-    BroomStates stateDown();
+    void readSettings() override;
 
-    QDateTime startActionTime;
-
-    // таймауты на каждую длительную операцию
-    QMap<BroomStates, float> timeouts;
-    // скорость вращения щетки под каждый тип смета
-    QMap<int, int> speedForSweepType;
-    // обороты двигателя под каждый тип смета
-    QMap<int, int> rpmForSweepType;
-
-    bool startClean;
-    bool needGoLeft; // тут главный признак-будет ли эта щетка желать развернуться или нет (это поворот ВЛЕВО)
-    bool isPressed = false;
-    bool isFlowing = false;
-    organsEnums::Direction direction = organsEnums::None;
-
-
-    void setState(BroomStates state_);// установка и получение состояния модуля
-    BroomStates state = BroomPressed; // стутус который мы предполагаем сейчас (лигические выводы); до первого setState(BroomOff) - любое, кроме Off
-    BroomStates needState; // статус который мы желаем достичь
-    void setNeedState(BroomStates state_);// установка и получение требуемого состояния модуля (к чему модуль движется так скажем)
-    BroomStates getNeedState();
-
-    BroomStates ableState; // статус который мы можем достичь
-    void setAbleState(BroomStates state_);
-    BroomStates getAbleState();
-
-    BroomStates getState();
+    BroomStates getState() const { return BroomStates(sequence.state()); }
+    void setNeedState(BroomStates state_) { sequence.setNeed(state_); }
     QString toString(BroomStates s);
+
+    bool needGoLeft = false; // в какую сторону поворачивать при опускании (true - влево)
 
     void setDirection(organsEnums::Direction dir);
     void setDirection(organsEnums::Direction dir, bool isPressed);
@@ -106,26 +57,22 @@ public:
     void goUpImmediate(bool state);
     void goDownImmediate(bool);
 
-public slots:
-    // слот для получания данных из CAN
-    void progressLoop();
 signals:
     void flowCancelRequested();// орган двигают вверх/вниз - плавание надо снять
 
+protected:
+    void beforeStep() override;
+
 private:
-    void goLeft();
     void goLeft(bool state);
-    void goRight();
     void goRight(bool state);
     void goNone();
-    void goUp();
     void goUp(bool state, bool isPressed);
-    void goDown();
     void goDown(bool state, bool isPressed);
     void goFlow(bool state);
-    //void goNoFlow();
     void goRotate(int speed_);
     void goNoRotate();
+    void goSlide(bool toLeft);
 
     void printMovement(organsEnums::Direction dir, bool state, bool isPressed);
 
@@ -142,17 +89,16 @@ private:
     bool spinning = false;
     QElapsedTimer heightClock;
 
-    // void increaseSpeed();
-    // void decreaseSpeed();
-    void goSlide(bool toLeft);
-    bool isTimeoutReached();
-    bool wereBusyAndTimeoutReached(bool timeoutReached, BroomStates state);
-    bool checkMovementAndStopOnTimeout(bool timeoutReached, bool isSensorReached, organsEnums::Direction dir);
+    bool isPressed = false;
+    bool isFlowing = false;
+    organsEnums::Direction direction = organsEnums::None;
 
-    void printMovement(int, bool, bool);
-    CentralBroom::BroomStates getNextState(CentralBroom::BroomStates current);
-    CentralBroom::BroomStates getPreviousState(CentralBroom::BroomStates current);
-    MachineContext *_context;
+    // таймауты на каждую длительную операцию
+    QMap<BroomStates, float> timeouts;
+    // скорость вращения щетки под каждый тип смета
+    QMap<int, int> speedForSweepType;
+    // обороты двигателя под каждый тип смета
+    QMap<int, int> rpmForSweepType;
     bool _flowSelected = false;
 };
 

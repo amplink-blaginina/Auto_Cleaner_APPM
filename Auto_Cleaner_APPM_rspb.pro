@@ -54,7 +54,9 @@ SOURCES += \
     organs/centralbroom.cpp \
     organs/blower.cpp \
     organs/frontrail.cpp \
+    organs/organ.cpp \
     organs/organsenums.cpp \
+    organs/organsequence.cpp \
     io/caniobus.cpp \
     machine/enginerpmdemand.cpp \
     machine/hydraulicsupply.cpp \
@@ -116,7 +118,9 @@ HEADERS += \
     organs/blower.h \
     organs/centralbroom.h \
     organs/frontrail.h \
+    organs/organ.h \
     organs/organsenums.h \
+    organs/organsequence.h \
     io/caniobus.h \
     io/iobus.h \
     machine/enginerpmdemand.h \

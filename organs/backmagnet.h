@@ -1,24 +1,15 @@
 #ifndef BACKMAGNET_H
 #define BACKMAGNET_H
 
-#include <QObject>
-#include <QWidget>
-#include <QDateTime>
+#include "organ.h"
+
 #include <QMap>
-#include <QSettings>
-#include <screenlog.h>
 
-#include <can/mycan.h>
-#include <can/mycanj1939.h>
-#include <machine/machinecontext.h>
-#include <machine/machineio.h>
-
-#include <Controllers/viewcontroller.h>
-class BackMagnet : public QObject
+class BackMagnet : public Organ
 {
     Q_OBJECT
 public:
-    // состояния модуля (последовательный) 0 и 255 крайние состояния которые заставляют прогрессировать модуль по этапам в какую либо сторону
+    // коды состояний движка (OrganSequence): шаг «опускание»
     enum BackMagnetStates
     {
         BackMagnetOff        = 0,
@@ -29,54 +20,20 @@ public:
     Q_ENUM(BackMagnetStates)
 
     explicit BackMagnet(const MachineIo &machine, MachineContext *context, ViewController *logger, QObject *parent);
-    ViewController *logger;
-    IoBus *io;
-    HydraulicSupply *hydraulics;
-    EngineRpmDemand *engineRpm;
-    QTimer progressTimer;
-    bool choosed;
-    bool magnetAlarmed;
 
-    void readSettings();
-    void checkNeedState();
-    bool testStateTimer();
-    int getTimeout();
-    void checkFriendVars();
-    BackMagnetStates stateUp();
-    BackMagnetStates stateDown();
+    void readSettings() override;
 
-    QDateTime startActionTime;
-
-    // таймауты на каждую длительную операцию
-    QMap<BackMagnetStates, float> timeouts;
-
-    bool startClean;
-
-    // установка и получение состояния модуля
-    void setState(BackMagnetStates state_);
-    BackMagnetStates state; // стутус который мы предполагаем сейчас (лигические выводы)
-    BackMagnetStates needState; // статус который мы желаем достичь
-    BackMagnetStates ableState; // статус который мы можем достичь
-    BackMagnetStates getState();
+    BackMagnetStates getState() const { return BackMagnetStates(sequence.state()); }
+    void setNeedState(BackMagnetStates state_) { sequence.setNeed(state_); }
     QString toString(BackMagnetStates s);
 
     void goOff();
     void goUp();
     void goDown();
 
-    // установка и получение требуемого состояния модуля (к чему модуль движется так скажем)
-    void setNeedState(BackMagnetStates state_);
-    BackMagnetStates getNeedState();
-    void setAbleState(BackMagnetStates state_);
-    BackMagnetStates getAbleState();
-
-public slots:
-    // слот для получания данных из CAN
-    void progressLoop();
-signals:
-
 private:
-    MachineContext *_context;
+    // таймауты на каждую длительную операцию
+    QMap<BackMagnetStates, float> timeouts;
 };
 
 #endif // BACKMAGNET_H

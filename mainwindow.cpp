@@ -1658,10 +1658,10 @@ void MainWindow::resetDevices(){
     //выставляем статусы устройств
     // скомандуем свернуть все
 
-    broomCentral->setState(CentralBroom::BroomOff);
-    backMagnet->setState(BackMagnet::BackMagnetOff);
-    frontRail->setState(FrontRail::FrontRailOff);
-    blower->setState(Blower::BlowerOff);
+    broomCentral->goHome();
+    backMagnet->goHome();
+    frontRail->goHome();
+    blower->goHome();
 
     // выставляем в 0 команды
     for (int i = 0;i < 8; i++){
@@ -1932,10 +1932,10 @@ void MainWindow::repaintProgress(){
 }
 
 bool MainWindow::inHomeState(){
-    if ((frontRail->getState() == FrontRail::FrontRailOff || frontRail->railAlarmed)
-            && (backMagnet->getState() == BackMagnet::BackMagnetOff || backMagnet->magnetAlarmed)
-            && (broomCentral->getState() == CentralBroom::BroomOff || broomCentral->broomAlarmed)
-            && (blower->getState() == Blower::BlowerOff || blower->blowerAlarmed))
+    if ((frontRail->isHome() || frontRail->isAlarmed())
+            && (backMagnet->isHome() || backMagnet->isAlarmed())
+            && (broomCentral->isHome() || broomCentral->isAlarmed())
+            && (blower->isHome() || blower->isAlarmed()))
         return true;
     return false;
 }
@@ -2447,41 +2447,23 @@ bool MainWindow::isIdleMode(){
 }
 
 bool MainWindow::isBroomTransitioning(){
-    CentralBroom::BroomStates broomTarget = broomCentral->needState;
-    if (broomCentral->needState != CentralBroom::BroomOff && broomCentral->ableState < broomCentral->needState)
-        broomTarget = broomCentral->ableState;
-    return broomCentral->state != broomTarget;
+    return broomCentral->isTransitioning();
 }
 
 bool MainWindow::isDumpTransitioning(){
-    FrontRail::FrontRailStates railTarget = frontRail->needState;
-    if (frontRail->needState != FrontRail::FrontRailOff && frontRail->ableState < frontRail->needState)
-        railTarget = frontRail->ableState;
-    return frontRail->state != railTarget;
+    return frontRail->isTransitioning();
 }
 
 bool MainWindow:: isMagnetTransitioning(){
-    BackMagnet::BackMagnetStates magnetTarget = backMagnet->needState;
-    if (backMagnet->needState != BackMagnet::BackMagnetOff && backMagnet->ableState < backMagnet->needState)
-        magnetTarget = backMagnet->ableState;
-    return backMagnet->state != magnetTarget;
-}
-
-Blower::BlowerStates MainWindow::blowerTargetState(){
-    // при движении к работе цель ограничивается ableState, при выключении всегда идём к Off
-    Blower::BlowerStates blowerTarget = blower->needState;
-    if (blower->needState != Blower::BlowerOff && blower->ableState < blower->needState)
-        blowerTarget = blower->ableState;
-    return blowerTarget;
+    return backMagnet->isTransitioning();
 }
 
 bool MainWindow::isBlowTransitioning(){
-    return blower->state != blowerTargetState();
+    return blower->isTransitioning();
 }
 
 bool MainWindow::isOrgansTransitioning(){
     // органы в процессе перехода - ручное управление заблокировано
-    // при движении к работе цель ограничивается ableState, при выключении всегда идём к Off
     if(isBroomTransitioning())
         return true;
     if(isDumpTransitioning())
@@ -2543,18 +2525,19 @@ void MainWindow::showPauseButton(){
             view->addLogWarning("Пауза включена");
 
             // Переводим выбранные органы
-            // в промежуточное безопасное положение.
+            // в промежуточное безопасное положение: отвал и щётка подняты и остановлены
+            // (поворот сохраняется), магнит и обдув подняты.
             if (frontRail->choosed)
                 frontRail->setNeedState(FrontRail::FrontRailBounced);
 
             if (broomCentral->choosed)
-                broomCentral->setNeedState(CentralBroom::BroomRotateIn);
+                broomCentral->setNeedState(CentralBroom::BroomBounced);
 
             if (backMagnet->choosed)
-                backMagnet->setNeedState(BackMagnet::BackMagnetDownIn);
+                backMagnet->setNeedState(BackMagnet::BackMagnetOff);
 
             if (blower->choosed)
-                blower->setNeedState(Blower::BlowerDownIn);
+                blower->setNeedState(Blower::BlowerOff);
         }
         else
         {
@@ -2703,10 +2686,10 @@ void MainWindow::on_pushButton_frmMagnet_clicked(){
 void MainWindow::on_pushButton_homeState_clicked(){
     view->addLogWarning("Переход в домашнее состояние, ожидайте");
     // вынуждаем все органы убраться поновой. обманка
-    backMagnet->state = BackMagnet::BackMagnetDowned;
-    blower->state = Blower::BlowerRotated;
-    frontRail->state = FrontRail::FrontRailFlowed;
-    broomCentral->state = CentralBroom::BroomRotated;
+    backMagnet->assumeDeployed();
+    blower->assumeDeployed();
+    frontRail->assumeDeployed();
+    broomCentral->assumeDeployed();
 }
 
 //==============================CommonLogic==========================================
@@ -2794,8 +2777,7 @@ QString MainWindow::getDumpDefaultIcon(){
 QString MainWindow::getBlowerVertIcon(){// положение обдува, к которому идёт автомат: иконка меняется сразу, как принята команда
     if (!ui->pushButton_blowerDown->isEnabled())
         return blowerVertPath + "blocked.png);";
-    const Blower::BlowerStates target = blowerTargetState();
-    const bool raised = target == Blower::BlowerOff || target == Blower::BlowerDownIn;
+    const bool raised = blower->targetState() == Blower::BlowerOff;
     return blowerVertPath + (raised ? "up_on.png);" : "down_on.png);");
 }
 

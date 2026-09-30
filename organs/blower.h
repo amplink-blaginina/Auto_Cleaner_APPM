@@ -1,24 +1,16 @@
 #ifndef BLOWER_H
 #define BLOWER_H
 
-#include <QObject>
-#include <QWidget>
-#include <QDateTime>
+#include "organ.h"
+
 #include <QMap>
-#include <QSettings>
-#include <screenlog.h>
+#include <QTime>
 
-#include <can/mycan.h>
-#include <can/mycanj1939.h>
-#include <machine/machinecontext.h>
-#include <machine/machineio.h>
-
-#include <Controllers/viewcontroller.h>
-class Blower : public QObject
+class Blower : public Organ
 {
     Q_OBJECT
 public:
-    // состояния модуля (последовательный) 0 и 255 крайние состояния которые заставляют прогрессировать модуль по этапам в какую либо сторону
+    // коды состояний движка (OrganSequence): шаги опускание, поворот, раскрутка
     enum BlowerStates
     {
         BlowerOff         = 0,
@@ -35,41 +27,12 @@ public:
     Q_ENUM(BlowerStates)
 
     explicit Blower(const MachineIo &machine, MachineContext *context, ViewController *logger, QObject *parent);
-    ViewController *logger;
-    IoBus *io;
-    HydraulicSupply *hydraulics;
-    EngineRpmDemand *engineRpm;
-    QTimer progressTimer;
-    bool choosed;
-    bool blowerAlarmed;
 
-    void readSettings();
-    void checkNeedState();
-    bool testStateTimer();
-    int getTimeout();
-    void checkFriendVars();
+    void readSettings() override;
 
-    BlowerStates stateUp();
-    BlowerStates stateDown();
-
-    QDateTime startActionTime;
-
-    // таймауты на каждую длительную операцию
-    QMap<BlowerStates, float> timeouts;
-    // скорость вращения щетки под каждый тип смета
-    QMap<int, int> speedForSweepType;
-    // обороты двигателя под каждый тип смета
-    QMap<int, int> rpmForSweepType;
-
-    bool startClean;
-    bool rightBlow;
-
-    // установка и получение состояния модуля
-    void setState(BlowerStates state_);
-    BlowerStates state; // стутус который мы предполагаем сейчас (лигические выводы)
-    BlowerStates needState; // статус который мы желаем достичь
-    BlowerStates ableState; // статус который мы можем достичь
-    BlowerStates getState();
+    BlowerStates getState() const { return BlowerStates(sequence.state()); }
+    void setNeedState(BlowerStates state_) { sequence.setNeed(state_); }
+    BlowerStates targetState() const { return BlowerStates(sequence.targetState()); }// куда обдув идёт сейчас
     QString toString(BlowerStates s);
 
     void goOff();
@@ -77,14 +40,8 @@ public:
     void goUp();
     void goDown();
     void goRotate(quint8 speed);
-
-    // установка и получение требуемого состояния модуля (к чему модуль движется так скажем)
-    void setNeedState(BlowerStates state_);
-    BlowerStates getNeedState();
-    void setAbleState(BlowerStates state_);
-    BlowerStates getAbleState();
-
     void goNone();
+
     bool isRotating();
     QTime stoppingStartedAt;
     QTime startingStartedAt;
@@ -109,25 +66,31 @@ public:
     void toggleSide(bool right);// кнопка стороны до начала уборки: выбрать сторону или снять выбор
     void setSide(bool right);
     void setLifted(bool lifted);
-public slots:
-    // слот для получания данных из CAN
-    void progressLoop();
+
 signals:
     void selectionChanged();// выбор оператора изменился - перерисовать экран, пересчитать цели органов
+
+protected:
+    void beforeStep() override;
+    void afterStep() override;
+
 private:
     bool _left = false;
     bool _right = false;
     bool _lifted = false;
-    void updateTransitioning();
-    bool isTargetRight = false;
+    bool isTargetRight = false;// сторона, на которую надо перейти; отличается от _right, пока идёт смена стороны
     float targetRotationSpeed = 0;
     float currentRotationSpeed =0;
     float speedRotationStep = 1;
     void changeRotationSpeed();
     void setTargetRotationSpeed(float speed);
 
-    BlowerStates rotate();
-    MachineContext *_context;
+    // таймауты на каждую длительную операцию
+    QMap<BlowerStates, float> timeouts;
+    // скорость вращения под каждый тип смета
+    QMap<int, int> speedForSweepType;
+    // обороты двигателя под каждый тип смета
+    QMap<int, int> rpmForSweepType;
 };
 
 #endif // BLOWER_H

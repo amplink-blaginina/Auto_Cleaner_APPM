@@ -504,7 +504,6 @@ public :
     bool isBroomTransitioning();
     bool isDumpTransitioning();
     bool isMagnetTransitioning();
-    Blower::BlowerStates blowerTargetState();
     bool isBlowTransitioning();
     QString getMovementText(organsEnums::Direction direction);
     void setBroomFlowView(bool state);
