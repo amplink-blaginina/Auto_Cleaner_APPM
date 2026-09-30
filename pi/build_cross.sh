@@ -1,6 +1,6 @@
 #!/bin/bash
 # Кросс-сборка Auto_Cleaner под Raspberry Pi (armhf) на этой машине.
-# Нужен sysroot с Pi: cross/sync_sysroot.sh
+# Нужен sysroot с Pi: pi/sync_sysroot.sh
 # Результат: $BUILD/Auto_Cleaner_APPM_rspb
 set -euo pipefail
 
@@ -11,7 +11,7 @@ BUILD=${BUILD:-$(cd "$SRC/.." && pwd)/build-rpi}
 APP=Auto_Cleaner_APPM_rspb
 
 if [ ! -d "$SYSROOT/usr/lib/arm-linux-gnueabihf/qt5" ]; then
-    echo "Нет sysroot в $SYSROOT - сначала запустите cross/sync_sysroot.sh" >&2
+    echo "Нет sysroot в $SYSROOT - сначала запустите pi/sync_sysroot.sh" >&2
     exit 1
 fi
 

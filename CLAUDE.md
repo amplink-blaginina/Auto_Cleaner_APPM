@@ -7,15 +7,15 @@ Qt 5 / C++17 qmake application for the Auto Cleaner machine, running on a Raspbe
 ## Build
 
 - qmake, Qt 5.15. Deps: gstreamer-1.0 (+app, video), glib-2.0, poppler-qt5 (all via pkg-config), libgpiod 1.6.3 (on this x86 machine a local build at `$HOME/libgpiod-1.6`; on the Pi and in the cross build the system package).
-- Target Pi: Raspbian 12 bookworm, 32-bit armhf userland (Qt 5.15.8, glibc 2.36, gcc 12). Cross build here: `cross/sync_sysroot.sh` once (copies libs from the Pi to `../rpi-sysroot`), then `cross/build_cross.sh` → `../build-rpi/Auto_Cleaner_APPM_rspb`. It links the Pi's libstdc++ (`-nostdlib++`), because the local gcc 15 libstdc++ needs glibc 2.38, and it fails if the binary needs newer GLIBC/GLIBCXX symbols than the Pi has.
+- Target Pi: Raspbian 12 bookworm, 32-bit armhf userland (Qt 5.15.8, glibc 2.36, gcc 12). Build/deploy scripts live in `pi/` (described in `pi/README.md`). Cross build here: `pi/sync_sysroot.sh` once (copies libs from the Pi to `../rpi-sysroot`), then `pi/build_cross.sh` → `../build-rpi/Auto_Cleaner_APPM_rspb`. It links the Pi's libstdc++ (`-nostdlib++`), because the local gcc 15 libstdc++ needs glibc 2.38, and it fails if the binary needs newer GLIBC/GLIBCXX symbols than the Pi has.
 - Stale `ui_*.h`/`moc_*` in the repo root shadow freshly generated ones (the root is on the include path before the build dir). Keep the root clean.
 - To check a change, build out-of-source with `/build-check`. Never run qmake/make in the repo root — in-source builds litter it with `*.o`, `moc_*`, `ui_*.h`, `Makefile`.
 - New `.cpp`/`.h`/`.ui` files must be added to `SOURCES`/`HEADERS`/`FORMS` in `Auto_Cleaner_APPM_rspb.pro` by hand.
-- Do NOT run `deploy_test_to_pi.sh`, `deploy_default_to_pi.sh`, `rollback_default_on_pi.sh`, `deploy_to_pi*.sh` or `script_to_build*.sh`: they stop the app on a live machine and restart it. The user does hardware verification.
+- Do NOT run `pi/deploy_*.sh`, `pi/rollback_default_on_pi.sh` or anything in `pi/old/`: they stop the app on a live machine and restart it. The user does hardware verification.
   - On the Pi the app is autostarted by the systemd service `my-app` (`Restart=always`); the binary it runs is set by its `ExecStart` script and may be overridden by a drop-in, so a plain `pkill` + manual start gets replaced by the service.
   - `deploy_test_to_pi.sh [user@host]` cross-builds, stops `my-app`, runs the fresh binary once in the terminal and starts `my-app` again on exit.
   - `deploy_default_to_pi.sh [user@host]` replaces the binary `my-app` currently runs (old → `.prev`, asks for confirmation) and restarts the service. `rollback_default_on_pi.sh` swaps it back with `.prev`.
-  - The old scripts rebuild on the Pi.
+  - The old scripts in `pi/old/` rebuild on the Pi.
 - No tests exist; a clean local build is the verification bar.
 
 ## Code conventions

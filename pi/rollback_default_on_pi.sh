@@ -2,12 +2,12 @@
 # Возврат предыдущей сборки автозапуска (сервис my-app) на Raspberry Pi.
 # Меняет местами бинарник автозапуска и его .prev (оставленный deploy_default_to_pi.sh),
 # поэтому повторный запуск возвращает обратно. Затем сервис перезапускается.
-# Путь можно задать явно: DEFAULT_BIN=/home/knight/.../бинарник ./rollback_default_on_pi.sh
-# Использование: ./rollback_default_on_pi.sh [user@host]      (по умолчанию knight@192.168.68.128)
+# Путь можно задать явно: DEFAULT_BIN=/home/knight/.../бинарник pi/rollback_default_on_pi.sh
+# Использование: pi/rollback_default_on_pi.sh [user@host]      (по умолчанию knight@192.168.68.128)
 set -euo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)
-source "$HERE/cross/pi_common.sh"
+source "$HERE/pi_common.sh"
 
 pi_require_default_bin
 if ! ssh "$PI" "test -f '$DEFAULT_BIN.prev'"; then

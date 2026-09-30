@@ -2,12 +2,12 @@
 # Разовый запуск свежей сборки на Raspberry Pi для проверки.
 # Автозапуск (сервис my-app) на время теста останавливается, после Ctrl+C или обрыва ssh - включается обратно.
 # Бинарник кладётся в TEST_DIR (старый -> .prev) и берёт настройки оттуда же (settingsAutoCleaner.ini рядом с бинарником).
-# Использование: ./deploy_test_to_pi.sh [user@host]      (по умолчанию knight@192.168.68.128)
-# Первый раз (и после apt upgrade на Pi): cross/sync_sysroot.sh [user@host]
+# Использование: pi/deploy_test_to_pi.sh [user@host]      (по умолчанию knight@192.168.68.128)
+# Первый раз (и после apt upgrade на Pi): pi/sync_sysroot.sh [user@host]
 set -euo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)
-source "$HERE/cross/pi_common.sh"
+source "$HERE/pi_common.sh"
 TEST_DIR=/home/knight/work/Auto_Cleaner_318D4
 
 pi_build

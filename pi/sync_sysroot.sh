@@ -1,7 +1,7 @@
 #!/bin/bash
 # Копирует с Raspberry заголовки и библиотеки (sysroot) для кросс-сборки.
 # Запускать заново после обновления пакетов на Pi (apt upgrade).
-# Использование: cross/sync_sysroot.sh [user@host]
+# Использование: pi/sync_sysroot.sh [user@host]
 set -euo pipefail
 
 PI=${1:-${PI:-knight@192.168.68.128}}

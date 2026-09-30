@@ -5,8 +5,8 @@ PI=${1:-${PI:-knight@192.168.68.128}}
 APP=Auto_Cleaner_APPM_rspb
 APP_COMM=Auto_Cleaner_AP          # /proc/<pid>/comm хранит только 15 символов
 SERVICE=my-app                    # systemd-сервис автозапуска на Pi (Restart=always)
-CROSS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-BUILD=${BUILD:-$(cd "$CROSS_DIR/../.." && pwd)/build-rpi}
+PI_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+BUILD=${BUILD:-$(cd "$PI_DIR/../.." && pwd)/build-rpi}
 
 # Окружение как в start_app.sh на Pi
 PI_ENV='
@@ -21,7 +21,7 @@ PI_CAN_INIT=/home/knight/can_init.sh
 
 # Кросс-сборка (с проверкой совместимости с библиотеками Pi)
 pi_build() {
-    BUILD="$BUILD" "$CROSS_DIR/build_cross.sh"
+    BUILD="$BUILD" "$PI_DIR/build_cross.sh"
 }
 
 # У Pi нет RTC - выставляем время с этой машины (ssh -t - sudo сможет спросить пароль)

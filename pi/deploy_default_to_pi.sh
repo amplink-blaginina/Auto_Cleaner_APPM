@@ -1,13 +1,13 @@
 #!/bin/bash
 # Замена сборки, которую запускает автозапуск (сервис my-app) на Raspberry Pi.
 # Заменяется тот бинарник, который сервис запускает сейчас (старый -> .prev), затем сервис перезапускается.
-# Путь можно задать явно: DEFAULT_BIN=/home/knight/.../бинарник ./deploy_default_to_pi.sh
-# Использование: ./deploy_default_to_pi.sh [user@host]      (по умолчанию knight@192.168.68.128)
-# Откат: ./rollback_default_on_pi.sh
+# Путь можно задать явно: DEFAULT_BIN=/home/knight/.../бинарник pi/deploy_default_to_pi.sh
+# Использование: pi/deploy_default_to_pi.sh [user@host]      (по умолчанию knight@192.168.68.128)
+# Откат: pi/rollback_default_on_pi.sh
 set -euo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)
-source "$HERE/cross/pi_common.sh"
+source "$HERE/pi_common.sh"
 
 pi_build
 
