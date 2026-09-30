@@ -255,7 +255,7 @@ void Blower::progressLoop(){
 
     if (state >= Blower::BlowerRotateOut){
         auto type = _mainWindow->workMode.sweepType;
-        _mainWindow->canForEngine->setEngineCommand(rpmForSweepType.value(type * 8));//обороты движка
+        _mainWindow->canForEngine->setEngineCommand(rpmForSweepType.value(type) * 8);//обороты движка
         setTargetRotationSpeed(speedForSweepType.value(type));// скорость щеток
         //goRotate();
     }
