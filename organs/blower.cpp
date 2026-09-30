@@ -423,10 +423,11 @@ Blower::BlowerStates Blower::rotate(){
         setState(BlowerDownOut);
         break;
     case BlowerDownOut:
-        logger->addLog("Обдув: заканчиваем опускание по таймеру");
         // заканчиваем опускание по таймеру
-        if (testStateTimer())
+        if (testStateTimer()){
+            logger->addLog("Обдув: заканчиваем опускание по таймеру");
             setState(BlowerDowned);
+        }
         break;
     case BlowerDownIn:
         logger->addLog("Обдув: меняем направление на опускание");
@@ -444,10 +445,11 @@ Blower::BlowerStates Blower::rotate(){
         setState(BlowerSlideOut);
         break;
     case BlowerSlideOut:
-        logger->addLog("Обдув: заканчиваем поворот щётки");
         // заканчиваем поворот щетки
-        if (testStateTimer())
+        if (testStateTimer()){
+            logger->addLog("Обдув: заканчиваем поворот щётки");
             setState(BlowerSlided);
+        }
         break;
     case BlowerSlideIn:
         if(isTargetRight != rightBlow){
