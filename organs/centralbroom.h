@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QWidget>
 #include <QDateTime>
+#include <QElapsedTimer>
 #include <QMap>
 #include <QSettings>
 #include <screenlog.h>
@@ -73,13 +74,13 @@ public:
 
     bool startClean;
     bool needGoLeft; // тут главный признак-будет ли эта щетка желать развернуться или нет (это поворот ВЛЕВО)
-    bool isPressed;
-    bool isFlowing;
-    organsEnums::Direction direction;
+    bool isPressed = false;
+    bool isFlowing = false;
+    organsEnums::Direction direction = organsEnums::None;
 
 
     void setState(BroomStates state_);// установка и получение состояния модуля
-    BroomStates state; // стутус который мы предполагаем сейчас (лигические выводы)
+    BroomStates state = BroomPressed; // стутус который мы предполагаем сейчас (лигические выводы); до первого setState(BroomOff) - любое, кроме Off
     BroomStates needState; // статус который мы желаем достичь
     void setNeedState(BroomStates state_);// установка и получение требуемого состояния модуля (к чему модуль движется так скажем)
     BroomStates getNeedState();
@@ -127,6 +128,19 @@ private:
     void goNoRotate();
 
     void printMovement(organsEnums::Direction dir, bool state, bool isPressed);
+
+    // вращение: опускается на поверхность только раскрученной, при подъёме останавливается
+    bool shouldSpin() const;
+    void updateRotation();
+    // высота 0 - верх, 1 - низ. Датчика высоты нет: оцениваем по времени работы клапанов подъёма/опускания,
+    // верхний концевик сбрасывает оценку. Времена хода берём не больше реальных - оценка ошибается в безопасную сторону
+    void updateHeightEstimate();
+    double heightEstimate = 0;
+    float lowerTimeSec = 5;
+    float raiseTimeSec = 5;
+    float spinHeight = 0.8;// ниже - щётка должна крутиться, выше - стоять
+    bool spinning = false;
+    QElapsedTimer heightClock;
 
     // void increaseSpeed();
     // void decreaseSpeed();

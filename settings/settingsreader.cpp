@@ -54,6 +54,10 @@ void SettingsReader::setDefaults(){
     _defaultValues.insert("CentralBroom/timeouts.BroomRotateOut", 1);
     _defaultValues.insert("CentralBroom/timeouts.BroomRotateIn", 1);
     _defaultValues.insert("CentralBroom/timeouts.BroomBounceOut", "0.1");
+    // высота щётки оценивается по времени хода (датчика высоты нет): ниже порога щётка крутится, выше - стоит
+    _defaultValues.insert("CentralBroom/lowerTimeSec", 5);// полный ход вниз
+    _defaultValues.insert("CentralBroom/raiseTimeSec", 5);// полный ход вверх
+    _defaultValues.insert("CentralBroom/spinHeightPercent", 80);// порог, % хода от верхнего положения
     _defaultValues.insert("CentralBroom/speeds.LeafSweep", 70);
     _defaultValues.insert("CentralBroom/speeds.LightSweep", 80);
     _defaultValues.insert("CentralBroom/speeds.MediumSweep", 90);

@@ -49,6 +49,10 @@ void CentralBroom::readSettings(){
     speedForSweepType.insert(LightSweep, reader->readSettingsValue("CentralBroom/speeds.LightSweep").toInt());
     speedForSweepType.insert(MediumSweep, reader->readSettingsValue("CentralBroom/speeds.MediumSweep").toInt());
     speedForSweepType.insert(HeavySweep, reader->readSettingsValue("CentralBroom/speeds.HeavySweep").toInt());
+
+    lowerTimeSec = reader->readSettingsValue("CentralBroom/lowerTimeSec").toFloat();
+    raiseTimeSec = reader->readSettingsValue("CentralBroom/raiseTimeSec").toFloat();
+    spinHeight = qBound(0, reader->readSettingsValue("CentralBroom/spinHeightPercent").toInt(), 100) / 100.0;
 }
 
 QString CentralBroom::toString(BroomStates s){
@@ -61,6 +65,12 @@ void CentralBroom::setState(BroomStates state_){
         return;
     }
     state = state_;
+
+    // автомат знает положение точно: опускание закончено - внизу, подъём закончен (или ещё не опускали) - вверху
+    if (state == CentralBroom::BroomDowned)
+        heightEstimate = 1;
+    if (state == CentralBroom::BroomRotated)
+        heightEstimate = 0;
 
     if (state == CentralBroom::BroomOff||//щётка в крайне верхнем положении // остановим поднимаение
         state == CentralBroom::BroomDowned||//щётка в крайне нижнем положении
@@ -298,6 +308,57 @@ void CentralBroom::goFlow(bool state){
     io->set(StateValveC2, state);
 }
 
+void CentralBroom::updateHeightEstimate(){
+    const double dt = heightClock.isValid() ? heightClock.restart() / 1000.0 : 0;
+    if (!heightClock.isValid())
+        heightClock.start();
+
+    if (io->get(StateDKPBroomUp).toBool()){// верхний концевик - точно наверху
+        heightEstimate = 0;
+        return;
+    }
+    if (!hydraulics->isOn())
+        return;
+    if (direction == organsEnums::Down)
+        heightEstimate = lowerTimeSec > 0 ? qMin(1.0, heightEstimate + dt / lowerTimeSec) : 1.0;
+    else if (direction == organsEnums::Up)
+        heightEstimate = raiseTimeSec > 0 ? qMax(0.0, heightEstimate - dt / raiseTimeSec) : 0.0;
+}
+
+bool CentralBroom::shouldSpin() const{
+    switch (state) {
+    case BroomRotateOut:// раскрутка перед опусканием
+    case BroomRotated:
+    case BroomDownOut:// опускаем уже раскрученной
+        return true;
+    case BroomDownIn:// подъём: останавливаем сразу, не дожидаясь верхнего положения
+    case BroomRotateIn:
+        return false;
+    default:
+        // работа внизу и ручное управление: по высоте - у земли и в плавании крутится, выше порога стоит
+        return isFlowing || heightEstimate >= spinHeight;
+    }
+}
+
+void CentralBroom::updateRotation(){
+    const bool spin = shouldSpin();
+    if (spin){
+        engineRpm->request(this, rpmForSweepType.value(_context->sweepType()) * 8);//обороты движка
+        goRotate(speedForSweepType.value(_context->sweepType()));// скорость щеток
+    }
+    else{
+        engineRpm->release(this);// щётка не крутится - обороты ей не нужны
+        if (spinning)
+            goNoRotate();
+    }
+    if (spin != spinning && state != BroomRotateOut && state != BroomRotateIn){// о раскрутке и торможении автомат пишет сам
+        const QString height = QString::number(qRound(heightEstimate * 100));
+        logger->addLog(spin ? "Щетка: раскручиваем (высота " + height + "% хода)"
+                            : "Щетка: останавливаем (высота " + height + "% хода)");
+    }
+    spinning = spin;
+}
+
 void CentralBroom::goRotate(int speed_){
     io->set(StateValveD1, speed_ / 2);
     //hydraulics->request(this, true);
@@ -464,15 +525,8 @@ void CentralBroom::progressLoop(){
     // рисуем положение щетки (в зависимости от прижима)
     //broomWidget->setGeometry(broomWidget->geometry().x(), 418 + io->get(StateBroomPressLevelD7).toUInt(), broomWidget->geometry().width(), broomWidget->geometry().height());
 
-    if (state >= CentralBroom::BroomRotateOut){
-        //обороты движка
-        engineRpm->request(this, rpmForSweepType.value(_context->sweepType()) * 8);
-        // скорость щеток
-        goRotate(speedForSweepType.value(_context->sweepType()));
-    }
-    else{
-        engineRpm->release(this);// щётка не крутится - обороты ей не нужны
-    }
+    updateHeightEstimate();
+    updateRotation();
 
     // проверяет до какого состояния может добираться щетка
     checkNeedState();
@@ -497,7 +551,7 @@ CentralBroom::BroomStates CentralBroom::getNextState(CentralBroom::BroomStates c
     switch (current) {
     case BroomOff: return BroomSlideOut;// начинаем опускание
     case BroomDownOut: return BroomDowned;// заканчиваем опускание по таймеру
-    case BroomDownIn:return BroomDownOut;// меняем направление на опускание (до этого поднимались)
+    case BroomDownIn:return BroomRotateOut;// подъём прервали: щётка уже остановлена - сначала раскручиваем, потом опускаем
     case BroomDowned:return BroomFlowOut;// начинаем вращение или поворот
     case BroomFlowIn:return BroomFlowOut;
     case BroomFlowOut:return BroomFlowed;
