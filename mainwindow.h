@@ -121,6 +121,7 @@ public:
         bool frontDumpFlow;
         bool blowLeft;
         bool blowRight;
+        bool blowLifted;// обдув поднят вручную, выбранная сторона сохраняется
         bool frmBroom;
         bool frmMagnet;
         bool frmKung;
@@ -451,6 +452,9 @@ private:
     void configureChannelTypes();
     void insertValues();
     bool isSpeedTooHigh();
+    void stopCleaningForSafety(const QString &reason);
+    void checkEngineOverheat();
+    void checkHydraulicOverheat(qint16 temp);
     void setBroomPressed(bool);
     void registerPhysButtons();
     void updatePhysButtons();
@@ -480,6 +484,7 @@ private:
     //void configureButtons();
     void setBtnView(bool isPressed, QLabel *lbl, QPushButton *btn, QString onPath, QString offPath);
     QString getBlowerDefaultIcon();
+    QString getBlowerVertIcon();
     QString getDumpDefaultIcon();
     QString getBroomDefaultIcon();
     void setVertButtonsView(bool state);
@@ -515,6 +520,7 @@ public :
     void tryToDisableDumpFlow();
     void setServiceFormName(QWidget *form, QString name);
     void changeBlowDirection(bool isRight);
+    void setBlowerLifted(bool lifted);
     bool getGPIOInput(GPIOInput id);
 public slots:
     //void messageListPressed();

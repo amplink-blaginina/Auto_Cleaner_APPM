@@ -30,7 +30,7 @@
 QLocale EngLocale (QLocale::Russian);
 
 static int ptsInc = 0;
-const QString programmVersionString = QStringLiteral("AutoCleaner APPM v3.020");
+const QString programmVersionString = QStringLiteral("AutoCleaner APPM v3.021");
 
 //Changes
 // 3.001 - форкнулся от APPM2 imx6, удалил лишнее и накатил на нее все от разбери с 200 и 318D4
@@ -715,7 +715,7 @@ void MainWindow::configureButtons(){
                 setButtonVisualState(
                     ui->pushButton_blowerUp,
                     ui->label_blowerUpDown,
-                    blowerVertPath + "off.png);",
+                    getBlowerVertIcon(),
                     false
                     );
 
@@ -764,7 +764,7 @@ void MainWindow::configureButtons(){
                 setButtonVisualState(
                     ui->pushButton_blowerDown,
                     ui->label_blowerUpDown,
-                    blowerVertPath + "off.png);",
+                    getBlowerVertIcon(),
                     false
                     );
 
@@ -933,155 +933,6 @@ void MainWindow::configureButtons(){
     //       .whileInactive = [this] {}
     //   }};
 
-
-    //-------------------------------------------------------------------------
-
-    m_blowUpWatcher = BoolStateWatcher{
-        {
-            .onActivated = [this] {
-                ui->pushButton_blowerUp->setProperty("wasDown", true);
-                view->setStyle(ui->label_blowerUpDown, blowerVertPath + "up_on.png);");
-
-                if(isBlowTransitioning()){
-                    view->addLog("Обдув в движении, ожидайте");
-                    return;
-                }
-
-                if(startClean){
-                     if(blower->isRotating()){
-                            blower->setStartMomentForStopping();
-                            view->addLog("Удерживайте кнопку вверх для остановки обдува и подъёма");
-                        }
-                     else{
-                            blower->goUp();
-                        }
-                }
-             },
-            .onDeactivated = [this] {
-                 ui->pushButton_blowerUp->setProperty("wasDown", false);
-                 view->setStyle(ui->label_blowerUpDown, blowerVertPath + "off.png);");
-
-                 if(isBlowTransitioning()){
-                     return;
-                 }
-                 if(startClean){
-                     blower->goNone();
-                 }
-                },
-            .whileActive = [this] {
-             blower->updateWhenUpPressed();
-         },
-            .whileInactive = [this] {}
-        }};
-
-    m_blowDownWatcher = BoolStateWatcher{
-        {
-            .onActivated = [this] {
-                 ui->pushButton_blowerDown->setProperty("wasDown", true);
-                 view->setStyle(ui->label_blowerUpDown, blowerVertPath + "down_on.png);");
-
-                 if(isBlowTransitioning()){
-                     view->addLog("Обдув в движении, ожидайте");
-                     return;
-                 }
-                 if(startClean){
-                     if(!blower->isRotating()){
-                         blower->setStartMomentForStarting();
-                     }
-                     //blower->goDown();
-                 }
-                },
-            .onDeactivated = [this] {
-                 ui->pushButton_blowerDown->setProperty("wasDown", false);
-                 view->setStyle(ui->label_blowerUpDown, blowerVertPath + "off.png);");
-
-                 if(isBlowTransitioning()){
-                     return;
-                 }
-                 if(startClean){
-                     blower->goNone();
-                 }
-                },
-            .whileActive = [this] {blower->updateWhenDownPressed();},
-            .whileInactive = [this] {}
-        }};
-
-    m_blowLeftWatcher = BoolStateWatcher{
-        {
-            .onActivated = [this] {
-                 ui->pushButton_blowerLeft->setProperty("wasDown", true);
-                 view->setStyle(ui->label_blower, blowerHorPath + "left_on.png);");
-
-                 if(isBlowTransitioning()){
-                     view->addLog("Обдув в движении, ожидайте");
-                     return;
-                 }
-                 if(startClean){
-                     if(blower->isRotating()){
-                         view->addLog("Удерживайте кнопку ввлево для смены направления обдува");
-                         blower->setStartMomentForRotation();
-                     }
-                     else{
-                         blower->goSlide(false);
-                     }
-                 }
-                 else{
-                     view->addLog("Обдув: выбрана левая сторона");
-                     workMode.blowLeft = !workMode.blowLeft;
-                     workMode.blowRight = false;
-                     showWorkMode();
-                 }
-                },
-            .onDeactivated = [this] {
-                 ui->pushButton_blowerLeft->setProperty("wasDown", false);
-                 view->setStyle(ui->label_blower, getBlowerDefaultIcon());
-                 if(isBlowTransitioning()){
-                     return;
-                 }
-                 if(startClean){blower->goNone();}
-                 },
-            .whileActive = [this] {blower->updateWhenRotationPressed(false);},
-            .whileInactive = [this] {}
-        }};
-
-    m_blowRightWatcher = BoolStateWatcher{
-        {
-            .onActivated = [this] {
-                 ui->pushButton_blowerRight->setProperty("wasDown", true);
-                 view->setStyle(ui->label_blower, blowerHorPath + "right_on.png);");
-
-                 if(isBlowTransitioning()){
-                     view->addLog("Обдув в движении, ожидайте");
-                     return;
-                 }
-                 if(startClean){
-                     if(blower->isRotating()){
-                         view->addLog("Удерживайте кнопку вправо для смены направления обдува");
-                         blower->setStartMomentForRotation();
-                     }
-                     else{
-                         blower->goSlide(true);}
-                 }
-                 else{
-                     view->addLog("Обдув: выбрана правая сторона");
-                     workMode.blowRight = !workMode.blowRight;
-                     workMode.blowLeft = false;
-                     showWorkMode();
-                 }},
-            .onDeactivated = [this] {
-                 ui->pushButton_blowerRight->setProperty("wasDown", false);
-                 view->setStyle(ui->label_blower, getBlowerDefaultIcon());
-
-                 if(isBlowTransitioning()){
-                     return;
-                 }
-                 if(startClean){
-                     blower->goNone();
-                 }
-                },
-            .whileActive = [this] {blower->updateWhenRotationPressed(true);},
-            .whileInactive = [this] {}
-        }};
 }
 
 
@@ -1367,6 +1218,8 @@ void MainWindow::setDefaultValues(){
     Password_accepted = false;
     engineTempCrit = false;
     engineTempWarn = false;
+    engineTempWarnTimer = 0;
+    speedCounter = 51;// до первых данных показываем n/a
     hydroTempCrit = false;
     hydroTempWarn = false;
     chooseGabaritCount = 0;
@@ -1425,6 +1278,7 @@ void MainWindow::setDefaultWorkMode(){
     workMode.centralBroomPress = false;
     workMode.blowLeft = false;
     workMode.blowRight = false;
+    workMode.blowLifted = false;
     workMode.frontDumpLeft = false;
     workMode.frontDumpRight = false;
     workMode.frontDumpFlow = false;
@@ -1940,6 +1794,7 @@ void MainWindow::oneSecond(){// универсальный таймер для �
 
     if (engineTempWarnTimer > 0)
         engineTempWarnTimer--;
+    checkEngineOverheat();
 
     // узнаем моточасы за сегодня
     if (DateAndTime.date() != dateToday){// надо записать сегодняшний срез и сохранить его
@@ -2006,12 +1861,40 @@ void MainWindow::oneSecond(){// универсальный таймер для �
         // получим температуру гидрооборудования
         const qint16 hydro_temp = hydroTempK * can->getOilTmp() + hydroTempB;
         qint16 filtered;
-        if (hydroTempFilter.process(hydro_temp, filtered))
+        if (hydroTempFilter.process(hydro_temp, filtered)){
             ui->label_hydraulicTemperature->setText(QString::number(filtered));
+            checkHydraulicOverheat(filtered);
+        }
+    }
+}
+
+void MainWindow::checkHydraulicOverheat(qint16 temp){// проверка перегрева гидросистемы
+    if (hydroTempK == 0 || hydroTempWarnValue <= 0 || hydroTempCritValue <= 0)
+        return;// датчик не откалиброван или пороги не заданы
+
+    if (temp > hydroTempCritValue){
+        if (!hydroTempCrit)
+            view->addLog("Гидросистема перегрелась!!!", ViewController::FatalStatus);
+        hydroTempCrit = true;
+        hydroTempWarn = true;
+    }
+    else if (temp > hydroTempWarnValue){
+        hydroTempCrit = false;
+        if (!hydroTempWarn)
+            view->addLogWarning("Гидросистема перегревается");
+        hydroTempWarn = true;
+    }
+    else{
+        hydroTempCrit = false;
+        hydroTempWarn = false;
     }
 }
 
 void MainWindow::repaintProgress(){
+    // положение обдува меняется само по себе - обновляем иконку, если кнопки вверх/вниз не нажаты
+    if (!ui->pushButton_blowerUp->property("wasDown").toBool() && !ui->pushButton_blowerDown->property("wasDown").toBool())
+        view->setStyle(ui->label_blowerUpDown, getBlowerVertIcon());
+
     QString text = QString::number(hydroTempK * can->getOilTmp() + hydroTempB, 'f', 1);
     text = QString::number(hydraulicPressureValue(2), 'f', 1);
     if (ui->label_fan_pressure->text() != text + " P ТИ3")
@@ -2092,6 +1975,10 @@ void MainWindow::mainProgress(){
     if (frontRPMCounter > 50){
         frontRPM = 0;
     }
+    if (speedCounter > 50)// нет данных о скорости дольше 5 с
+        view->setText(ui->label_speed, "n/a");
+    else
+        view->setText(ui->label_speed, QString::number(currentState->vehicleSpeed));
     if (engine->online > ENGINE_ONLINE_EDGE * 10){
         view->setText(ui->label_engineTemp, "n/a");
         view->setText(ui->label_engineRPM, "n/a");
@@ -2183,10 +2070,59 @@ void MainWindow::mainProgress(){
     }
 
     //защита по скорости - если едем слишком быстро надо выключать режим работы (скорость 50 условная - обозначает что нет данных от двигателя)
-    if (isSpeedTooHigh() && startClean){
-        on_pushButton_startstop_clicked();
-        view->addLogWarning("Превышена скорость уборки. Останавливаем уборку");
+    if (isSpeedTooHigh()){
+        stopCleaningForSafety("Превышена скорость уборки. Уборка остановлена");
     }
+}
+
+void MainWindow::stopCleaningForSafety(const QString &reason){// аварийная остановка уборки, в том числе из паузы
+    if (!startClean)
+        return;
+    pauseActive = false;
+    view->addLogError(reason);
+    startCleaning(false);
+    showWorkMode();
+}
+
+void MainWindow::checkEngineOverheat(){// проверка перегрева двигателя (раз в секунду)
+    const bool engineTempValid = engine->coolantTempEverReceived && (engine->online <= ENGINE_ONLINE_EDGE * 10);
+    if (!engineTempValid || engineTempWarnValue <= 0 || engineTempCritValue <= 0)
+        return;// нет свежих данных (например, зажигание выключено) или пороги не заданы - состояние не меняем
+
+    const int temp = engine->engineCoolantTemp;
+
+    if (temp > engineTempCritValue){
+        if (!engineTempCrit){
+            view->addLog("Двигатель перегрелся!!! Зажигание выключено", ViewController::FatalStatus);
+            starter->forceStopIgnition();
+        }
+        engineTempCrit = true;
+        engineTempWarn = true;
+        stopCleaningForSafety("Перегрев двигателя. Уборка остановлена");
+        return;
+    }
+
+    if (temp > engineTempWarnValue){
+        if (!engineTempWarn){
+            view->addLogError("Двигатель перегревается. Ожидайте охлаждения");
+            engineTempWarnTimer = engineTempWarnEdge * 60;// столько секунд ждём, прежде чем заглушить двигатель
+        }
+        engineTempWarn = true;
+        stopCleaningForSafety("Перегрев двигателя. Уборка остановлена");
+
+        if (engine->getRpm() > 700 && engineTempWarnTimer == 0 && !engineTempCrit){// всё ещё перегрет
+            view->addLog("Двигатель не смог охладиться!!! Зажигание выключено", ViewController::FatalStatus);
+            engineTempCrit = true;
+            starter->forceStopIgnition();
+        }
+        return;
+    }
+
+    if (engineTempWarn || engineTempCrit)
+        view->addLog("Температура двигателя в норме");
+    engineTempWarnTimer = 0;
+    engineTempWarn = false;
+    engineTempCrit = false;
 }
 
 
@@ -2300,7 +2236,7 @@ void MainWindow::checkAndShowStatus(){
 
 
 void MainWindow::showPultOffIgnition(){
-    if (serviceIgnitionAutoRestoreBlocked)
+    if (serviceIgnitionAutoRestoreBlocked || engineTempCrit)// после перегрева зажигание само не восстанавливаем
         return;
     starter->increaseIgnitionTimer();
 }
@@ -2453,7 +2389,7 @@ void MainWindow::showWorkMode(){
 }
 
 bool MainWindow::canStart(){
-    return true;
+    return !engineTempWarn;// при перегреве двигателя уборку не начинаем
 }
 
 float MainWindow::hydraulicPressureValue(int index) const{
@@ -2537,7 +2473,7 @@ void MainWindow::setVertButtonsView(bool state){
     if(state){
         view->setStyle(ui->label_dumpUpDown, dumpVertPath + "off.png);");
         view->setStyle(ui->label_centralBroomUpDown, broomVertPath +  "off.png);");
-        view->setStyle(ui->label_blowerUpDown, blowerVertPath +"off.png);");
+        view->setStyle(ui->label_blowerUpDown, getBlowerVertIcon());
     }
     else{
         view->setStyle(ui->label_dumpUpDown, dumpVertPath + "blocked.png);");
@@ -2626,6 +2562,11 @@ void MainWindow::changeBlowDirection(bool isRight){
     workMode.blowRight = isRight;
     showWorkMode();
 }
+
+void MainWindow::setBlowerLifted(bool lifted){
+    workMode.blowLifted = lifted;
+    showWorkMode();
+}
 //=============================================================
 //====================Buttons click handlers===================
 //=============================================================
@@ -2650,6 +2591,7 @@ void MainWindow::on_pushButton_startstop_clicked(){
 }
 void MainWindow:: startCleaning(bool state){
     blower->setDirection(workMode.blowRight);
+    workMode.blowLifted = false;// при старте уборки выбранная сторона снова разворачивает обдув
     startClean = state;
 }
 void MainWindow::on_pushButton_service_clicked(){
@@ -2765,7 +2707,7 @@ void MainWindow::updateOrgansStates(){// задаем режимы органа�
     frontRail->choosed = isDumpActive;
     frontRail->needGoLeft = workMode.frontDumpLeft;
     // дулка
-    bool isBlowerActive = workMode.blowLeft||workMode.blowRight;
+    bool isBlowerActive = (workMode.blowLeft||workMode.blowRight) && !workMode.blowLifted;
     blower->setNeedState(isBlowerActive? Blower::BlowerRotated: Blower::BlowerOff);
     blower->choosed = isBlowerActive;
     // магнит
@@ -2834,6 +2776,14 @@ QString MainWindow::getDumpDefaultIcon(){
 }
 
 //==============================Blower===============================================
+QString MainWindow::getBlowerVertIcon(){// положение обдува по состоянию автомата (концевиков может не быть, он ориентируется на время)
+    if (!ui->pushButton_blowerDown->isEnabled())
+        return blowerVertPath + "blocked.png);";
+    const Blower::BlowerStates state = blower->getState();
+    const bool raised = state == Blower::BlowerOff || state == Blower::BlowerDownIn;// поднят или поднимается
+    return blowerVertPath + (raised ? "up_on.png);" : "down_on.png);");
+}
+
 QString MainWindow::getBlowerDefaultIcon(){
     return workMode.blowLeft ? blowerHorPath + "left_on.png);":
         workMode.blowRight? blowerHorPath + "right_on.png);":
@@ -2959,8 +2909,7 @@ void MainWindow::updateButtonsIcons(){
     view->setStyle(ui->pushButton_heavySweep, path + (workMode.sweepType == HeavySweep ? "leafHarvesting_on.png);" : "leafHarvesting_off.png);"));// смет тяжелый
 
     // дулка
-    path = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
-    view->setStyle(ui->label_blowerUpDown, path +(ui->pushButton_blowerDown->isEnabled()?"off.png);":"blocked.png);"));
+    view->setStyle(ui->label_blowerUpDown, getBlowerVertIcon());
 
     // щетка
     path = "background-image: url(:/Images/Images/main/buttons/configuration_button_rotatingBroomsFront_lift_";
@@ -3068,6 +3017,8 @@ SettingsReader* MainWindow::getReader(){return _settingsReader;}
 
 bool MainWindow::isSpeedTooHigh(){
     auto speed = currentState->vehicleSpeed;
+    if (globals->disableCleanSpeed <= 0)// порог не задан - проверку не выполняем
+        return false;
     return (speed > globals->disableCleanSpeed && speed != 199 && speed < 200);
 }
 

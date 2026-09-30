@@ -8,7 +8,8 @@ SettingsReader::SettingsReader(QSettings *settings) {
 }
 
 QVariant SettingsReader::readSettingsValue(QString name){// читает значение из настроек (если значения нет, то берет дефолтное)
-    if (_settings->contains(name)){
+    // @Invalid() в ini (записано раньше при отсутствии дефолта) считаем отсутствующим значением
+    if (_settings->contains(name) && _settings->value(name).isValid()){
 
         return _settings->value(name);}
     else{
@@ -29,9 +30,14 @@ void SettingsReader::setDefaults(){
     _defaultValues.insert("Global/secretPassword", "51234");
     _defaultValues.insert("Global/brightness.level", 1);
     _defaultValues.insert("Global/restartIgnitionDelay", 60);
+    _defaultValues.insert("Global/enableCleanSpeed", 50);// км/ч
+    _defaultValues.insert("Global/disableCleanSpeed", 50);// км/ч
+    _defaultValues.insert("Global/engineTempWarn", 90);// C
+    _defaultValues.insert("Global/engineTempCrit", 100);// C
+    _defaultValues.insert("Global/engineTempWarnTime", 5);// минут на охлаждение
 
-    _defaultValues.insert("Hydraulic/temperatures.Warning", 50);
-    _defaultValues.insert("Hydraulic/temperatures.Critical", 80);
+    _defaultValues.insert("Global/hydroTempWarn", 50);// C
+    _defaultValues.insert("Global/hydroTempCrit", 80);// C
 
     _defaultValues.insert("Dump/timeouts.DumpDownOut", 10);
     _defaultValues.insert("Dump/timeouts.DumpDownIn", 10);

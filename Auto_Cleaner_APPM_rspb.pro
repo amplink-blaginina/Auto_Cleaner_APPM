@@ -6,7 +6,8 @@ CONFIG += c++17 link_pkgconfig
 PKGCONFIG += gstreamer-1.0 \
              gstreamer-app-1.0 \
              gstreamer-video-1.0 \
-             glib-2.0
+             glib-2.0 \
+             poppler-qt5
 
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/pdf
@@ -18,17 +19,14 @@ INCLUDEPATH += $$PWD/organs
 INCLUDEPATH += $$PWD/service
 INCLUDEPATH += $$PWD/settings
 
-# local libgpiod 1.6.3 — put BEFORE /usr/include
-INCLUDEPATH += $$(HOME)/libgpiod-1.6/include
-LIBS += -L$$(HOME)/libgpiod-1.6/lib -lgpiodcxx -lgpiod
+LIBS += -lgpiodcxx -lgpiod
 
-# Poppler Qt5
-INCLUDEPATH += /usr/include/poppler/qt5
-INCLUDEPATH += /usr/include
-LIBS += -lpoppler -lpoppler-qt5
-
-# Optional runtime search path for local libgpiod
-QMAKE_RPATHDIR += $$(HOME)/libgpiod-1.6/lib
+# local libgpiod 1.6.3 на машине разработчика (на Pi и при кросс-сборке - системный пакет)
+!cross_compile:exists($$(HOME)/libgpiod-1.6/lib) {
+    INCLUDEPATH += $$(HOME)/libgpiod-1.6/include
+    LIBS += -L$$(HOME)/libgpiod-1.6/lib
+    QMAKE_RPATHDIR += $$(HOME)/libgpiod-1.6/lib
+}
 
 SOURCES += \
     Controllers/cancontroller.cpp \
