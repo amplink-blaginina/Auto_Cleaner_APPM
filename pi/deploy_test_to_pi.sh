@@ -30,6 +30,18 @@ chmod +x $APP
 $PI_ENV
 $PI_CAN_INIT
 echo '== тестовый запуск, Ctrl+C - остановить и вернуть автозапуск'
+# при падении ядро пишет дамп памяти ./core - для разбора причины
+rm -f core
+ulimit -c unlimited
 set +e
 ./$APP
-"
+[ -f core ] && chown knight:knight core
+exit 0
+" || true   # Ctrl+C - обычное завершение теста
+
+# дамп памяти после падения забираем сюда: gdb-multiarch <бинарник> <дамп>
+if ssh "$PI" "test -f $TEST_DIR/core"; then
+    scp "$PI:$TEST_DIR/core" "$BUILD/core"
+    cp -f "$BUILD/$APP" "$BUILD/$APP.crashed"
+    echo "Программа упала, дамп: $BUILD/core (бинарник: $BUILD/$APP.crashed)"
+fi
