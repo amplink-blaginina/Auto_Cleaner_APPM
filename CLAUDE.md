@@ -6,10 +6,12 @@ Qt 5 / C++17 qmake application for the Auto Cleaner machine, running on a Raspbe
 
 ## Build
 
-- qmake, Qt 5.15. Deps: gstreamer-1.0 (+app, video), glib-2.0, poppler-qt5, and a locally built libgpiod 1.6.3 at `$HOME/libgpiod-1.6` (headers must come before `/usr/include`).
+- qmake, Qt 5.15. Deps: gstreamer-1.0 (+app, video), glib-2.0, poppler-qt5 (all via pkg-config), libgpiod 1.6.3 (on this x86 machine a local build at `$HOME/libgpiod-1.6`; on the Pi and in the cross build the system package).
+- Target Pi: Raspbian 12 bookworm, 32-bit armhf userland (Qt 5.15.8, glibc 2.36, gcc 12). Cross build here: `cross/sync_sysroot.sh` once (copies libs from the Pi to `../rpi-sysroot`), then `cross/build_cross.sh` → `../build-rpi/Auto_Cleaner_APPM_rspb`. It links the Pi's libstdc++ (`-nostdlib++`), because the local gcc 15 libstdc++ needs glibc 2.38, and it fails if the binary needs newer GLIBC/GLIBCXX symbols than the Pi has.
+- Stale `ui_*.h`/`moc_*` in the repo root shadow freshly generated ones (the root is on the include path before the build dir). Keep the root clean.
 - To check a change, build out-of-source with `/build-check`. Never run qmake/make in the repo root — in-source builds litter it with `*.o`, `moc_*`, `ui_*.h`, `Makefile`.
 - New `.cpp`/`.h`/`.ui` files must be added to `SOURCES`/`HEADERS`/`FORMS` in `Auto_Cleaner_APPM_rspb.pro` by hand.
-- Do NOT run `deploy_to_pi*.sh` / `script_to_build*.sh`: they rsync to a live machine, kill the running app and rebuild on the Pi. The user does hardware verification.
+- Do NOT run `deploy_bin_to_pi.sh`, `deploy_to_pi*.sh` or `script_to_build*.sh`: they kill the running app on a live machine and restart it. The user does hardware verification. `deploy_bin_to_pi.sh [user@host]` cross-builds, copies only the binary (the old one is kept as `.prev`) and restarts it. The old scripts rebuild on the Pi.
 - No tests exist; a clean local build is the verification bar.
 
 ## Code conventions
