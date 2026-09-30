@@ -10,6 +10,7 @@
 
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
+#include <machine/machineio.h>
 
 #include <Controllers/viewcontroller.h>
 class MainWindow;
@@ -34,10 +35,12 @@ public:
         FrontRailFlowed     = 11
     };
     Q_ENUM(FrontRailStates)
-    explicit FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
+    explicit FrontRail(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
     QObject * parent;
     ViewController *logger;
-    MyCan *myCan;
+    IoBus *io;
+    HydraulicSupply *hydraulics;
+    EngineRpmDemand *engineRpm;
     MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;
     QSettings *settings;

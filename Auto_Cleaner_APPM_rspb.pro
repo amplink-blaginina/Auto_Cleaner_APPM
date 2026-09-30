@@ -55,6 +55,11 @@ SOURCES += \
     organs/blower.cpp \
     organs/frontrail.cpp \
     organs/organsenums.cpp \
+    io/caniobus.cpp \
+    machine/enginerpmdemand.cpp \
+    machine/hydraulicsupply.cpp \
+    sim/simiobus.cpp \
+    sim/simpanel.cpp \
     password_form.cpp \
     pdf/pdfscroller.cpp \
     service/devices/dkp/servicedevicesdkpleftform.cpp \
@@ -112,6 +117,13 @@ HEADERS += \
     organs/centralbroom.h \
     organs/frontrail.h \
     organs/organsenums.h \
+    io/caniobus.h \
+    io/iobus.h \
+    machine/enginerpmdemand.h \
+    machine/hydraulicsupply.h \
+    machine/machineio.h \
+    sim/simiobus.h \
+    sim/simpanel.h \
     password_form.h \
     pdf/pdfscroller.h \
     service/devices/dkp/servicedevicesdkpleftform.h \

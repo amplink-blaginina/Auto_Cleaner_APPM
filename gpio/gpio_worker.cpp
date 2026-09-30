@@ -7,8 +7,15 @@
 #include <QDebug>
 
 GPIOWorker::GPIOWorker(QObject *parent)
-    : QObject(parent), chip("/dev/gpiochip0")
+    : QObject(parent)
 {
+    // без GPIO (симуляция, отладка на ПК) работаем без физических кнопок, а не падаем
+    try{
+        chip.open("/dev/gpiochip0");
+    }
+    catch (const std::exception& e){
+        qWarning() << "GPIO недоступен, физические кнопки не работают:" << e.what();
+    }
     // Настройка физики
     group0 = {
         // кнопка на пульте выкл зажигания
@@ -51,6 +58,8 @@ GPIOWorker::~GPIOWorker()
 
 void GPIOWorker::configureHardware()
 {
+    if (!chip)
+        return;
     // ------- Запрос всех выходных линий -------
     for (auto it = outputPins.begin(); it != outputPins.end(); ++it) {
         if (!lines.contains(it.value()))

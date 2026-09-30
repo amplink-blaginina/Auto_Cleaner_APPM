@@ -17,12 +17,15 @@ Qt 5 / C++17 qmake application for the Auto Cleaner machine, running on a Raspbe
   - `deploy_default_to_pi.sh [user@host]` replaces the binary `my-app` currently runs (old → `.prev`, asks for confirmation) and restarts the service. `rollback_default_on_pi.sh` swaps it back with `.prev`.
   - The old scripts in `pi/old/` rebuild on the Pi.
 - No tests exist; a clean local build is the verification bar.
+- `docs/machine_checks.md` (Russian) is the checklist for the person testing on the real machine. When a change affects machine behavior, add items there under the current branch section: what to do → what should happen, and what counts as a failure. Newest section on top.
 
 ## Code conventions
 
 - Write code comments in Russian, matching existing code.
 - Use function-pointer `connect(obj, &Class::signal, ...)` only. When editing code that uses `SIGNAL()/SLOT()`, migrate those connects.
 - `mainwindow.cpp` is a god-object being broken up: put new logic in `Controllers/` or `organs/` (machine-unit state machines), not in `MainWindow`.
+- Machine signals go through `IoBus` (`io/`): `io->get/set(DeviceStates)`, not `MyCan::getState/setState` (MyCan stays for board configuration). Shared resources are arbitrated in `machine/`: the power valve A1 via `HydraulicSupply::request(this, bool)`, engine rpm via `EngineRpmDemand::request/release` — never write `StateValveA1` or `setEngineCommand` directly. Organs get them through `MachineIo`.
+- Simulation without hardware: `sim/run_sim.sh` (or run the app with `--sim`) uses `SimIoBus` — a plant model moves organs by their valves and sets limit switches; the sim window shows outputs and lets you set inputs. When adding an organ with position sensors, add its axis in `SimIoBus`'s constructor.
 - `camera/`, `vlc/` and `organs/frontrail_old.cpp` are dead code — don't add them to the `.pro` or edit them.
 - gpio uses `.hpp` headers; everything else `.h`.
 - Format only the lines you changed: `git clang-format` (uses `.clang-format`). Never run `clang-format -i` on whole files — it would reformat unrelated code and bloat diffs.

@@ -3,6 +3,8 @@
 #include "BoolStateWatcher.h"
 #include "password_form.h"
 #include "ui_mainwindow.h"
+#include "io/caniobus.h"
+#include "sim/simpanel.h"
 
 #include <Controllers/viewcontroller.h>
 #include <currentstate.h>
@@ -157,7 +159,7 @@ void MainWindow::configureFilters(){
             .whileActive = [this] {
                 updateIndicatorPixmap( ui->label_oilFilter, "red", "oil_filter" );
                 ui->label_oilFilter->show();
-                can0->setState(StateIgnitionOut, false);
+                io->set(StateIgnitionOut, false);
                 starter->resetIgnitionTimer();},
             .whileInactive = [this] { ui->label_oilFilter->hide();}
         }
@@ -970,13 +972,23 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     can0 = new MyCan(can_device, logger, true, nullptr);//can0
     canForEngine = new MyCanEngine(j1939_device, logger, false, nullptr);
     canForEngine->setEngineAddr(globals->enigneAddr);
+    // сигналы машины: платы БУЦ по CAN или симуляция для отладки без техники
+    if (QCoreApplication::arguments().contains("--sim")){
+        simIo = new SimIoBus(this);
+        io = simIo;
+    }
+    else{
+        io = new CanIoBus(can0);
+    }
+    hydraulics = new HydraulicSupply(io);
+    engineRpm = new EngineRpmDemand(canForEngine);
     canj1939 = new MyCanJ1939(j1939_device, logger, true, nullptr);
     engine = new Engine(canj1939, this);// создаем виджет двигателя
     canj1939Main = new MyCanJ1939(can_device, logger, false, nullptr);// камазовкий кан незя рестартить потому как он на таком же интерфейсе как и ПО ГО. А это опасно
     //gp = new gpio_class();
     gpio = new GPIOWorker();
     gpioMatirx = new GPIOMatrix();
-    can = new CanController(can0);
+    can = new CanController(can0, io);
     _gpio = new GPIOController(gpio, gpioMatirx);
     currentState = new CurrentState(_settingsReader, _gpio, can);
     view = new ViewController(this, logger);
@@ -995,6 +1007,7 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     parser.setApplicationDescription("Запуск приложения с ключами");
     parser.addHelpOption();
     parser.addVersionOption();
+    parser.addOption(QCommandLineOption("sim", "Симуляция машины: без CAN и GPIO, датчики задаются в окне симуляции"));
 
     // Разбор аргументов
     parser.process(*a);
@@ -1118,12 +1131,13 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     connect (&goHomeTimer, &QTimer::timeout, this, &MainWindow::resetDevices);
 
     // создаем виджеты щеток и прочих модулей
-    broomCentral = new CentralBroom(can0, NULL, settings, view, this, this);
-    frontRail = new FrontRail(can0, NULL, settings, view, this, this);
-    backMagnet = new BackMagnet(can0, NULL, settings, view, this, this);
-    blower = new Blower(can0, NULL, settings, view, this, this);
+    const MachineIo machineIo{io, hydraulics, engineRpm};
+    broomCentral = new CentralBroom(machineIo, NULL, settings, view, this, this);
+    frontRail = new FrontRail(machineIo, NULL, settings, view, this, this);
+    backMagnet = new BackMagnet(machineIo, NULL, settings, view, this, this);
+    blower = new Blower(machineIo, NULL, settings, view, this, this);
     resetDevices();
-    //can0->setState(StateBoardsPowerOut, true);
+    //io->set(StateBoardsPowerOut, true);
     showWorkMode();
 
     starter->setIgnition(true);
@@ -1147,9 +1161,28 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     can->setStarterAvailable(false);
     can->setRollStarter(false);
-    //can0->setState(StateStarterAllow, false);
-    //can0->setState(StateStarterRoll, false);
+    //io->set(StateStarterAllow, false);
+    //io->set(StateStarterRoll, false);
     createButtons();
+    if (simIo)
+        createSimPanel();
+}
+
+void MainWindow::createSimPanel(){
+    // сигналы для панели - из таблицы addElement: имя и тип канала (вход/выход, аналоговый)
+    QList<SimSignalInfo> list;
+    for (auto it = systemElements.cbegin(); it != systemElements.cend(); ++it){
+        const SystemElement *element = it.value();
+        const quint8 type = systemConfigure.channelsType[element->board][element->channel];
+        const bool input = type < OUT_MODE_NORMAL;
+        const bool analog = input && type != IN_MODE_NORMAL;
+        list.append({DeviceStates(it.key()), element->name, input, analog});
+    }
+    if (!systemElements.contains(Board0IN1))
+        list.append({Board0IN1, "Пульт на месте (плата 0, вход 1)", true, false});
+    auto *panel = new SimPanel(simIo, list);
+    panel->show();
+    view->addLogWarning("Режим симуляции: сигналы машины задаются в окне симуляции");
 }
 
 MainWindow::~MainWindow(){
@@ -1614,7 +1647,7 @@ void MainWindow::resetDevices(){
         return;
     }
     // Если хоть каких то данных нет, то считаем что переход в домашнее состояние перешел прекрасно
-    if (can0->isActive())//can0->last0CA0A100.can_id == 0x0CA0A100 && can0->last0CC0A100.can_id == 0x0CC0A100 && can0->last0CC0A200.can_id == 0x0CC0A200)
+    if (io->isOnline())//can0->last0CA0A100.can_id == 0x0CA0A100 && can0->last0CC0A100.can_id == 0x0CC0A100 && can0->last0CC0A200.can_id == 0x0CC0A200)
     {
         // последовательно переводим модули в нужное состояние. выполнениек блокирующее - считаем что эта процедура самая важная и обратная связь не важна
         // по сути конфликтным состоянием является только центральная щетка - при повороте и опускании она может что то задеть
@@ -1752,7 +1785,7 @@ void MainWindow::incomeDataJ1939Main(quint32 pgn, quint8 sa, QByteArray data){//
 }
 
 void MainWindow::oneSecond(){// универсальный таймер для всяких нужд (раз в сек)
-    can0->setState(State24Volt, true);
+    io->set(State24Volt, true);
 
     QDateTime DateAndTime = QDateTime::currentDateTime().addMonths(0);
     auto date = DateAndTime.date();
@@ -1851,13 +1884,13 @@ void MainWindow::oneSecond(){// универсальный таймер для �
     else if (!to_test && ui->label_TO->isVisible()){
         ui->label_TO->hide();
     }
-    //qDebug() << "!!! can0->isActive: "<<can0->isActive();
-    if (can0->isActive()){
+    //qDebug() << "!!! can0->isActive: "<<io->isOnline();
+    if (io->isOnline()){
         if (ui->POStatus->isVisible())
             ui->POStatus->hide();
     }
 
-    if (can0->isActive()){
+    if (io->isOnline()){
         // получим температуру гидрооборудования
         const qint16 hydro_temp = hydroTempK * can->getOilTmp() + hydroTempB;
         qint16 filtered;
@@ -1993,7 +2026,7 @@ void MainWindow::mainProgress(){
             // а так же вырубим коробки отбора мощности
             //if (!gp->GPIO[IN_LEFT_DOWN] && !gp->GPIO[IN_LEFT_UP] && !KVControl && !gp->GPIO[IN_RIGHT_DOWN] && !gp->GPIO[IN_RIGHT_UP])
             if (!KVControl){// только если не заняты работой от кнопок с пульта
-                can0->setState(StateValveA1, false);
+                hydraulics->forceOff();
             }
         }
         // доабвил с аэродрома опасно
@@ -2008,14 +2041,8 @@ void MainWindow::mainProgress(){
                 ui->pushButton_startstop->setEnabled(true);
         }
 
-        if (blower->getState() <= Blower::BlowerStates::BlowerDowned
-                && broomCentral->getState() <= CentralBroom::BroomStates::BroomDowned){// если модули не крутятся - выключаем распределитель и убавляем обороты
-            // устанавливыаем обороты чтобы двигло зря не работал
-            //quint16 rpm = rpmNone * 8;
-            canForEngine->setEngineCommand(globals->getRpm());
-            //  вроде никто не работет и наверное никому не пригодится распределитель бункера
-            //can0->setState(StateValveA1, false);
-        }
+        // обороты простоя, если никто из органов не заявил рабочие обороты (заявки - в EngineRpmDemand)
+        engineRpm->applyIdle(globals->getRpm());
     }
 
 
@@ -2161,10 +2188,10 @@ void MainWindow::checkEngineAndRollLocks(){
 }
 
 void MainWindow::updateSensorAndWarningIndicators(){
-    const bool waterSensor = can0->getState(StateWaterSensor).toBool();
-    const bool airFilter = can0->getState(StateAirFilterBad).toBool();
-    const bool oilFilter = can0->getState(StateOilFilterBad).toBool();
-    const bool heatRelay = !can0->getState(StateHeatRele).toBool();
+    const bool waterSensor = io->get(StateWaterSensor).toBool();
+    const bool airFilter = io->get(StateAirFilterBad).toBool();
+    const bool oilFilter = io->get(StateOilFilterBad).toBool();
+    const bool heatRelay = !io->get(StateHeatRele).toBool();
     const bool lowTemperature = engine->online <= ENGINE_ONLINE_EDGE * 10 && engine->engineCoolantTemp < globals->lowTempRequireWarm;
 
     m_waterSensorWatcher.update(waterSensor);
@@ -2222,13 +2249,13 @@ void MainWindow::checkAndShowStatus(){
     }
 
     // клапан а1
-    auto valveA1State = can0->getState(StateValveA1).toBool();
+    auto valveA1State = io->get(StateValveA1).toBool();
     showStatus(ui->label_a1, valveA1State);//"Засорен напорный фильтр"
     // напорный фильтр
-    auto pressureFiltersState = can0->getState(StatePressureFilter1).toBool() || can0->getState(StatePressureFilter2).toBool() || can0->getState(StatePressureFilter3).toBool();
+    auto pressureFiltersState = io->get(StatePressureFilter1).toBool() || io->get(StatePressureFilter2).toBool() || io->get(StatePressureFilter3).toBool();
     showStatus(ui->label_pressure_filter, pressureFiltersState, "Засорен напорный фильтр");
     // сливной фильтр
-    auto drainFilterState = can0->getState(StateDrainFilterD28).toBool();
+    auto drainFilterState = io->get(StateDrainFilterD28).toBool();
     showStatus(ui->label_drain_filter, drainFilterState, "Засорен сливной фильтр");
 
     updateSensorAndWarningIndicators();
@@ -2245,13 +2272,13 @@ void MainWindow::updateFRM(){
     QString path = "border-style:none;outline: none;background-image: url(:/Images/Images/main/buttons/light_button_frm_";
     // frm кунг
     view->updateFRM(ui->pushButton_frmKung, workMode.frmKung, "k");
-    can0->setState(StateKungL5, workMode.frmKung);
+    io->set(StateKungL5, workMode.frmKung);
     // frm щетка
     view->updateFRM(ui->pushButton_frmBroom, workMode.frmBroom, "h");
-    can0->setState(StateFRMBroomL1, workMode.frmBroom);
+    io->set(StateFRMBroomL1, workMode.frmBroom);
     // frm магнит
     view->updateFRM(ui->pushButton_frmMagnet, workMode.frmMagnet, "m");
-    can0->setState(StateFRMBackL2, workMode.frmMagnet);
+    io->set(StateFRMBackL2, workMode.frmMagnet);
 }
 
 void MainWindow::showStartClean(){
@@ -2403,7 +2430,7 @@ float MainWindow::hydraulicPressureValue(int index) const{
     if (index < 0 || index >= 4)
         return 0.0f;
 
-    return hydraulicPressureK[index] * can0->getState(pressureStates[index]).toFloat() + hydraulicPressureB[index];
+    return hydraulicPressureK[index] * io->get(pressureStates[index]).toFloat() + hydraulicPressureB[index];
 }
 
 void MainWindow::toggleAllFrm(){

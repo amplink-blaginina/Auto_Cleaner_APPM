@@ -42,6 +42,10 @@
 #include "organs/blower.h"
 #include "organs/frontrail.h"
 #include "organs/organsenums.h"
+#include "io/iobus.h"
+#include "machine/enginerpmdemand.h"
+#include "machine/hydraulicsupply.h"
+#include "sim/simiobus.h"
 
 // диагностика
 #include <service/servicemainrightform.h>
@@ -375,6 +379,11 @@ public:
 
 private:
     MyCan *can0;
+    IoBus *io;// сигналы машины: CAN или симуляция (--sim)
+    SimIoBus *simIo = nullptr;
+    HydraulicSupply *hydraulics;
+    EngineRpmDemand *engineRpm;
+    void createSimPanel();
     QString blowerVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_lift_";
     QString blowerHorPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_purgeUnit_turn_";
     QString dumpVertPath = "background-image: url(:/Images/Images/main/buttons/configuration_button_dozerBlade_lift_";

@@ -2,12 +2,14 @@
 #define CANCONTROLLER_H
 
 #include <mycan.h>
+#include <io/iobus.h>
 
 
 class CanController
 {
 public:
-    CanController(MyCan *can0);
+    // сигналы - через io (CAN или симуляция), настройка плат и каналы напрямую - через can0
+    CanController(MyCan *can0, IoBus *io);
     bool getState(DeviceStates state);
     void setStarterAvailable(bool state);
     void setIgnition(bool state);
@@ -35,6 +37,7 @@ public:
     void setOriginalState(quint8 board_, quint8 channel_, int value);
 private:
     MyCan *_can0;
+    IoBus *_io;
 };
 
 #endif // CANCONTROLLER_H

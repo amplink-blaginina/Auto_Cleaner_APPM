@@ -4,9 +4,11 @@
 #include <QTimer>
 #include <QThread>
 
-Blower::Blower(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_)
+Blower::Blower(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_)
 {
-    myCan = myCan_;
+    io = machine.io;
+    hydraulics = machine.hydraulics;
+    engineRpm = machine.engineRpm;
     myCanJ1939 = myCanJ1939_;
     parent = parent_;
     logger = logger_;
@@ -66,13 +68,13 @@ void Blower::setState(BlowerStates state_){
 
     if (state == Blower::BlowerOff){// выключили
         goOff();
-        //myCan->setState(StateFRMBackL2, false);
+        //io->set(StateFRMBackL2, false);
     }
     if (state == Blower::BlowerDownOut){// началось опускание
         startActionTime = QDateTime::currentDateTime();
         goOff();
         goDown();
-        //myCan->setState(StateFRMBackL2, true);
+        //io->set(StateFRMBackL2, true);
     }
     if (state == Blower::BlowerDowned){
         goOff();
@@ -104,46 +106,46 @@ void Blower::setState(BlowerStates state_){
 }
 
 void Blower::goOff(){
-    myCan->setState(StateValveE7, false);
-    myCan->setState(StateValveE3, false);
-    myCan->setState(StateValveE1, false);
-    myCan->setState(StateValveE5, false);
-    myCan->setState(StateValveA1, false);
+    io->set(StateValveE7, false);
+    io->set(StateValveE3, false);
+    io->set(StateValveE1, false);
+    io->set(StateValveE5, false);
+    hydraulics->request(this, false);
 }
 
 void Blower::goRotate(quint8 speed){
     //qDebug()<<"# RotationSpeed: "<<speed;
-    myCan->setState(StateValveD3, speed);
+    io->set(StateValveD3, speed);
 }
 
 void Blower::goSlide(bool turn_right){
     if (turn_right){
-        myCan->setState(StateValveA1, true);
-        myCan->setState(StateValveE7, true);
+        hydraulics->request(this, true);
+        io->set(StateValveE7, true);
     }
     else{
-        myCan->setState(StateValveA1, true);
-        myCan->setState(StateValveE3, true);
+        hydraulics->request(this, true);
+        io->set(StateValveE3, true);
     }
 }
 
 void Blower::goUp(){
-    myCan->setState(StateValveA1, true);
-    myCan->setState(StateValveE1, true);
+    hydraulics->request(this, true);
+    io->set(StateValveE1, true);
 }
 
 void Blower::goDown()
 {
-    myCan->setState(StateValveA1, true);
-    myCan->setState(StateValveE5, true);
+    hydraulics->request(this, true);
+    io->set(StateValveE5, true);
 }
 
 void Blower::goNone(){
-    myCan->setState(StateValveA1, false);
-    myCan->setState(StateValveE5, false);
-    myCan->setState(StateValveE1, false);
-    myCan->setState(StateValveE3, false);
-    myCan->setState(StateValveE7, false);
+    hydraulics->request(this, false);
+    io->set(StateValveE5, false);
+    io->set(StateValveE1, false);
+    io->set(StateValveE3, false);
+    io->set(StateValveE7, false);
 }
 
 Blower::BlowerStates Blower::getState(){
@@ -185,7 +187,7 @@ bool Blower::testStateTimer(){// мощная функция проверки т
     bool dkpAndPositionTest = false;
     // магнимт идет вверх, ждем концевик
     if (state == Blower::BlowerDownIn){
-        const bool sensorReached = myCan->getState(StateDKPBlowerUp1).toBool() && myCan->getState(StateDKPBlowerUp2).toBool();
+        const bool sensorReached = io->get(StateDKPBlowerUp1).toBool() && io->get(StateDKPBlowerUp2).toBool();
         if (timeTest && !sensorReached){
             if (!blowerAlarmed){
                 logger->addLog("Продувка: достигнут тайм-аут");
@@ -255,9 +257,12 @@ void Blower::progressLoop(){
 
     if (state >= Blower::BlowerRotateOut){
         auto type = _mainWindow->workMode.sweepType;
-        _mainWindow->canForEngine->setEngineCommand(rpmForSweepType.value(type) * 8);//обороты движка
+        engineRpm->request(this, rpmForSweepType.value(type) * 8);//обороты движка
         setTargetRotationSpeed(speedForSweepType.value(type));// скорость щеток
         //goRotate();
+    }
+    else if (state <= Blower::BlowerDowned){
+        engineRpm->release(this);// вентилятор остановлен - обороты обдуву не нужны
     }
     updateTransitioning();
     // if(isTargetRight != rightBlow){

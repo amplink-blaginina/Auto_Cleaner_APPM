@@ -6,8 +6,10 @@
 #include <QTimer>
 #include <QThread>
 
-FrontRail::FrontRail(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_){
-    myCan = myCan_;
+FrontRail::FrontRail(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_){
+    io = machine.io;
+    hydraulics = machine.hydraulics;
+    engineRpm = machine.engineRpm;
     myCanJ1939 = myCanJ1939_;
     parent = parent_;
     _mainWindow = mainWindow;
@@ -179,23 +181,23 @@ void FrontRail::setState(FrontRailStates state_){
 void FrontRail::goRight(){goRight(true);}
 
 void FrontRail::goRight(bool state){
-    myCan->setState(StateValveF6, state);
-    myCan->setState(StateValveA1, state);
+    io->set(StateValveF6, state);
+    hydraulics->request(this, state);
     printMovement(organsEnums::Right, state);
 }
 void FrontRail::goLeft(){goLeft(true);}
 void FrontRail::goLeft(bool state){
-    myCan->setState(StateValveF12, state);
-    myCan->setState(StateValveA1, state);
+    io->set(StateValveF12, state);
+    hydraulics->request(this, state);
     printMovement(organsEnums::Left, state);
 }
 
 void FrontRail::goNone(){
-    myCan->setState(StateValveF6, false);
-    myCan->setState(StateValveF12, false);
-    myCan->setState(StateValveF1, false);
-    myCan->setState(StateValveF7, false);
-    myCan->setState(StateValveA1, false);
+    io->set(StateValveF6, false);
+    io->set(StateValveF12, false);
+    io->set(StateValveF1, false);
+    io->set(StateValveF7, false);
+    hydraulics->request(this, false);
 }
 void FrontRail::goDown(){goDown(true);}
 void FrontRail::goDown(bool state){
@@ -210,8 +212,8 @@ void FrontRail::goDown(bool state){
     if(state){
         _mainWindow->tryToDisableDumpFlow();
     }
-    myCan->setState(StateValveF7, state);
-    myCan->setState(StateValveA1, state);
+    io->set(StateValveF7, state);
+    hydraulics->request(this, state);
     printMovement(organsEnums::Down, state);
 }
 
@@ -233,15 +235,15 @@ void FrontRail::goUp(bool state){
     if(state){
         _mainWindow->tryToDisableDumpFlow();
     }
-    myCan->setState(StateValveF1, state);
-    myCan->setState(StateValveA1, state);
+    io->set(StateValveF1, state);
+    hydraulics->request(this, state);
     //printMovement(organsEnums::Up, state);
 }
 
 void FrontRail::goFlow(bool state){
     logger->addLog(state?"Отвал: плавание активировано":"Отвал: плавание деактивировано");
-    myCan->setState(StateValveC3, state);
-    myCan->setState(StateValveC4, state);
+    io->set(StateValveC3, state);
+    io->set(StateValveC4, state);
 }
 
 void FrontRail::setFlowActive(bool state){
@@ -315,7 +317,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
     // рейка идет вверх, ждем концевик ПЕРЕДНЯЯ
     if (state == FrontRail::FrontRailDownIn)
     {
-        const bool sensorReached = myCan->getState(StateDKPDumpUp).toBool();
+        const bool sensorReached = io->get(StateDKPDumpUp).toBool();
         if (timeTest && !sensorReached)
         {
             if (!railAlarmed){
@@ -343,7 +345,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
     // щетка идет вбок, ждем концевик
     if (state == FrontRail::FrontRailSlideOut)
     {
-        const bool sensorReached = myCan->getState((needGoLeft ? StateDKPDumpLeft : StateDKPDumpRight)).toBool();
+        const bool sensorReached = io->get((needGoLeft ? StateDKPDumpLeft : StateDKPDumpRight)).toBool();
         if (timeTest && !sensorReached){
             if (!railAlarmed){
                 logger->addLog("Отвал: достигнут тайм-аут");
@@ -360,7 +362,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
         }
     }
     if (state == FrontRail::FrontRailSlideIn){
-        const bool sensorReached = myCan->getState(StateDKPDumpRight).toBool();
+        const bool sensorReached = io->get(StateDKPDumpRight).toBool();
         if (timeTest && !sensorReached){
             if (!railAlarmed){
                 logger->addLog("Отвал: достигнут тайм-аут");
@@ -382,55 +384,55 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 
 
 //    bool dkpAndPositionTest = false;
-//    int tmp_rotate = myCan->getState(StateFrontRailRotateD19).toInt();
+//    int tmp_rotate = io->get(StateFrontRailRotateD19).toInt();
 //    int tmp_need_rotate = levelRotateSlided;
 //    if (!needSlided)
 //        tmp_need_rotate = levelRotateNotSlided;
 //    // проверяем концевики
 //    if (state == FrontRail::FrontRailUpOut)
 //    {// рейка в выше домашнего состояния
-//        if (timeTest && myCan->getState(StateFrontRailLevelD16).toInt() > levelUp)
+//        if (timeTest && io->get(StateFrontRailLevelD16).toInt() > levelUp)
 //        {
 //            if (!railAlarmed)
 //                _mainWindow->addLog("Все плохо. Передняя рейка не вышла выше домашнего состояния", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
-//        if (myCan->getState(StateFrontRailLevelD16).toInt() <= levelUp)
+//        if (io->get(StateFrontRailLevelD16).toInt() <= levelUp)
 //            dkpAndPositionTest = true;
 //    }
 
 //    if (state == FrontRail::FrontRailUpIn)
 //    {// рейка в домашнее состояние
-//        if (timeTest && myCan->getState(StateFrontRailLevelD16).toInt() < levelHome)
+//        if (timeTest && io->get(StateFrontRailLevelD16).toInt() < levelHome)
 //        {
 //            if (!railAlarmed)
 //                _mainWindow->addLog("Все плохо. Передняя рейка не вернулась из верхнего состояния", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
-//        if (myCan->getState(StateFrontRailLevelD16).toInt() >= levelHome)
+//        if (io->get(StateFrontRailLevelD16).toInt() >= levelHome)
 //            dkpAndPositionTest = true;
 //    }
 //    if (state == FrontRail::FrontRailDownOut)
 //    {// рейка опускается
-//        if (timeTest && abs(myCan->getState(StateFrontRailLevelD16).toInt() < needLevelDown) > 2)
+//        if (timeTest && abs(io->get(StateFrontRailLevelD16).toInt() < needLevelDown) > 2)
 //        {
 //            if (!railAlarmed)
 //                _mainWindow->addLog("Все плохо. Передняя рейка не пришла в рабочее состояние", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
-//        if (myCan->getState(StateFrontRailLevelD16).toInt() >= needLevelDown)
+//        if (io->get(StateFrontRailLevelD16).toInt() >= needLevelDown)
 //            dkpAndPositionTest = true;
 //    }
 
 //    if (state == FrontRail::FrontRailDownIn)
 //    {// рейка поднимается
-//        if (timeTest && myCan->getState(StateFrontRailLevelD16).toInt() > levelUp)
+//        if (timeTest && io->get(StateFrontRailLevelD16).toInt() > levelUp)
 //        {
 //            if (!railAlarmed)
 //                _mainWindow->addLog("Все плохо. Передняя рейка не поднимается в верхнее состояние", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
-//        if (myCan->getState(StateFrontRailLevelD16).toInt() <= levelUp)
+//        if (io->get(StateFrontRailLevelD16).toInt() <= levelUp)
 //            dkpAndPositionTest = true;
 //    }
 //    if (state == FrontRail::FrontRailSlideOut)
@@ -457,28 +459,28 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 //    }
 //    if (state == FrontRail::FrontRailExpandOut)
 //    {// рейка разворачивается
-//        if (timeTest && (myCan->getState(StateDKPFrontLeftRailD17).toBool() || myCan->getState(StateDKPFrontRightRailD18).toBool()))
+//        if (timeTest && (io->get(StateDKPFrontLeftRailD17).toBool() || io->get(StateDKPFrontRightRailD18).toBool()))
 //        {
-//            if (!railAlarmed && myCan->getState(StateDKPFrontLeftRailD17).toBool())
+//            if (!railAlarmed && io->get(StateDKPFrontLeftRailD17).toBool())
 //                _mainWindow->addLog("Все плохо. Передняя левая рейка не развернулась", MainWindow::FatalStatus);
-//            if (!railAlarmed && myCan->getState(StateDKPFrontRightRailD18).toBool())
+//            if (!railAlarmed && io->get(StateDKPFrontRightRailD18).toBool())
 //                _mainWindow->addLog("Все плохо. Передняя правая рейка не развернулась", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
-//        if (!myCan->getState(StateDKPFrontLeftRailD17).toBool() && !myCan->getState(StateDKPFrontRightRailD18).toBool())
+//        if (!io->get(StateDKPFrontLeftRailD17).toBool() && !io->get(StateDKPFrontRightRailD18).toBool())
 //            dkpAndPositionTest = true;
 //    }
 //    if (state == FrontRail::FrontRailExpandIn)
 //    {// рейка заворачивается
-//        if (timeTest && (!myCan->getState(StateDKPFrontLeftRailD17).toBool() || !myCan->getState(StateDKPFrontRightRailD18).toBool()))
+//        if (timeTest && (!io->get(StateDKPFrontLeftRailD17).toBool() || !io->get(StateDKPFrontRightRailD18).toBool()))
 //        {
-//            if (!railAlarmed && myCan->getState(StateDKPFrontLeftRailD17).toBool())
+//            if (!railAlarmed && io->get(StateDKPFrontLeftRailD17).toBool())
 //                _mainWindow->addLog("Все плохо. Передняя левая рейка не свернулась", MainWindow::FatalStatus);
-//            if (!railAlarmed && myCan->getState(StateDKPFrontRightRailD18).toBool())
+//            if (!railAlarmed && io->get(StateDKPFrontRightRailD18).toBool())
 //                _mainWindow->addLog("Все плохо. Передняя правая рейка не свернулась", MainWindow::FatalStatus);
 //            railAlarmed = true;
 //        }
-//        if (myCan->getState(StateDKPFrontLeftRailD17).toBool() && myCan->getState(StateDKPFrontRightRailD18).toBool())
+//        if (io->get(StateDKPFrontLeftRailD17).toBool() && io->get(StateDKPFrontRightRailD18).toBool())
 //            dkpAndPositionTest = true;
 //    }
 //    if (state == FrontRail::FrontRailWaterOut)

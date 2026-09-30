@@ -6,9 +6,11 @@
 #include <QTimer>
 #include <QThread>
 
-BackMagnet::BackMagnet(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_)
+BackMagnet::BackMagnet(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_)
 {
-    myCan = myCan_;
+    io = machine.io;
+    hydraulics = machine.hydraulics;
+    engineRpm = machine.engineRpm;
     myCanJ1939 = myCanJ1939_;
     parent = parent_;
     logger = logger_;
@@ -47,8 +49,8 @@ void BackMagnet::setState(BackMagnetStates state_)
         goOff();
         logger->addLog("Магнит поднят");
        //_mainWindow->addLog("Магнит поднят", MainWindow::InfoStatus);
-        //myCan->setState(StateValveC5, false);
-        //myCan->setState(StateFRMBackL2, false);
+        //io->set(StateValveC5, false);
+        //io->set(StateFRMBackL2, false);
     }
     if (state == BackMagnet::BackMagnetDownIn)
     {// поднимаем
@@ -56,7 +58,7 @@ void BackMagnet::setState(BackMagnetStates state_)
         logger->addLog("Поднимаем магнит");
         //_mainWindow->addLog("Поднимаем магнит", MainWindow::InfoStatus);
         goUp();
-        //myCan->setState(StateValveC5, true);
+        //io->set(StateValveC5, true);
     }
     if (state == BackMagnet::BackMagnetDownOut)
     {// опускаем
@@ -64,8 +66,8 @@ void BackMagnet::setState(BackMagnetStates state_)
         logger->addLog("Опускаем магнит");
         //_mainWindow->addLog("Опускаем магнит", MainWindow::InfoStatus);
         goDown();
-        //myCan->setState(StateFRMBackL2, true);
-        //myCan->setState(StateValveC5, true);
+        //io->set(StateFRMBackL2, true);
+        //io->set(StateValveC5, true);
     }
     if (state == BackMagnet::BackMagnetDowned)
     {// опустили
@@ -73,30 +75,31 @@ void BackMagnet::setState(BackMagnetStates state_)
         logger->addLog("Магнит опущен");
         //_mainWindow->addLog("Магнит опущен", MainWindow::InfoStatus);
         goOff();
-        //myCan->setState(StateValveC5, true);
+        //io->set(StateValveC5, true);
     }
 }
 
 void BackMagnet::goOff()
 {
-    myCan->setState(StateValveE2, false);
-    myCan->setState(StateValveE6, false);
+    io->set(StateValveE2, false);
+    io->set(StateValveE6, false);
+    hydraulics->request(this, false);// магнит стоит - гидравлика ему не нужна
 }
 
 void BackMagnet::goUp()
 {
-    //myCan->setState(StateValveK1, true);
-    myCan->setState(StateValveA1, true);
-    myCan->setState(StateValveE2, true);
-    myCan->setState(StateValveE6, false);
+    //io->set(StateValveK1, true);
+    hydraulics->request(this, true);
+    io->set(StateValveE2, true);
+    io->set(StateValveE6, false);
 }
 
 void BackMagnet::goDown()
 {
-    //myCan->setState(StateValveK1, true);
-    myCan->setState(StateValveA1, true);
-    myCan->setState(StateValveE2, false);
-    myCan->setState(StateValveE6, true);
+    //io->set(StateValveK1, true);
+    hydraulics->request(this, true);
+    io->set(StateValveE2, false);
+    io->set(StateValveE6, true);
 }
 
 BackMagnet::BackMagnetStates BackMagnet::getState()
@@ -150,7 +153,7 @@ bool BackMagnet::testStateTimer(){// мощная функция проверк�
     bool dkpAndPositionTest = false;
     // магнимт идет вверх, ждем концевик
     if (state == BackMagnet::BackMagnetDownIn){
-        const bool sensorReached = myCan->getState(StateDKPBackMagnetUp).toBool();
+        const bool sensorReached = io->get(StateDKPBackMagnetUp).toBool();
         if (timeTest && !sensorReached){
             if (!magnetAlarmed){
                 logger->addLog("Магнит: достигнут тайм-аут");

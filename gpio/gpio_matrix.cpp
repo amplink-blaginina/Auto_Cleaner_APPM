@@ -19,13 +19,22 @@ char rowPins[ROWS] = {4, 17, 27, 22, 5};
 char colPins[COLS] = {14, 15, 18, 24};
 
 GPIOMatrix::GPIOMatrix(QObject *parent)
-    : QObject(parent), chip("/dev/gpiochip0"){
+    : QObject(parent){
+    // без GPIO (симуляция, отладка на ПК) работаем без кнопок пульта, а не падаем
+    try{
+        chip.open("/dev/gpiochip0");
+    }
+    catch (const std::exception& e){
+        qWarning() << "GPIO недоступен, кнопки пульта не работают:" << e.what();
+    }
     initCycle();
 }
 
 GPIOMatrix::~GPIOMatrix(){}
 
 void GPIOMatrix::configureHardware(){
+    if (!chip)
+        return;
     // ------- Запрос всех выходных линий -------
     for (auto it = 0; it < COLS; it++)
     {// столбцы изначально входа подтянуты к нулю и в ненажатом состоянии 1

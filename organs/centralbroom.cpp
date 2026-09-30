@@ -5,8 +5,10 @@
 #include <QThread>
 
 class MainWindow;
-CentralBroom::CentralBroom(MyCan *myCan_, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_){
-    myCan = myCan_;
+CentralBroom::CentralBroom(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_){
+    io = machine.io;
+    hydraulics = machine.hydraulics;
+    engineRpm = machine.engineRpm;
     myCanJ1939 = myCanJ1939_;
     logger = logger_;
     _mainWindow = mainWindow;
@@ -68,7 +70,7 @@ void CentralBroom::setState(BroomStates state_){
         state == CentralBroom::BroomBounced){// отскок завершён
 
         goNone();
-        //myCan->setState(StateFRMBroomL1, false);
+        //io->set(StateFRMBroomL1, false);
         return;
     }
 
@@ -136,29 +138,29 @@ void CentralBroom::goDown(){
 
 void CentralBroom::goLeft(bool state){
     printMovement(organsEnums::Left, state, isPressed);
-    myCan->setState(StateValveF9, state);
-    myCan->setState(StateValveA1, state);
+    io->set(StateValveF9, state);
+    hydraulics->request(this, state);
 }
 void CentralBroom::goRight(bool state){
     printMovement(organsEnums::Right, state, isPressed);
-    myCan->setState(StateValveF3, state);
-    myCan->setState(StateValveA1, state);
+    io->set(StateValveF3, state);
+    hydraulics->request(this, state);
 }
 
 void CentralBroom::goNone(){
-    myCan->setState(StateValveF9, false);
-    myCan->setState(StateValveF3, false);
-    myCan->setState(StateValveF4, false);
-    myCan->setState(StateValveF10, false);
+    io->set(StateValveF9, false);
+    io->set(StateValveF3, false);
+    io->set(StateValveF4, false);
+    io->set(StateValveF10, false);
 
     setDirection(organsEnums::None);
-    myCan->setState(StateValveA1, false);
+    hydraulics->request(this, false);
 }
 
 void CentralBroom::goUp(bool state, bool isPressed){
     if(isPressed){
-        myCan->setState(StateValveA1, state);
-        myCan->setState(StateValveF2, state);
+        hydraulics->request(this, state);
+        io->set(StateValveF2, state);
         printMovement(organsEnums::Up, state, isPressed);
     }
     else{
@@ -169,8 +171,8 @@ void CentralBroom::goUp(bool state, bool isPressed){
 
 void CentralBroom::goDown(bool state, bool isPressed){
     if(isPressed){
-        myCan->setState(StateValveF8, state);
-        myCan->setState(StateValveA1, state);
+        io->set(StateValveF8, state);
+        hydraulics->request(this, state);
         printMovement(organsEnums::Down, state, isPressed);
     }
     else{
@@ -183,8 +185,8 @@ void CentralBroom::goUpImmediate(bool state){
         _mainWindow->tryToDisableBroomFlow();
     }
     printMovement(organsEnums::Up, state, false);
-    myCan->setState(StateValveA1, state);
-    myCan->setState(StateValveF10, state);
+    hydraulics->request(this, state);
+    io->set(StateValveF10, state);
 }
 
 void CentralBroom::goDownImmediate(bool state){
@@ -192,8 +194,8 @@ void CentralBroom::goDownImmediate(bool state){
         _mainWindow->tryToDisableBroomFlow();
     }
     printMovement(organsEnums::Down, state, false);
-    myCan->setState(StateValveA1, state);
-    myCan->setState(StateValveF4, state);
+    hydraulics->request(this, state);
+    io->set(StateValveF4, state);
 }
 
 void CentralBroom::printMovement(organsEnums::Direction dir, bool state, bool isPressed){
@@ -205,19 +207,19 @@ void CentralBroom::printMovement(organsEnums::Direction dir, bool state, bool is
 }
 
 void CentralBroom::goPressUp(bool state){
-    myCan->setState(StateValveF2, state);
-    myCan->setState(StateValveA1, state);
+    io->set(StateValveF2, state);
+    hydraulics->request(this, state);
 }
 
 void CentralBroom::goPressDown(bool state){
-    myCan->setState(StateValveF8, state);
-    myCan->setState(StateValveA1, state);
+    io->set(StateValveF8, state);
+    hydraulics->request(this, state);
 }
 
 void CentralBroom::stopPress(){
-    myCan->setState(StateValveF2, false);
-    myCan->setState(StateValveF8, false);
-    myCan->setState(StateValveA1, false);
+    io->set(StateValveF2, false);
+    io->set(StateValveF8, false);
+    hydraulics->request(this, false);
 }
 
 void CentralBroom::setDirection(organsEnums::Direction dir){
@@ -294,21 +296,21 @@ void CentralBroom::setFlowActive(bool state){
 
 void CentralBroom::goFlow(bool state){
     logger->addLog(state?"Щетка: плавание активировано":"Щетка: плавание деактивировано");
-    myCan->setState(StateValveC1, state);
-    myCan->setState(StateValveC2, state);
+    io->set(StateValveC1, state);
+    io->set(StateValveC2, state);
 }
 
 void CentralBroom::goRotate(int speed_){
-    myCan->setState(StateValveD1, speed_ / 2);
-    //myCan->setState(StateValveA1, true);
+    io->set(StateValveD1, speed_ / 2);
+    //hydraulics->request(this, true);
 }
 
 void CentralBroom::goNoRotate(){
-    myCan->setState(StateValveD1, 0);
+    io->set(StateValveD1, 0);
 }
 
 // void CentralBroom::increaseSpeed(){
-//     int spd = myCan->getState(StateValveD1).toUInt() * 2;
+//     int spd = io->get(StateValveD1).toUInt() * 2;
 //     if (spd + 10 < 100)
 //         spd += 10;
 //     else
@@ -317,7 +319,7 @@ void CentralBroom::goNoRotate(){
 // }
 
 // void CentralBroom::decreaseSpeed(){
-//     int spd = myCan->getState(StateValveD1).toUInt() * 2;
+//     int spd = io->get(StateValveD1).toUInt() * 2;
 //     if (spd - 10 > 0)
 //         spd -= 10;
 //     else
@@ -429,20 +431,20 @@ bool CentralBroom::testStateTimer(){// мощная функция провер�
     }
 
     if (state == CentralBroom::BroomDownIn){// рейка идет вверх, ждем концевик
-        const bool sensorReached = myCan->getState(StateDKPBroomUp).toBool();
+        const bool sensorReached = io->get(StateDKPBroomUp).toBool();
         if(checkMovementAndStopOnTimeout(timeoutReached, sensorReached, organsEnums::Up)){
             movementFinished = true;
         }
     }
 
     if (state == CentralBroom::BroomSlideOut){
-        const bool sensorReached = needGoLeft ? myCan->getState(StateDKPBroomLeft).toBool() : myCan->getState(StateDKPBroomRight).toBool();
+        const bool sensorReached = needGoLeft ? io->get(StateDKPBroomLeft).toBool() : io->get(StateDKPBroomRight).toBool();
         if(checkMovementAndStopOnTimeout(timeoutReached, sensorReached, needGoLeft? organsEnums::Left: organsEnums::Right)){
             movementFinished = true;
         }
     }
     if (state == CentralBroom::BroomSlideIn){
-        const bool sensorReached = myCan->getState(StateDKPBroomRight).toBool();
+        const bool sensorReached = io->get(StateDKPBroomRight).toBool();
         if(checkMovementAndStopOnTimeout(timeoutReached, sensorReached, organsEnums::Right)){
             movementFinished = true;
         }
@@ -462,13 +464,16 @@ void CentralBroom::checkFriendVars(){
 
 void CentralBroom::progressLoop(){
     // рисуем положение щетки (в зависимости от прижима)
-    //broomWidget->setGeometry(broomWidget->geometry().x(), 418 + myCan->getState(StateBroomPressLevelD7).toUInt(), broomWidget->geometry().width(), broomWidget->geometry().height());
+    //broomWidget->setGeometry(broomWidget->geometry().x(), 418 + io->get(StateBroomPressLevelD7).toUInt(), broomWidget->geometry().width(), broomWidget->geometry().height());
 
     if (state >= CentralBroom::BroomRotateOut){
         //обороты движка
-        _mainWindow->canForEngine->setEngineCommand(rpmForSweepType.value(_mainWindow->workMode.sweepType) * 8);
+        engineRpm->request(this, rpmForSweepType.value(_mainWindow->workMode.sweepType) * 8);
         // скорость щеток
         goRotate(speedForSweepType.value(_mainWindow->workMode.sweepType));
+    }
+    else{
+        engineRpm->release(this);// щётка не крутится - обороты ей не нужны
     }
 
     // проверяет до какого состояния может добираться щетка

@@ -2,50 +2,51 @@
 #include "mycan.h"
 #include "qvariant.h"
 
-CanController::CanController(MyCan *can0){
-    _can0 = can0;}
+CanController::CanController(MyCan *can0, IoBus *io){
+    _can0 = can0;
+    _io = io;}
 
 void CanController::setStarterAvailable(bool state){
-    _can0->setState(StateStarterAllow, state);}
+    _io->set(StateStarterAllow, state);}
 
 bool CanController::getIgnition(){
-    return _can0->getState(StateIgnitionOut).toBool();}
+    return _io->get(StateIgnitionOut).toBool();}
 
 void CanController::invertIgnition(){
     invertState(StateIgnitionOut);}
 
 void CanController::setIgnition(bool state){
-    _can0->setState(StateIgnitionOut, state);}
+    _io->set(StateIgnitionOut, state);}
 
 void CanController::setRollStarter(bool state){
-    _can0->setState(StateStarterRoll, state);}
+    _io->set(StateStarterRoll, state);}
 
 bool CanController::getRollIn(){
-    return _can0->getState(StateRollIn).toBool();}
+    return _io->get(StateRollIn).toBool();}
 
 bool CanController::getHeatState(){
-    return _can0->getState(StateHeatRele).toBool();}
+    return _io->get(StateHeatRele).toBool();}
 
 bool CanController::getOilRele(){
-    return _can0->getState(StateOilRele).toBool();}
+    return _io->get(StateOilRele).toBool();}
 
 bool CanController::getAlarm(){
-    return _can0->getState(StateAlarmIn).toBool();}
+    return _io->get(StateAlarmIn).toBool();}
 
 bool CanController::isDisabled(){
-    return !_can0->getState(Board0IN1).toBool() || _can0->getState(StatePVIPowerIn).toBool();}
+    return !_io->get(Board0IN1).toBool() || _io->get(StatePVIPowerIn).toBool();}
 
 bool CanController::isBoard0IN(){
-    return _can0->getState(Board0IN1).toBool();}
+    return _io->get(Board0IN1).toBool();}
 
 bool CanController::getSensorPower(){
-    return _can0->getState(StateSensorsPower).toBool();}
+    return _io->get(StateSensorsPower).toBool();}
 
 bool CanController::getHydraulicFan(){
-    return _can0->getState(StateHydraulicFan).toBool();}
+    return _io->get(StateHydraulicFan).toBool();}
 
 uint CanController::getOilTmp(){
-    return _can0->getState(StateHydraulicOilTemperature).toUInt();}
+    return _io->get(StateHydraulicOilTemperature).toUInt();}
 
 QVariant CanController::getOriginalState(quint8 board_, quint8 channel_){
     return _can0->getOriginalState(board_, channel_);}
@@ -54,13 +55,13 @@ void CanController::setOriginalState(quint8 board_, quint8 channel_, int value){
     _can0->setOriginalState(board_, channel_, value);
 }
 bool CanController::getState(DeviceStates key){
-    return _can0->getState(key).toBool();}
+    return _io->get(key).toBool();}
 
 int CanController::getInt(DeviceStates key){
-    return _can0->getState(key).toInt();}
+    return _io->get(key).toInt();}
 
 void CanController::setState(DeviceStates key, bool value){
-    return _can0->setState(key, value);}
+    return _io->set(key, value);}
 
 void CanController::invertState(DeviceStates key){
     setState(key, !getState(key));
@@ -73,7 +74,7 @@ bool CanController::isConfigured(){
 template<typename T>
 T CanController:: getParam(const DeviceStates key, const T &defaultValue) const
 {
-    QVariant v = _can0->getState(key);
+    QVariant v = _io->get(key);
     if (!v.isValid())
         return defaultValue;
     return v.value<T>();   // QVariant сам приведёт к bool, int, double, QString...
