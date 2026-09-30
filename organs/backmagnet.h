@@ -10,10 +10,10 @@
 
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
+#include <machine/machinecontext.h>
 #include <machine/machineio.h>
 
 #include <Controllers/viewcontroller.h>
-class MainWindow;
 class BackMagnet : public QObject
 {
     Q_OBJECT
@@ -28,15 +28,12 @@ public:
     };
     Q_ENUM(BackMagnetStates)
 
-    explicit BackMagnet(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
-    QObject * parent;
+    explicit BackMagnet(const MachineIo &machine, MachineContext *context, ViewController *logger, QObject *parent);
     ViewController *logger;
     IoBus *io;
     HydraulicSupply *hydraulics;
     EngineRpmDemand *engineRpm;
-    MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;
-    QSettings *settings;
     bool choosed;
     bool magnetAlarmed;
 
@@ -79,7 +76,7 @@ public slots:
 signals:
 
 private:
-    MainWindow *_mainWindow;
+    MachineContext *_context;
 };
 
 #endif // BACKMAGNET_H

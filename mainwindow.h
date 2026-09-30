@@ -45,6 +45,8 @@
 #include "io/iobus.h"
 #include "machine/enginerpmdemand.h"
 #include "machine/hydraulicsupply.h"
+#include "machine/machinecontext.h"
+#include "machine/sweeptype.h"
 #include "sim/simiobus.h"
 
 // диагностика
@@ -108,7 +110,7 @@ Q_DECLARE_METATYPE(struct can_frame);
 #define PVI_TEMP_EDGE_ON    54
 
 
-class MainWindow : public QMainWindow
+class MainWindow : public QMainWindow, public MachineContext
 {
     Q_OBJECT
 
@@ -118,14 +120,9 @@ public:
         bool backMagnet;
         bool centralBroomLeft;
         bool centralBroomRight;
-        bool centralBroomFlow;
         bool centralBroomPress;
         bool frontDumpLeft;
         bool frontDumpRight;
-        bool frontDumpFlow;
-        bool blowLeft;
-        bool blowRight;
-        bool blowLifted;// обдув поднят вручную, выбранная сторона сохраняется
         bool frmBroom;
         bool frmMagnet;
         bool frmKung;
@@ -148,14 +145,6 @@ public:
         bool blowUse;
     };
 
-    enum SmetType
-    {
-        NoneSweep   = 0,
-        LeafSweep   = 1,
-        LightSweep  = 2,
-        MediumSweep = 3,
-        HeavySweep  = 4
-    };
 
 
 
@@ -520,18 +509,20 @@ public :
     QString getMovementText(organsEnums::Direction direction);
     void setBroomFlowView(bool state);
     void setBroomPressView(bool state);
-    void setDumpFlowView(bool state);
 
     void resetPassword();
     ViewController *getView();
     SettingsReader * getReader();
+
+    // MachineContext: общее состояние машины для органов
+    bool isCleaning() const override;
+    int sweepType() const override;
+    SettingsReader *settingsReader() const override;
     //void invertIgnition();
     void checkIgnition();
     void tryToDisableBroomFlow();
     void tryToDisableDumpFlow();
     void setServiceFormName(QWidget *form, QString name);
-    void changeBlowDirection(bool isRight);
-    void setBlowerLifted(bool lifted);
     bool getGPIOInput(GPIOInput id);
 public slots:
     //void messageListPressed();

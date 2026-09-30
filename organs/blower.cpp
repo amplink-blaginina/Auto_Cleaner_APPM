@@ -1,21 +1,20 @@
 #include "blower.h"
-#include "mainwindow.h"
+#include <settingsreader.h>
+#include <machine/sweeptype.h>
 #include <QDebug>
+#include <QMetaEnum>
 #include <QTimer>
 #include <QThread>
 
-Blower::Blower(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_)
+Blower::Blower(const MachineIo &machine, MachineContext *context, ViewController *logger_, QObject *parent) : QObject(parent)
 {
     io = machine.io;
     hydraulics = machine.hydraulics;
     engineRpm = machine.engineRpm;
-    myCanJ1939 = myCanJ1939_;
-    parent = parent_;
     logger = logger_;
-    _mainWindow = mainWindow;
+    _context = context;
     setState(BlowerOff);
     setNeedState(BlowerOff);
-    settings = settings_;
     startClean = false;
     choosed = false;
     blowerAlarmed = false;
@@ -32,11 +31,11 @@ void Blower::readSettings()
     rpmForSweepType.clear();
     speedForSweepType.clear();
 
-    auto reader = _mainWindow->getReader();
-    rpmForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("Engine/rpm.LeafSweep").toInt());
-    rpmForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("Engine/rpm.LightSweep").toInt());
-    rpmForSweepType.insert(MainWindow::MediumSweep, reader->readSettingsValue("Engine/rpm.MediumSweep").toInt());
-    rpmForSweepType.insert(MainWindow::HeavySweep, reader->readSettingsValue("Engine/rpm.HeavySweep").toInt());
+    auto reader = _context->settingsReader();
+    rpmForSweepType.insert(LeafSweep, reader->readSettingsValue("Engine/rpm.LeafSweep").toInt());
+    rpmForSweepType.insert(LightSweep, reader->readSettingsValue("Engine/rpm.LightSweep").toInt());
+    rpmForSweepType.insert(MediumSweep, reader->readSettingsValue("Engine/rpm.MediumSweep").toInt());
+    rpmForSweepType.insert(HeavySweep, reader->readSettingsValue("Engine/rpm.HeavySweep").toInt());
 
     // назначаем таймауты на длительные операции
     timeouts.insert(BlowerSlideOut, reader->readSettingsValue("Blower/timeouts.BlowerSlideOut").toInt());
@@ -46,10 +45,10 @@ void Blower::readSettings()
     timeouts.insert(BlowerRotateOut, reader->readSettingsValue("Blower/timeouts.BlowerRotateOut").toInt());
     timeouts.insert(BlowerRotateIn, reader->readSettingsValue("Blower/timeouts.BlowerRotateIn").toInt());
 
-    speedForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("Blower/speeds.LeafSweep").toInt());
-    speedForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("Blower/speeds.LightSweep").toInt());
-    speedForSweepType.insert(MainWindow::MediumSweep, reader->readSettingsValue("Blower/speeds.MediumSweep").toInt());
-    speedForSweepType.insert(MainWindow::HeavySweep, reader->readSettingsValue("Blower/speeds.HeavySweep").toInt());
+    speedForSweepType.insert(LeafSweep, reader->readSettingsValue("Blower/speeds.LeafSweep").toInt());
+    speedForSweepType.insert(LightSweep, reader->readSettingsValue("Blower/speeds.LightSweep").toInt());
+    speedForSweepType.insert(MediumSweep, reader->readSettingsValue("Blower/speeds.MediumSweep").toInt());
+    speedForSweepType.insert(HeavySweep, reader->readSettingsValue("Blower/speeds.HeavySweep").toInt());
 
     qDebug() << timeouts;
 }
@@ -61,6 +60,24 @@ QString Blower::toString(BlowerStates s){
 
 void Blower::setDirection(bool isRight){
     isTargetRight = isRight;
+}
+
+void Blower::toggleSide(bool right){
+    const bool wasSelected = right ? _right : _left;
+    _left = !right && !wasSelected;
+    _right = right && !wasSelected;
+    emit selectionChanged();
+}
+
+void Blower::setSide(bool right){
+    _left = !right;
+    _right = right;
+    emit selectionChanged();
+}
+
+void Blower::setLifted(bool lifted){
+    _lifted = lifted;
+    emit selectionChanged();
 }
 
 void Blower::setState(BlowerStates state_){
@@ -219,8 +236,8 @@ bool Blower::testStateTimer(){// мощная функция проверки т
 }
 
 void Blower::checkFriendVars(){
-    startClean = _mainWindow->startClean;
-    rightBlow = _mainWindow->workMode.blowRight;
+    startClean = _context->isCleaning();
+    rightBlow = _right;
     //qDebug()<<"# Set target direction 3: "<<(isTargetRight?"right":"left");
     //isTargetRight = rightBlow;
 }
@@ -256,7 +273,7 @@ void Blower::progressLoop(){
     checkNeedState();// проверяет до какого состояния может добираться щетка
 
     if (state >= Blower::BlowerRotateOut){
-        auto type = _mainWindow->workMode.sweepType;
+        auto type = _context->sweepType();
         engineRpm->request(this, rpmForSweepType.value(type) * 8);//обороты движка
         setTargetRotationSpeed(speedForSweepType.value(type));// скорость щеток
         //goRotate();
@@ -291,7 +308,7 @@ void Blower::progressLoop(){
 void Blower::updateTransitioning(){
     //qDebug()<<"# "<<isTargetRight<<"/"<<rightBlow;
 
-    if(_mainWindow->startClean && isTargetRight != rightBlow){
+    if(_context->isCleaning() && isTargetRight != rightBlow){
         //qDebug()<<"## ";
         rotate();
         return;
@@ -341,22 +358,22 @@ bool Blower::isHeldLongEnough(const QTime &since) const{
     return qAbs(since.msecsTo(QDateTime::currentDateTime().time())) > stopDelay * 1000;
 }
 void Blower::updateWhenRotationPressed(bool isRight){
-    if (!_mainWindow->startClean)
+    if (!_context->isCleaning())
         return;// уборка не запущена - кнопка только выбирает сторону, гидравлику не трогаем
 
     if(isHeldLongEnough(rotationStartedAt)){
         //setState (BlowerOff);
         //qDebug()<<"# Set target direction 2: "<<(isTargetRight?"right":"left");
         isTargetRight = isRight;
-        if (!_mainWindow->workMode.blowLeft && !_mainWindow->workMode.blowRight){
+        if (!_left && !_right){
             // сторона не выбрана - выбираем удерживаемую, иначе обдув останется выключенным
-            _mainWindow->workMode.blowLifted = false;
+            _lifted = false;
             rightBlow = isRight;
-            _mainWindow->changeBlowDirection(isRight);
+            setSide(isRight);
         }
-        else if (_mainWindow->workMode.blowLifted)// удержание стороны снова разворачивает поднятый обдув
-            _mainWindow->setBlowerLifted(false);
-        //_mainWindow->changeBlowDirection(isRight);
+        else if (_lifted)// удержание стороны снова разворачивает поднятый обдув
+            setLifted(false);
+        //setSide(isRight);
         setNeedState(BlowerRotated);
     }
     // вручную раструб не поворачиваем: включённый обдув не может стоять в промежуточном положении,
@@ -366,8 +383,8 @@ void Blower::updateWhenRotationPressed(bool isRight){
 void Blower::updateWhenUpPressed(){
     if(isHeldLongEnough(stoppingStartedAt)){
         // поднимаем обдув, выбранная сторона остаётся подсвеченной
-        if (_mainWindow->startClean && !_mainWindow->workMode.blowLifted){
-            _mainWindow->setBlowerLifted(true);
+        if (_context->isCleaning() && !_lifted){
+            setLifted(true);
         }
         setNeedState(BlowerOff);
     }
@@ -384,12 +401,12 @@ void Blower::updateWhenUpPressed(){
 void Blower::updateWhenDownPressed(){
     if(isHeldLongEnough(startingStartedAt)){
         // запуск удержанием: подсвечиваем сторону обдува, по умолчанию правую
-        if (_mainWindow->startClean && needState != BlowerRotated){
-            _mainWindow->workMode.blowLifted = false;
-            const bool right = !_mainWindow->workMode.blowLeft;
+        if (_context->isCleaning() && needState != BlowerRotated){
+            _lifted = false;
+            const bool right = !_left;
             isTargetRight = right;
             rightBlow = right;
-            _mainWindow->changeBlowDirection(right);
+            setSide(right);
         }
         setNeedState(BlowerRotated);//setState(BlowerOff);
     }
@@ -433,7 +450,7 @@ Blower::BlowerStates Blower::rotate(){
         if(isTargetRight != rightBlow){
             //qDebug()<<"# Set target direction 1: "<<(isTargetRight?"right":"left");
             rightBlow = isTargetRight;
-            _mainWindow->changeBlowDirection(isTargetRight);
+            setSide(isTargetRight);
         }
         setState(BlowerSlideOut);
         break;

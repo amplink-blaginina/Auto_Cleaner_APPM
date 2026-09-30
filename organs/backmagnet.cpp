@@ -1,23 +1,21 @@
 #include "backmagnet.h"
 
-#include "mainwindow.h"
+#include <settingsreader.h>
 
 #include <QDebug>
+#include <QMetaEnum>
 #include <QTimer>
 #include <QThread>
 
-BackMagnet::BackMagnet(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_)
+BackMagnet::BackMagnet(const MachineIo &machine, MachineContext *context, ViewController *logger_, QObject *parent) : QObject(parent)
 {
     io = machine.io;
     hydraulics = machine.hydraulics;
     engineRpm = machine.engineRpm;
-    myCanJ1939 = myCanJ1939_;
-    parent = parent_;
     logger = logger_;
-    _mainWindow = mainWindow;
+    _context = context;
     setState(BackMagnetOff);
     setNeedState(BackMagnetOff);
-    settings = settings_;
     startClean = false;
     choosed = false;
     magnetAlarmed = false;
@@ -30,7 +28,7 @@ BackMagnet::BackMagnet(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSetti
 
 void BackMagnet::readSettings(){
     timeouts.clear();
-    SettingsReader* reader = _mainWindow->getReader();
+    SettingsReader* reader = _context->settingsReader();
 //    // назначаем таймауты на длительные операции
     timeouts.insert(BackMagnetDownOut, reader->readSettingsValue("BackMagnet/timeouts.BackMagnetDownOut").toInt());
     timeouts.insert(BackMagnetDownIn, reader->readSettingsValue("BackMagnet/timeouts.BackMagnetDownIn").toInt());
@@ -180,7 +178,7 @@ bool BackMagnet::testStateTimer(){// мощная функция проверк�
 }
 
 void BackMagnet::checkFriendVars(){
-    startClean = _mainWindow->startClean;
+    startClean = _context->isCleaning();
 }
 
 void BackMagnet::progressLoop(){

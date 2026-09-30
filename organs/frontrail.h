@@ -10,10 +10,10 @@
 
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
+#include <machine/machinecontext.h>
 #include <machine/machineio.h>
 
 #include <Controllers/viewcontroller.h>
-class MainWindow;
 class FrontRail : public QObject
 {
     Q_OBJECT
@@ -35,15 +35,12 @@ public:
         FrontRailFlowed     = 11
     };
     Q_ENUM(FrontRailStates)
-    explicit FrontRail(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
-    QObject * parent;
+    explicit FrontRail(const MachineIo &machine, MachineContext *context, ViewController *logger, QObject *parent);
     ViewController *logger;
     IoBus *io;
     HydraulicSupply *hydraulics;
     EngineRpmDemand *engineRpm;
-    MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;
-    QSettings *settings;
     bool choosed;
     bool railAlarmed;
 
@@ -90,6 +87,9 @@ public:
     void setDirection(organsEnums::Direction dir);
     //void setDirection(organsEnums::Direction dir, bool isPressed);
     void setFlowActive(bool state);
+    // выбор оператора: плавание (включается при работе органа)
+    bool isFlowSelected() const { return _flowSelected; }
+    void selectFlow(bool selected) { _flowSelected = selected; }
 
 public slots:
     // слот для получания данных из CAN
@@ -101,8 +101,10 @@ private:
     void goUp();
     void goDown();
     void printMovement(organsEnums::Direction dir, bool state);
-    MainWindow *_mainWindow;
+    MachineContext *_context;
+    bool _flowSelected = false;
 signals:
+    void flowCancelRequested();// орган двигают вверх/вниз - плавание надо снять
 
 };
 

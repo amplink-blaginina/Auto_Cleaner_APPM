@@ -1,22 +1,20 @@
 #include "centralbroom.h"
-#include "mainwindow.h"
+#include <settingsreader.h>
+#include <machine/sweeptype.h>
 #include <QDebug>
+#include <QMetaEnum>
 #include <QTimer>
 #include <QThread>
 
-class MainWindow;
-CentralBroom::CentralBroom(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_){
+CentralBroom::CentralBroom(const MachineIo &machine, MachineContext *context, ViewController *logger_, QObject *parent) : QObject(parent){
     io = machine.io;
     hydraulics = machine.hydraulics;
     engineRpm = machine.engineRpm;
-    myCanJ1939 = myCanJ1939_;
     logger = logger_;
-    _mainWindow = mainWindow;
-    parent = parent_;
+    _context = context;
     setState(BroomOff);
     setNeedState(BroomOff);
     needGoLeft = false;
-    settings = settings_;
     startClean = false;
     choosed = false;
     broomAlarmed = false;
@@ -31,12 +29,12 @@ void CentralBroom::readSettings(){
     timeouts.clear();
     rpmForSweepType.clear();
     speedForSweepType.clear();
-    auto reader = _mainWindow->getReader();
+    auto reader = _context->settingsReader();
 
-    rpmForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("Engine/rpm.LeafSweep").toInt());
-    rpmForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("Engine/rpm.LightSweep").toInt());
-    rpmForSweepType.insert(MainWindow::MediumSweep, reader->readSettingsValue("Engine/rpm.MediumSweep").toInt());
-    rpmForSweepType.insert(MainWindow::HeavySweep, reader->readSettingsValue("Engine/rpm.HeavySweep").toInt());
+    rpmForSweepType.insert(LeafSweep, reader->readSettingsValue("Engine/rpm.LeafSweep").toInt());
+    rpmForSweepType.insert(LightSweep, reader->readSettingsValue("Engine/rpm.LightSweep").toInt());
+    rpmForSweepType.insert(MediumSweep, reader->readSettingsValue("Engine/rpm.MediumSweep").toInt());
+    rpmForSweepType.insert(HeavySweep, reader->readSettingsValue("Engine/rpm.HeavySweep").toInt());
 
     timeouts.insert(BroomSlideOut, reader->readSettingsValue("CentralBroom/timeouts.BroomSlideOut").toFloat());
     timeouts.insert(BroomSlideIn, reader->readSettingsValue("CentralBroom/timeouts.BroomSlideIn").toFloat());
@@ -47,10 +45,10 @@ void CentralBroom::readSettings(){
     timeouts.insert(BroomRotateOut, reader->readSettingsValue("CentralBroom/timeouts.BroomRotateOut").toFloat());
     timeouts.insert(BroomRotateIn, reader->readSettingsValue("CentralBroom/timeouts.BroomRotateIn").toFloat());
 
-    speedForSweepType.insert(MainWindow::LeafSweep, reader->readSettingsValue("CentralBroom/speeds.LeafSweep").toInt());
-    speedForSweepType.insert(MainWindow::LightSweep, reader->readSettingsValue("CentralBroom/speeds.LightSweep").toInt());
-    speedForSweepType.insert(MainWindow::MediumSweep, reader->readSettingsValue("CentralBroom/speeds.MediumSweep").toInt());
-    speedForSweepType.insert(MainWindow::HeavySweep, reader->readSettingsValue("CentralBroom/speeds.HeavySweep").toInt());
+    speedForSweepType.insert(LeafSweep, reader->readSettingsValue("CentralBroom/speeds.LeafSweep").toInt());
+    speedForSweepType.insert(LightSweep, reader->readSettingsValue("CentralBroom/speeds.LightSweep").toInt());
+    speedForSweepType.insert(MediumSweep, reader->readSettingsValue("CentralBroom/speeds.MediumSweep").toInt());
+    speedForSweepType.insert(HeavySweep, reader->readSettingsValue("CentralBroom/speeds.HeavySweep").toInt());
 }
 
 QString CentralBroom::toString(BroomStates s){
@@ -90,7 +88,7 @@ void CentralBroom::setState(BroomStates state_){
     }
 
     if (state == CentralBroom::BroomFlowed){// закончилось плавание
-        auto isFlowing = _mainWindow->workMode.centralBroomFlow;
+        auto isFlowing = _flowSelected;
         setFlowActive(isFlowing);
     }
     if (state == CentralBroom::BroomFlowIn){// заканчиваем плавание
@@ -182,7 +180,7 @@ void CentralBroom::goDown(bool state, bool isPressed){
 
 void CentralBroom::goUpImmediate(bool state){
     if(state){
-        _mainWindow->tryToDisableBroomFlow();
+        emit flowCancelRequested();
     }
     printMovement(organsEnums::Up, state, false);
     hydraulics->request(this, state);
@@ -191,7 +189,7 @@ void CentralBroom::goUpImmediate(bool state){
 
 void CentralBroom::goDownImmediate(bool state){
     if(state){
-        _mainWindow->tryToDisableBroomFlow();
+        emit flowCancelRequested();
     }
     printMovement(organsEnums::Down, state, false);
     hydraulics->request(this, state);
@@ -459,7 +457,7 @@ bool CentralBroom::testStateTimer(){// мощная функция провер�
 }
 
 void CentralBroom::checkFriendVars(){
-    startClean = _mainWindow->startClean;
+    startClean = _context->isCleaning();
 }
 
 void CentralBroom::progressLoop(){
@@ -468,9 +466,9 @@ void CentralBroom::progressLoop(){
 
     if (state >= CentralBroom::BroomRotateOut){
         //обороты движка
-        engineRpm->request(this, rpmForSweepType.value(_mainWindow->workMode.sweepType) * 8);
+        engineRpm->request(this, rpmForSweepType.value(_context->sweepType()) * 8);
         // скорость щеток
-        goRotate(speedForSweepType.value(_mainWindow->workMode.sweepType));
+        goRotate(speedForSweepType.value(_context->sweepType()));
     }
     else{
         engineRpm->release(this);// щётка не крутится - обороты ей не нужны

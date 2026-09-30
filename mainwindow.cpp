@@ -193,11 +193,11 @@ void MainWindow::configureFilters(){
 }
 void MainWindow::setBroomFlow(bool state)
 {
-    if (state == workMode.centralBroomFlow) {
+    if (state == broomCentral->isFlowSelected()) {
         return;
     }
 
-    workMode.centralBroomFlow = state;
+    broomCentral->selectFlow(state);
 
     if (startClean) {
         broomCentral->setFlowActive(state);
@@ -208,10 +208,10 @@ void MainWindow::setBroomFlow(bool state)
 }
 
 void MainWindow::setDumpFlow(bool state){
-    if(state == workMode.frontDumpFlow){
+    if(state == frontRail->isFlowSelected()){
         return;
     }
-    workMode.frontDumpFlow = state;
+    frontRail->selectFlow(state);
     if (startClean){
         view->addLog(state? "Отвал плавание": "Отвал плавание завершено");
         frontRail->setFlowActive(state);}
@@ -230,7 +230,7 @@ void MainWindow::updateBroomFlowPressIcon()
     QString path =
         "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
 
-    path += workMode.centralBroomFlow
+    path += broomCentral->isFlowSelected()
                 ? (workMode.centralBroomPress ? "on.png);" : "up_on.png);")
                 : (workMode.centralBroomPress ? "down_on.png);" : "off.png);");
 
@@ -443,7 +443,7 @@ void MainWindow::configureButtons(){
                     true
                     );
 
-                setDumpFlow(!workMode.frontDumpFlow);
+                setDumpFlow(!frontRail->isFlowSelected());
             },
 
             .onDeactivated = [this] {},
@@ -645,7 +645,7 @@ void MainWindow::configureButtons(){
                     true
                     );
 
-                setBroomFlow(!workMode.centralBroomFlow);
+                setBroomFlow(!broomCentral->isFlowSelected());
             },
 
             .onDeactivated = [this] {},
@@ -671,7 +671,7 @@ void MainWindow::configureButtons(){
                 QString path =
                     "background-image: url(:/Images/Images/main/buttons/configuration_button_variable_";
 
-                path += workMode.centralBroomFlow
+                path += broomCentral->isFlowSelected()
                             ? (workMode.centralBroomPress ? "on.png);" : "up_on.png);")
                             : (workMode.centralBroomPress ? "down_on.png);" : "off.png);");
 
@@ -809,9 +809,7 @@ void MainWindow::configureButtons(){
                                      : "Удерживайте кнопку влево для запуска обдува");
                 } else {
                     view->addLog("Обдув: выбрана левая сторона");
-                    workMode.blowLeft = !workMode.blowLeft;
-                    workMode.blowRight = false;
-                    showWorkMode();
+                    blower->toggleSide(false);
                 }
             },
 
@@ -862,9 +860,7 @@ void MainWindow::configureButtons(){
                                      : "Удерживайте кнопку вправо для запуска обдува");
                 } else {
                     view->addLog("Обдув: выбрана правая сторона");
-                    workMode.blowRight = !workMode.blowRight;
-                    workMode.blowLeft = false;
-                    showWorkMode();
+                    blower->toggleSide(true);
                 }
             },
 
@@ -1124,10 +1120,13 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
 
     // создаем виджеты щеток и прочих модулей
     const MachineIo machineIo{io, hydraulics, engineRpm};
-    broomCentral = new CentralBroom(machineIo, NULL, settings, view, this, this);
-    frontRail = new FrontRail(machineIo, NULL, settings, view, this, this);
-    backMagnet = new BackMagnet(machineIo, NULL, settings, view, this, this);
-    blower = new Blower(machineIo, NULL, settings, view, this, this);
+    broomCentral = new CentralBroom(machineIo, this, view, this);
+    frontRail = new FrontRail(machineIo, this, view, this);
+    backMagnet = new BackMagnet(machineIo, this, view, this);
+    blower = new Blower(machineIo, this, view, this);
+    connect(blower, &Blower::selectionChanged, this, &MainWindow::showWorkMode);
+    connect(broomCentral, &CentralBroom::flowCancelRequested, this, &MainWindow::tryToDisableBroomFlow);
+    connect(frontRail, &FrontRail::flowCancelRequested, this, &MainWindow::tryToDisableDumpFlow);
     resetDevices();
     //io->set(StateBoardsPowerOut, true);
     showWorkMode();
@@ -1158,6 +1157,18 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     createButtons();
     if (simIo)
         createSimPanel();
+}
+
+bool MainWindow::isCleaning() const{
+    return startClean;
+}
+
+int MainWindow::sweepType() const{
+    return workMode.sweepType;
+}
+
+SettingsReader *MainWindow::settingsReader() const{
+    return _settingsReader;
 }
 
 void MainWindow::createSimPanel(){
@@ -1299,14 +1310,9 @@ void MainWindow::loadAndSetFonts(){
 void MainWindow::setDefaultWorkMode(){
     workMode.centralBroomLeft = false;
     workMode.centralBroomRight = false;
-    workMode.centralBroomFlow = false;
     workMode.centralBroomPress = false;
-    workMode.blowLeft = false;
-    workMode.blowRight = false;
-    workMode.blowLifted = false;
     workMode.frontDumpLeft = false;
     workMode.frontDumpRight = false;
-    workMode.frontDumpFlow = false;
     workMode.backMagnet = false;
     workMode.frmBroom = false;
     workMode.frmMagnet = false;
@@ -2581,16 +2587,6 @@ void MainWindow::tryToDisableBroomFlow(){
     }
 }
 
-void MainWindow::changeBlowDirection(bool isRight){
-    workMode.blowLeft = !isRight;
-    workMode.blowRight = isRight;
-    showWorkMode();
-}
-
-void MainWindow::setBlowerLifted(bool lifted){
-    workMode.blowLifted = lifted;
-    showWorkMode();
-}
 //=============================================================
 //====================Buttons click handlers===================
 //=============================================================
@@ -2614,8 +2610,8 @@ void MainWindow::on_pushButton_startstop_clicked(){
     showWorkMode();
 }
 void MainWindow:: startCleaning(bool state){
-    blower->setDirection(workMode.blowRight);
-    workMode.blowLifted = false;// при старте уборки выбранная сторона снова разворачивает обдув
+    blower->setDirection(blower->isRightSelected());
+    blower->setLifted(false);// при старте уборки выбранная сторона снова разворачивает обдув
     startClean = state;
 }
 void MainWindow::on_pushButton_service_clicked(){
@@ -2731,7 +2727,7 @@ void MainWindow::updateOrgansStates(){// задаем режимы органа�
     frontRail->choosed = isDumpActive;
     frontRail->needGoLeft = workMode.frontDumpLeft;
     // дулка
-    bool isBlowerActive = (workMode.blowLeft||workMode.blowRight) && !workMode.blowLifted;
+    bool isBlowerActive = blower->isActive();
     blower->setNeedState(isBlowerActive? Blower::BlowerRotated: Blower::BlowerOff);
     blower->choosed = isBlowerActive;
     // магнит
@@ -2813,11 +2809,11 @@ QString MainWindow::getBlowerDefaultIcon(){
 }
 
 QString MainWindow::getBlowerSideIconName(){
-    if (!workMode.blowLeft && !workMode.blowRight)
+    if (!blower->isLeftSelected() && !blower->isRightSelected())
         return "off.png);";
     // во время уборки показываем сторону, на которую обдув переходит, не дожидаясь реальной смены
     // (workMode хранит текущую сторону - по ней автомат определяет, что смену надо выполнить)
-    const bool right = startClean ? blower->targetRight() : workMode.blowRight;
+    const bool right = startClean ? blower->targetRight() : blower->isRightSelected();
     return right ? "right_on.png);" : "left_on.png);";
 }
 
@@ -2908,10 +2904,6 @@ void MainWindow::updateButtonsActiveState(){
 //     //m_broomFlowWatcher(state);
 // }
 
-void MainWindow::setDumpFlowView(bool state){
-    workMode.frontDumpFlow = state;
-    //updateDumpBtnsView();
-}
 
 // void MainWindow::setBroomPressView(bool state){
 //     //setBroomPressed(state);

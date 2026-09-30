@@ -121,7 +121,9 @@ HEADERS += \
     io/iobus.h \
     machine/enginerpmdemand.h \
     machine/hydraulicsupply.h \
+    machine/machinecontext.h \
     machine/machineio.h \
+    machine/sweeptype.h \
     sim/simiobus.h \
     sim/simpanel.h \
     password_form.h \

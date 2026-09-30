@@ -1,23 +1,21 @@
 #include "frontrail.h"
 
-#include "mainwindow.h"
+#include <settingsreader.h>
 
 #include <QDebug>
+#include <QMetaEnum>
 #include <QTimer>
 #include <QThread>
 
-FrontRail::FrontRail(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger_, MainWindow* mainWindow, QObject *parent_) : QObject(parent_){
+FrontRail::FrontRail(const MachineIo &machine, MachineContext *context, ViewController *logger_, QObject *parent) : QObject(parent){
     io = machine.io;
     hydraulics = machine.hydraulics;
     engineRpm = machine.engineRpm;
-    myCanJ1939 = myCanJ1939_;
-    parent = parent_;
-    _mainWindow = mainWindow;
+    _context = context;
     logger= logger_;
     setState(FrontRailOff);
     setNeedState(FrontRailOff);
     needGoLeft = false;
-    settings = settings_;
     startClean = false;
     choosed = false;
     railAlarmed = false;
@@ -31,7 +29,7 @@ FrontRail::FrontRail(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSetting
 void FrontRail::readSettings(){
     timeouts.clear();
 
-    auto reader = _mainWindow->getReader();
+    auto reader = _context->settingsReader();
     qDebug()<<"Central readSettings Dump";
     // назначаем таймауты на длительные операции
     timeouts.insert(FrontRailSlideOut, reader->readSettingsValue("Dump/timeouts.DumpSlideOut").toFloat());
@@ -134,7 +132,7 @@ void FrontRail::setState(FrontRailStates state_){
     }
     if (state == FrontRail::FrontRailFlowed){// закончилось плавание
         qDebug()<<"Отвал: Плавание закончено";
-        setFlowActive(_mainWindow->workMode.frontDumpFlow);
+        setFlowActive(_flowSelected);
     }
     if (state == FrontRail::FrontRailFlowIn){// заканчиваем плавание
         setFlowActive(false);
@@ -210,7 +208,7 @@ void FrontRail::goDown(bool state){
     //     _mainWindow->workMode.frontDumpFlow = false;
     // }
     if(state){
-        _mainWindow->tryToDisableDumpFlow();
+        emit flowCancelRequested();
     }
     io->set(StateValveF7, state);
     hydraulics->request(this, state);
@@ -233,7 +231,7 @@ void FrontRail::goUp(bool state){
     //     _mainWindow->workMode.frontDumpFlow = false;
     // }
     if(state){
-        _mainWindow->tryToDisableDumpFlow();
+        emit flowCancelRequested();
     }
     io->set(StateValveF1, state);
     hydraulics->request(this, state);
@@ -505,7 +503,7 @@ bool FrontRail::testStateTimer(){// мощная функция проверки
 }
 
 void FrontRail::checkFriendVars(){
-    startClean = _mainWindow->startClean;
+    startClean = _context->isCleaning();
 }
 
 void FrontRail::progressLoop(){

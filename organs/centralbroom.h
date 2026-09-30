@@ -13,10 +13,10 @@
 
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
+#include <machine/machinecontext.h>
 #include <machine/machineio.h>
 
 #include <Controllers/viewcontroller.h>
-class MainWindow;
 class CentralBroom : public QObject
 {
     Q_OBJECT
@@ -45,15 +45,12 @@ public:
     };
     Q_ENUM(BroomStates);
 
-    explicit CentralBroom(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
-    QObject * parent;
+    explicit CentralBroom(const MachineIo &machine, MachineContext *context, ViewController *logger, QObject *parent);
     ViewController *logger;
     IoBus *io;
     HydraulicSupply *hydraulics;
     EngineRpmDemand *engineRpm;
-    MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;
-    QSettings *settings;
     bool choosed;
     bool broomAlarmed;
 
@@ -101,6 +98,9 @@ public:
     void stopPress();
     void setPressActive(bool state);
     void setFlowActive(bool state);
+    // выбор оператора: плавание (включается при работе органа)
+    bool isFlowSelected() const { return _flowSelected; }
+    void selectFlow(bool selected) { _flowSelected = selected; }
 
     void goUpImmediate(bool state);
     void goDownImmediate(bool);
@@ -109,6 +109,7 @@ public slots:
     // слот для получания данных из CAN
     void progressLoop();
 signals:
+    void flowCancelRequested();// орган двигают вверх/вниз - плавание надо снять
 
 private:
     void goLeft();
@@ -137,7 +138,8 @@ private:
     void printMovement(int, bool, bool);
     CentralBroom::BroomStates getNextState(CentralBroom::BroomStates current);
     CentralBroom::BroomStates getPreviousState(CentralBroom::BroomStates current);
-    MainWindow *_mainWindow;
+    MachineContext *_context;
+    bool _flowSelected = false;
 };
 
 #endif // CENTRALBROOM_H

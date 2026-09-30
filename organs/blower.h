@@ -10,10 +10,10 @@
 
 #include <can/mycan.h>
 #include <can/mycanj1939.h>
+#include <machine/machinecontext.h>
 #include <machine/machineio.h>
 
 #include <Controllers/viewcontroller.h>
-class MainWindow;
 class Blower : public QObject
 {
     Q_OBJECT
@@ -34,15 +34,12 @@ public:
     };
     Q_ENUM(BlowerStates)
 
-    explicit Blower(const MachineIo &machine, MyCanJ1939 *myCanJ1939_, QSettings *settings_, ViewController *logger, MainWindow* mainWindow, QObject *parent_);
-    QObject * parent;
+    explicit Blower(const MachineIo &machine, MachineContext *context, ViewController *logger, QObject *parent);
     ViewController *logger;
     IoBus *io;
     HydraulicSupply *hydraulics;
     EngineRpmDemand *engineRpm;
-    MyCanJ1939 * myCanJ1939;
     QTimer progressTimer;
-    QSettings *settings;
     bool choosed;
     bool blowerAlarmed;
 
@@ -102,11 +99,24 @@ public:
     void updateWhenRotationPressed(bool isRight);
     void setDirection(bool);
     bool targetRight() const { return isTargetRight; }// сторона, на которую идёт обдув
+
+    // выбор оператора: сторона обдува и «поднят вручную» (выбранная сторона при этом сохраняется)
+    bool isLeftSelected() const { return _left; }
+    bool isRightSelected() const { return _right; }
+    bool isLifted() const { return _lifted; }
+    bool isActive() const { return (_left || _right) && !_lifted; }// обдув должен работать
+    void toggleSide(bool right);// кнопка стороны до начала уборки: выбрать сторону или снять выбор
+    void setSide(bool right);
+    void setLifted(bool lifted);
 public slots:
     // слот для получания данных из CAN
     void progressLoop();
 signals:
+    void selectionChanged();// выбор оператора изменился - перерисовать экран, пересчитать цели органов
 private:
+    bool _left = false;
+    bool _right = false;
+    bool _lifted = false;
     void updateTransitioning();
     bool isTargetRight = false;
     float targetRotationSpeed = 0;
@@ -116,7 +126,7 @@ private:
     void setTargetRotationSpeed(float speed);
 
     BlowerStates rotate();
-    MainWindow *_mainWindow;
+    MachineContext *_context;
 };
 
 #endif // BLOWER_H
