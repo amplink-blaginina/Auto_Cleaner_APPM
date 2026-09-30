@@ -4,7 +4,6 @@
 #include "organ.h"
 
 #include <QMap>
-#include <QTime>
 
 class Blower : public Organ
 {
@@ -43,40 +42,23 @@ public:
     void goNone();
 
     bool isRotating();
-    QTime stoppingStartedAt;
-    QTime startingStartedAt;
-    QTime rotationStartedAt;
-    float stopDelay = 3;
-    void setStartMomentForStopping();
-    void setStartMomentForStarting();
-    void setStartMomentForRotation();
-    bool isHeldLongEnough(const QTime &since) const;
-    void cancelHold();
-    void updateWhenUpPressed();
-    void updateWhenDownPressed();
-    void updateWhenRotationPressed(bool isRight);
+    // команды оператора во время уборки (кнопку удержали)
+    void holdUp();             // остановить и поднять, выбранная сторона сохраняется
+    void holdDown();           // опустить и запустить
+    void holdSide(bool right); // запустить в эту сторону или сменить сторону
     void setDirection(bool);
     bool targetRight() const { return isTargetRight; }// сторона, на которую идёт обдув
 
-    // выбор оператора: сторона обдува и «поднят вручную» (выбранная сторона при этом сохраняется)
-    bool isLeftSelected() const { return _left; }
-    bool isRightSelected() const { return _right; }
+    // выбор оператора: «поднят вручную» (выбранная сторона при этом сохраняется)
     bool isLifted() const { return _lifted; }
-    bool isActive() const { return (_left || _right) && !_lifted; }// обдув должен работать
-    void toggleSide(bool right);// кнопка стороны до начала уборки: выбрать сторону или снять выбор
-    void setSide(bool right);
+    bool isActive() const { return isSideSelected() && !_lifted; }// обдув должен работать
     void setLifted(bool lifted);
-
-signals:
-    void selectionChanged();// выбор оператора изменился - перерисовать экран, пересчитать цели органов
 
 protected:
     void beforeStep() override;
     void afterStep() override;
 
 private:
-    bool _left = false;
-    bool _right = false;
     bool _lifted = false;
     bool isTargetRight = false;// сторона, на которую надо перейти; отличается от _right, пока идёт смена стороны
     float targetRotationSpeed = 0;

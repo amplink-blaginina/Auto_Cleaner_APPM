@@ -45,6 +45,7 @@ void SettingsReader::setDefaults(){
     _defaultValues.insert("Dump/timeouts.DumpSlideOut", 10);
     _defaultValues.insert("Dump/timeouts.DumpSlideIn", 10);
     _defaultValues.insert("Dump/timeouts.DumpBounceOut", "0.1");
+    _defaultValues.insert("Dump/slideTimeSec", 5);// поворот от упора до упора
 
     _defaultValues.insert("CentralBroom/timeouts.BroomDownOut", 5);
     _defaultValues.insert("CentralBroom/timeouts.BroomDownIn", 10);
@@ -58,6 +59,7 @@ void SettingsReader::setDefaults(){
     _defaultValues.insert("CentralBroom/lowerTimeSec", 5);// полный ход вниз
     _defaultValues.insert("CentralBroom/raiseTimeSec", 5);// полный ход вверх
     _defaultValues.insert("CentralBroom/spinHeightPercent", 80);// порог, % хода от верхнего положения
+    _defaultValues.insert("CentralBroom/slideTimeSec", 5);// поворот от упора до упора
     _defaultValues.insert("CentralBroom/speeds.LeafSweep", 70);
     _defaultValues.insert("CentralBroom/speeds.LightSweep", 80);
     _defaultValues.insert("CentralBroom/speeds.MediumSweep", 90);

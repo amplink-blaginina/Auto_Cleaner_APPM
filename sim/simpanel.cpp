@@ -49,9 +49,25 @@ QWidget *SimPanel::createAxes(){
     for (const SimAxis &axis : _io->axes()){
         auto *bar = new QProgressBar;
         bar->setRange(0, 100);
+        bar->setMinimumWidth(220);
         bar->setFormat(axis.minName + " %p% " + axis.maxName);
         _axisBars.append(bar);
-        form->addRow(axis.name, bar);
+        auto *side = new QLabel;// поворот: текущая сторона
+        side->setMinimumWidth(side->fontMetrics().horizontalAdvance("ПРАВАЯ ▶") + 16);
+        side->setAlignment(Qt::AlignCenter);
+        side->setVisible(axis.sides);
+        _axisSides.append(side);
+        auto *row = new QHBoxLayout;
+        row->addWidget(bar, 1);
+        row->addWidget(side);
+        form->addRow(axis.name, row);
+    }
+    for (const SimRotor &rotor : _io->rotors()){
+        auto *bar = new QProgressBar;
+        bar->setRange(0, 100);
+        bar->setMinimumWidth(220);
+        _rotorBars.append(bar);
+        form->addRow(rotor.name, bar);
     }
     return box;
 }
@@ -108,8 +124,31 @@ QWidget *SimPanel::createInputs(const QList<SimSignalInfo> &inputs){
 
 void SimPanel::refresh(){
     const QList<SimAxis> &axes = _io->axes();
-    for (int i = 0; i < axes.size() && i < _axisBars.size(); ++i)
-        _axisBars[i]->setValue(qRound(axes[i].pos * 100));
+    for (int i = 0; i < axes.size() && i < _axisBars.size(); ++i){
+        const SimAxis &axis = axes[i];
+        QProgressBar *bar = _axisBars[i];
+        const int percent = qRound(axis.pos * 100);
+        bar->setValue(percent);
+        if (!axis.sides)
+            continue;
+        // поворот: сторона меняется при переходе через середину
+        const QString color = percent < 50 ? "#3a7bd5" : percent > 50 ? "#e08a1e" : "";
+        const QString style = color.isEmpty() ? "" : "QProgressBar { text-align: center; } QProgressBar::chunk { background: " + color + "; }";
+        if (bar->styleSheet() != style)
+            bar->setStyleSheet(style);
+        QLabel *side = _axisSides[i];
+        side->setText(percent < 50 ? "◀ ЛЕВАЯ" : percent > 50 ? "ПРАВАЯ ▶" : "середина");
+        const QString sideStyle = color.isEmpty() ? "" : "background: " + color + "; color: white; font-weight: bold;";
+        if (side->styleSheet() != sideStyle)
+            side->setStyleSheet(sideStyle);
+    }
+
+    const QList<SimRotor> &rotors = _io->rotors();
+    for (int i = 0; i < rotors.size() && i < _rotorBars.size(); ++i){
+        const SimRotor &rotor = rotors[i];
+        _rotorBars[i]->setValue(qRound(rotor.speed));
+        _rotorBars[i]->setFormat("%p%  (задано " + QString::number(qRound(rotor.command())) + "%)");
+    }
 
     for (const OutputView &view : _outputs){
         const QVariant v = _io->value(view.signal);

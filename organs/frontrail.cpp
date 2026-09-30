@@ -13,8 +13,8 @@ FrontRail::FrontRail(const MachineIo &machine, MachineContext *context, ViewCont
     auto timeout = [this](FrontRailStates s){ return [this, s]{ return timeouts.value(s, 0); }; };
 
     OrganSequence::Step slide;// поворот в выбранную сторону
-    slide.out = {{"поворот", "", [this]{ setDirection(needGoLeft ? organsEnums::Left : organsEnums::Right); },
-                  [this]{ return io->get(needGoLeft ? StateDKPDumpLeft : StateDKPDumpRight).toBool(); },
+    slide.out = {{"поворот", "", [this]{ setDirection(_left ? organsEnums::Left : organsEnums::Right); },
+                  [this]{ return io->get(_left ? StateDKPDumpLeft : StateDKPDumpRight).toBool(); },
                   timeout(FrontRailSlideOut)}};
     slide.in = {{"возврат поворота", "", [this]{ setDirection(organsEnums::Right); },
                  [this]{ return io->get(StateDKPDumpRight).toBool(); },
@@ -22,7 +22,7 @@ FrontRail::FrontRail(const MachineIo &machine, MachineContext *context, ViewCont
     sequence.addStep(slide);
 
     OrganSequence::Step bounce;// отскок от упора - поворот в противоположную сторону; назад ничего не делаем
-    bounce.out = {{"отскок", "Отвал: отскок", [this]{ setDirection(needGoLeft ? organsEnums::Right : organsEnums::Left); },
+    bounce.out = {{"отскок", "Отвал: отскок", [this]{ setDirection(_left ? organsEnums::Right : organsEnums::Left); },
                    nullptr, timeout(FrontRailBounceOut),
                    [this]{ return timeouts.value(FrontRailBounceOut, 0) <= 0; }}};
     sequence.addStep(bounce);
@@ -56,6 +56,7 @@ void FrontRail::readSettings(){
     timeouts.insert(FrontRailDownOut, reader->readSettingsValue("Dump/timeouts.DumpDownOut").toFloat());
     timeouts.insert(FrontRailDownIn, reader->readSettingsValue("Dump/timeouts.DumpDownIn").toFloat());
     timeouts.insert(FrontRailFlowOut, reader->readSettingsValue("Dump/timeouts.DumpFlowOut").toFloat());
+    side.setTravelSec(reader->readSettingsValue("Dump/slideTimeSec").toFloat());
 }
 
 QString FrontRail::toString(FrontRailStates s){
@@ -138,11 +139,25 @@ void FrontRail::goFlow(bool state){
     io->set(StateValveC4, state);
 }
 
+void FrontRail::selectFlow(bool selected){
+    if (_flowSelected == selected)
+        return;
+    _flowSelected = selected;
+    emit selectionChanged();
+}
+
 void FrontRail::setFlowActive(bool state){
     if(isFlowing == state)
         return;
     isFlowing = state;
     goFlow(state);
+}
+
+void FrontRail::beforeStep(){
+    const bool pressure = hydraulics->isOn();
+    side.update(pressure && direction == organsEnums::Left, pressure && direction == organsEnums::Right,
+                io->get(StateDKPDumpLeft).toBool(), io->get(StateDKPDumpRight).toBool());
+    followActualSide(side.isLeft());
 }
 
 void FrontRail::printMovement(organsEnums::Direction dir, bool state){

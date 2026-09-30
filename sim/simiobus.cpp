@@ -4,6 +4,11 @@
 
 namespace {
 const double travelSec = 2.5;// время хода органа от края до края в модели
+const double spinUpSec = 1.5;// разгон вращения от 0 до максимума в модели
+}
+
+double SimRotor::command() const{
+    return qBound(0.0, values->value(output, 0).toDouble() * percentPerUnit, 100.0);
 }
 
 SimIoBus::SimIoBus(QObject *parent)
@@ -19,15 +24,19 @@ SimIoBus::SimIoBus(QObject *parent)
     addAxis({"Отвал: подъём", {StateValveF1}, {StateValveF7}, travelSec, 0,
              {StateDKPDumpUp}, {}, "верх", "низ"});
     addAxis({"Отвал: поворот", {StateValveF12}, {StateValveF6}, travelSec, 1,
-             {StateDKPDumpLeft}, {StateDKPDumpRight}, "лево", "право"});
+             {StateDKPDumpLeft}, {StateDKPDumpRight}, "лево", "право", true});
     addAxis({"Щётка: подъём", {StateValveF2, StateValveF10}, {StateValveF8, StateValveF4}, travelSec, 0,
              {StateDKPBroomUp}, {}, "верх", "низ"});
     addAxis({"Щётка: поворот", {StateValveF9}, {StateValveF3}, travelSec, 1,
-             {StateDKPBroomLeft}, {StateDKPBroomRight}, "лево", "право"});
+             {StateDKPBroomLeft}, {StateDKPBroomRight}, "лево", "право", true});
     addAxis({"Обдув: подъём", {StateValveE1}, {StateValveE5}, travelSec, 0,
              {StateDKPBlowerUp1, StateDKPBlowerUp2}, {}, "верх", "низ"});
     addAxis({"Обдув: поворот", {StateValveE3}, {StateValveE7}, travelSec, 1,
-             {}, {}, "лево", "право"});
+             {}, {}, "лево", "право", true});
+
+    // вращение: щётке программа задаёт половину скорости в процентах (CentralBroom::goRotate), обдуву - проценты
+    _rotors.append({"Щётка: вращение", StateValveD1, 2, spinUpSec, 0, &_values});
+    _rotors.append({"Обдув: вентилятор", StateValveD3, 1, spinUpSec, 0, &_values});
 
     _clock.start();
     connect(&_timer, &QTimer::timeout, this, &SimIoBus::step);
@@ -56,6 +65,10 @@ void SimIoBus::setInput(DeviceStates signal, const QVariant &value){
 
 const QList<SimAxis> &SimIoBus::axes() const{
     return _axes;
+}
+
+const QList<SimRotor> &SimIoBus::rotors() const{
+    return _rotors;
 }
 
 bool SimIoBus::isModelSensor(DeviceStates signal) const{
@@ -105,5 +118,10 @@ void SimIoBus::step(){
         }
         if (_modelEnabled)
             updateSensors(axis);
+    }
+    for (SimRotor &rotor : _rotors){
+        const double target = rotor.command();
+        const double delta = dt * 100 / rotor.spinUpSec;
+        rotor.speed = rotor.speed < target ? qMin(target, rotor.speed + delta) : qMax(target, rotor.speed - delta);
     }
 }

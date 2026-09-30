@@ -3,6 +3,7 @@
 
 #include "organ.h"
 #include "organsenums.h"
+#include "sidetracker.h"
 
 #include <QElapsedTimer>
 #include <QMap>
@@ -41,8 +42,6 @@ public:
     void setNeedState(BroomStates state_) { sequence.setNeed(state_); }
     QString toString(BroomStates s);
 
-    bool needGoLeft = false; // в какую сторону поворачивать при опускании (true - влево)
-
     void setDirection(organsEnums::Direction dir);
     void setDirection(organsEnums::Direction dir, bool isPressed);
     void goPressUp(bool state);
@@ -52,7 +51,11 @@ public:
     void setFlowActive(bool state);
     // выбор оператора: плавание (включается при работе органа)
     bool isFlowSelected() const { return _flowSelected; }
-    void selectFlow(bool selected) { _flowSelected = selected; }
+    void selectFlow(bool selected);
+    // выбор оператора: прижим (управляется рукояткой КВ)
+    bool isPressSelected() const { return _pressSelected; }
+    bool isOnLeft() const { return side.isLeft(); }// где щётка сейчас (оценка по времени поворота)
+    void selectPress(bool selected);
 
     void goUpImmediate(bool state);
     void goDownImmediate(bool);
@@ -88,6 +91,7 @@ private:
     float spinHeight = 0.8;// ниже - щётка должна крутиться, выше - стоять
     bool spinning = false;
     QElapsedTimer heightClock;
+    SideTracker side;
 
     bool isPressed = false;
     bool isFlowing = false;
@@ -100,6 +104,7 @@ private:
     // обороты двигателя под каждый тип смета
     QMap<int, int> rpmForSweepType;
     bool _flowSelected = false;
+    bool _pressSelected = false;
 };
 
 #endif // CENTRALBROOM_H

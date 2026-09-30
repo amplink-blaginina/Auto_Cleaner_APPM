@@ -33,6 +33,8 @@ SOURCES += \
     Controllers/gpiocontroller.cpp \
     Controllers/prerollcontroller.cpp \
     Controllers/startercontroller.cpp \
+    Controllers/organbuttons.cpp \
+    Controllers/organpanels.cpp \
     Controllers/viewcontroller.cpp \
     blockform.cpp \
     can/mycanengine.cpp \
@@ -93,6 +95,8 @@ HEADERS += \
     Controllers/gpiocontroller.h \
     Controllers/prerollcontroller.h \
     Controllers/startercontroller.h \
+    Controllers/organbuttons.h \
+    Controllers/organpanels.h \
     Controllers/viewcontroller.h \
     DebouncedInput.h \
     MedianFilter.h \
@@ -121,6 +125,7 @@ HEADERS += \
     organs/organ.h \
     organs/organsenums.h \
     organs/organsequence.h \
+    organs/sidetracker.h \
     io/caniobus.h \
     io/iobus.h \
     machine/enginerpmdemand.h \

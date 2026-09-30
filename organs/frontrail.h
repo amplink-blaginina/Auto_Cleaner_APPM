@@ -3,6 +3,7 @@
 
 #include "organ.h"
 #include "organsenums.h"
+#include "sidetracker.h"
 
 #include <QMap>
 
@@ -36,18 +37,20 @@ public:
     void setNeedState(FrontRailStates state_) { sequence.setNeed(state_); }
     QString toString(FrontRailStates s);
 
-    bool needGoLeft = false; // в какую сторону поворачивать при опускании
-
     void setDirection(organsEnums::Direction dir);
     void goUp(bool state);// прямое управление клапаном (сервисный экран)
     void goDown(bool state);
     void setFlowActive(bool state);
     // выбор оператора: плавание (включается при работе органа)
     bool isFlowSelected() const { return _flowSelected; }
-    void selectFlow(bool selected) { _flowSelected = selected; }
+    bool isOnLeft() const { return side.isLeft(); }// где отвал сейчас (оценка по времени поворота)
+    void selectFlow(bool selected);
 
 signals:
-    void flowCancelRequested();// орган двигают вверх/вниз - плавание надо снять
+    void flowCancelRequested();
+
+protected:
+    void beforeStep() override;// орган двигают вверх/вниз - плавание надо снять
 
 private:
     void goLeft(bool state);
@@ -60,6 +63,7 @@ private:
     // таймауты на каждую длительную операцию
     QMap<FrontRailStates, float> timeouts;
     bool _flowSelected = false;
+    SideTracker side;
 };
 
 #endif // FRONTRAIL_H

@@ -22,10 +22,10 @@ public:
     struct Phase {
         QString name;                      // для журнала: "Щетка: подъём - достигнут датчик"
         QString log;                       // запись в журнал в начале фазы
-        std::function<void()> start;       // что включить (перед этим движок останавливает орган)
-        std::function<bool()> sensor;      // датчик окончания; без датчика фаза заканчивается по времени
-        std::function<float()> timeoutSec; // сколько ждать, с; 0 или нет - фаза мгновенная
-        std::function<bool()> skip;        // пропустить фазу (проверяется в её начале)
+        std::function<void()> start = nullptr;       // что включить (перед этим движок останавливает орган)
+        std::function<bool()> sensor = nullptr;      // датчик окончания; без датчика фаза заканчивается по времени
+        std::function<float()> timeoutSec = nullptr; // сколько ждать, с; 0 или нет - фаза мгновенная
+        std::function<bool()> skip = nullptr;        // пропустить фазу (проверяется в её начале)
     };
     struct Step {
         QVector<Phase> out;         // вперёд, к рабочему положению

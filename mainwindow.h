@@ -73,6 +73,7 @@
 
 //логгер (черный ящик)
 #include "BoolStateWatcher.h"
+#include "Controllers/organpanels.h"
 #include "MedianFilter.h"
 #include "logger.h"
 #include "maintenancetracker.h"
@@ -118,11 +119,6 @@ public:
     struct WorkMode
     {
         bool backMagnet;
-        bool centralBroomLeft;
-        bool centralBroomRight;
-        bool centralBroomPress;
-        bool frontDumpLeft;
-        bool frontDumpRight;
         bool frmBroom;
         bool frmMagnet;
         bool frmKung;
@@ -461,40 +457,19 @@ private:
     BoolStateWatcher m_waterSensorWatcher;
     BoolStateWatcher m_airFilterWatcher;
     BoolStateWatcher m_heatRelayWatcher;
-    void configureButtons();
-
-    BoolStateWatcher m_broomUpWatcher;
-    BoolStateWatcher m_broomDownWatcher;
-    BoolStateWatcher m_broomLeftWatcher;
-    BoolStateWatcher m_broomRightWatcher;
-    BoolStateWatcher m_dumpUpWatcher;
-    BoolStateWatcher m_dumpDownWatcher;
-    BoolStateWatcher m_dumpLeftWatcher;
-    BoolStateWatcher m_dumpRightWatcher;
-    BoolStateWatcher m_blowUpWatcher;
-    BoolStateWatcher m_blowDownWatcher;
-    BoolStateWatcher m_blowLeftWatcher;
-    BoolStateWatcher m_blowRightWatcher;
-    BoolStateWatcher m_dumpFlowWatcher;
-    BoolStateWatcher m_broomFlowWatcher;
+    // кнопки и иконки органов на главном экране
+    void createOrganButtons();
+    DumpButtons *dumpButtons = nullptr;
+    BroomButtons *broomButtons = nullptr;
+    BlowerButtons *blowerButtons = nullptr;
+    QVector<OrganButtons *> organButtons;
 
     void updateButtonsUniversal();
     //void configureButtons();
     void setBtnView(bool isPressed, QLabel *lbl, QPushButton *btn, QString onPath, QString offPath);
-    QString getBlowerDefaultIcon();
-    QString getBlowerVertIcon();
-    QString getBlowerSideIconName();
-    QString getDumpDefaultIcon();
-    QString getBroomDefaultIcon();
-    void setVertButtonsView(bool state);
-    BoolStateWatcher m_broomPressWatcher;
-    void setBroomFlow(bool state);
-    void setDumpFlow(bool state);
     void configureMovementStart(QPushButton *btn, QLabel *lbl, QString path, std::function<bool ()> isBusy, std::function<void ()> handler);
     void configureMovementStop(QPushButton *btn, QLabel *lbl, QString path, std::function<bool ()> isBusy, std::function<void ()> handler);
     void startCleaning(bool state);
-    void updateBroomFlowPressIcon();
-    void setButtonVisualState(QPushButton *button, QLabel *iconLabel, const QString &style, bool wasDown);
 signals:
     void resetComplete();
     void Send_Pass_2_pass_form(int);
@@ -519,8 +494,6 @@ public :
     SettingsReader *settingsReader() const override;
     //void invertIgnition();
     void checkIgnition();
-    void tryToDisableBroomFlow();
-    void tryToDisableDumpFlow();
     void setServiceFormName(QWidget *form, QString name);
     bool getGPIOInput(GPIOInput id);
 public slots:

@@ -22,6 +22,20 @@ struct SimAxis
     QList<DeviceStates> maxSensors; // концевики в положении 1
     QString minName;
     QString maxName;
+    bool sides = false;             // поворот: левее середины - левая сторона, правее - правая
+};
+
+// Вращение органа в модели машины (щётка, вентилятор): скорость догоняет заданную программой
+// с разгоном и торможением, как у настоящего гидромотора
+struct SimRotor
+{
+    QString name;
+    DeviceStates output;  // выход программы - задание скорости
+    double percentPerUnit;// задание в % от максимума на единицу выхода
+    double spinUpSec;     // разгон от 0 до 100% (и торможение обратно)
+    double speed;         // текущая скорость, % от максимума
+    double command() const;// заданная скорость, %
+    const QHash<int, QVariant> *values;
 };
 
 // Симуляция сигналов машины для отладки без техники (ключ запуска --sim).
@@ -43,6 +57,7 @@ public:
     void setInput(DeviceStates signal, const QVariant &value);
 
     const QList<SimAxis> &axes() const;
+    const QList<SimRotor> &rotors() const;
     bool isModelSensor(DeviceStates signal) const;
     void setModelEnabled(bool enabled);
     bool isModelEnabled() const;
@@ -57,6 +72,7 @@ private:
 
     QHash<int, QVariant> _values;
     QList<SimAxis> _axes;
+    QList<SimRotor> _rotors;
     QTimer _timer;
     QElapsedTimer _clock;
     bool _modelEnabled = true;

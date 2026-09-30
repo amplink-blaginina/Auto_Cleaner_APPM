@@ -41,6 +41,8 @@ private:
 
     SimIoBus *_io;
     QList<QProgressBar *> _axisBars;
+    QList<QLabel *> _axisSides;
+    QList<QProgressBar *> _rotorBars;
     QList<OutputView> _outputs;
     QList<InputView> _inputs;
     QTimer _timer;

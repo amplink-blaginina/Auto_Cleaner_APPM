@@ -12,8 +12,8 @@ CentralBroom::CentralBroom(const MachineIo &machine, MachineContext *context, Vi
     auto timeout = [this](BroomStates s){ return [this, s]{ return timeouts.value(s, 0); }; };
 
     OrganSequence::Step slide;// поворот в выбранную сторону
-    slide.out = {{"поворот", "", [this]{ goSlide(needGoLeft); },
-                  [this]{ return io->get(needGoLeft ? StateDKPBroomLeft : StateDKPBroomRight).toBool(); },
+    slide.out = {{"поворот", "", [this]{ goSlide(_left); },
+                  [this]{ return io->get(_left ? StateDKPBroomLeft : StateDKPBroomRight).toBool(); },
                   timeout(BroomSlideOut)}};
     slide.in = {{"возврат поворота", "", [this]{ setDirection(organsEnums::Right); },
                  [this]{ return io->get(StateDKPBroomRight).toBool(); },
@@ -21,7 +21,7 @@ CentralBroom::CentralBroom(const MachineIo &machine, MachineContext *context, Vi
     sequence.addStep(slide);
 
     OrganSequence::Step bounce;// отскок от упора - поворот в противоположную сторону; назад ничего не делаем
-    bounce.out = {{"отскок", "Щетка: отскок", [this]{ goSlide(!needGoLeft); }, nullptr, timeout(BroomBounceOut),
+    bounce.out = {{"отскок", "Щетка: отскок", [this]{ goSlide(!_left); }, nullptr, timeout(BroomBounceOut),
                    [this]{ return timeouts.value(BroomBounceOut, 0) <= 0; }}};
     sequence.addStep(bounce);
 
@@ -82,6 +82,7 @@ void CentralBroom::readSettings(){
     lowerTimeSec = reader->readSettingsValue("CentralBroom/lowerTimeSec").toFloat();
     raiseTimeSec = reader->readSettingsValue("CentralBroom/raiseTimeSec").toFloat();
     spinHeight = qBound(0, reader->readSettingsValue("CentralBroom/spinHeightPercent").toInt(), 100) / 100.0;
+    side.setTravelSec(reader->readSettingsValue("CentralBroom/slideTimeSec").toFloat());
 }
 
 QString CentralBroom::toString(BroomStates s){
@@ -244,6 +245,23 @@ void CentralBroom::setPressActive(bool state){
     logger->addLog(state?"Щетка: прижим активирован":"Щетка: прижим деактивирован");
 }
 
+void CentralBroom::selectFlow(bool selected){
+    if (_flowSelected == selected)
+        return;
+    _flowSelected = selected;
+    emit selectionChanged();
+}
+
+void CentralBroom::selectPress(bool selected){
+    if (_pressSelected == selected)
+        return;
+    _pressSelected = selected;
+    setPressActive(selected);
+    if (!selected)
+        stopPress();// прижим выключили - сбрасываем поджим сразу, чтобы не оставались активные клапаны
+    emit selectionChanged();
+}
+
 void CentralBroom::setFlowActive(bool state){
     if(isFlowing == state)
         return;
@@ -337,6 +355,10 @@ void CentralBroom::goNoRotate(){
 // }
 
 void CentralBroom::beforeStep(){
+    const bool pressure = hydraulics->isOn();
+    side.update(pressure && direction == organsEnums::Left, pressure && direction == organsEnums::Right,
+                io->get(StateDKPBroomLeft).toBool(), io->get(StateDKPBroomRight).toBool());
+    followActualSide(side.isLeft());
     updateHeightEstimate();
     updateRotation();
 }

@@ -29,9 +29,21 @@ public:
     void goHome() { sequence.enter(0); }// считать орган убранным и всё выключить
     void assumeDeployed() { sequence.assume(sequence.topState()); }// считать разложенным - орган уберётся заново
 
+    // выбор оператора: сторона работы органа
+    bool isLeftSelected() const { return _left; }
+    bool isRightSelected() const { return _right; }
+    bool isSideSelected() const { return _left || _right; }
+    void toggleSide(bool right);// кнопка стороны до начала уборки: выбрать сторону или снять выбор
+    void setSide(bool right);
+
+signals:
+    void selectionChanged();// выбор оператора изменился - перерисовать экран, пересчитать цели органов
+
 protected:
     virtual void beforeStep() {}// такт органа до шага последовательности
     virtual void afterStep() {}// и после
+    // оператор вручную перевёл орган на другую сторону - выбор стороны переходит за ним
+    void followActualSide(bool onLeft);
 
     IoBus *io;
     HydraulicSupply *hydraulics;
@@ -40,8 +52,12 @@ protected:
     MachineContext *_context;
     OrganSequence sequence;
 
+    bool _left = false;
+    bool _right = false;
+
 private:
     void progressLoop();
+    QString _name;
     QTimer progressTimer;
 };
 

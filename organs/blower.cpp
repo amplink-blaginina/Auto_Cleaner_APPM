@@ -73,19 +73,6 @@ void Blower::setDirection(bool isRight){
     isTargetRight = isRight;
 }
 
-void Blower::toggleSide(bool right){
-    const bool wasSelected = right ? _right : _left;
-    _left = !right && !wasSelected;
-    _right = right && !wasSelected;
-    emit selectionChanged();
-}
-
-void Blower::setSide(bool right){
-    _left = !right;
-    _right = right;
-    emit selectionChanged();
-}
-
 void Blower::setLifted(bool lifted){
     _lifted = lifted;
     emit selectionChanged();
@@ -193,83 +180,40 @@ bool Blower::isRotating(){
     return currentRotationSpeed > 0;
 }
 
-void Blower::setStartMomentForStopping(){
-    //qDebug()<<"# wait for stop!";
-    stoppingStartedAt = QDateTime::currentDateTime().time();
-}
-
-void Blower::setStartMomentForStarting(){
-    //qDebug()<<"# wait for start!";
-    startingStartedAt = QDateTime::currentDateTime().time();
-}
-
-void Blower::setStartMomentForRotation(){
-    rotationStartedAt = QDateTime::currentDateTime().time();
-
-}
-
-bool Blower::isHeldLongEnough(const QTime &since) const{
-    // кнопку держат дольше stopDelay секунд (считаем в мс, иначе целые секунды дают лишнюю секунду)
-    if (!since.isValid())
-        return false;
-    return qAbs(since.msecsTo(QDateTime::currentDateTime().time())) > stopDelay * 1000;
-}
-void Blower::updateWhenRotationPressed(bool isRight){
+void Blower::holdSide(bool right){
     if (!_context->isCleaning())
         return;// уборка не запущена - кнопка только выбирает сторону, гидравлику не трогаем
-
-    if(isHeldLongEnough(rotationStartedAt)){
-        //setState (BlowerOff);
-        //qDebug()<<"# Set target direction 2: "<<(isTargetRight?"right":"left");
-        isTargetRight = isRight;
-        if (!_left && !_right){
-            // сторона не выбрана - выбираем удерживаемую, иначе обдув останется выключенным
-            _lifted = false;
-            setSide(isRight);
-        }
-        else if (_lifted)// удержание стороны снова разворачивает поднятый обдув
-            setLifted(false);
-        //setSide(isRight);
-        setNeedState(BlowerRotated);
+    isTargetRight = right;
+    if (!isSideSelected()){
+        // сторона не выбрана - выбираем удерживаемую, иначе обдув останется выключенным
+        _lifted = false;
+        setSide(right);
     }
+    else if (_lifted)// удержание стороны снова разворачивает поднятый обдув
+        setLifted(false);
+    setNeedState(BlowerRotated);
     // вручную раструб не поворачиваем: включённый обдув не может стоять в промежуточном положении,
-    // поворот до крайнего положения делает автомат после удержания
+    // поворот до крайнего положения делает автомат
 }
 
-void Blower::cancelHold(){
-    // нажали, пока обдув в движении: удержание не засчитываем, пока кнопку не нажмут заново
-    stoppingStartedAt = QTime();
-    startingStartedAt = QTime();
-    rotationStartedAt = QTime();
-}
-
-void Blower::updateWhenUpPressed(){
+void Blower::holdUp(){
     if (!_context->isCleaning())
         return;// уборка не запущена - гидравлику не трогаем
-
-    if(isHeldLongEnough(stoppingStartedAt)){
-        // поднимаем обдув, выбранная сторона остаётся подсвеченной
-        if (_context->isCleaning() && !_lifted){
-            setLifted(true);
-        }
-        setNeedState(BlowerOff);
-    }
-    // вручную не поднимаем: остановку и подъём выполняет автомат после удержания
+    // поднимаем обдув, выбранная сторона остаётся подсвеченной
+    if (!_lifted)
+        setLifted(true);
+    setNeedState(BlowerOff);
 }
 
-void Blower::updateWhenDownPressed(){
+void Blower::holdDown(){
     if (!_context->isCleaning())
         return;// уборка не запущена - гидравлику не трогаем
-
-    if(isHeldLongEnough(startingStartedAt)){
-        // запуск удержанием: подсвечиваем сторону обдува, по умолчанию правую
-        if (_context->isCleaning() && sequence.need() != BlowerRotated){
-            _lifted = false;
-            const bool right = !_left;
-            isTargetRight = right;
-            setSide(right);
-        }
-        setNeedState(BlowerRotated);//setState(BlowerOff);
+    // запуск: подсвечиваем сторону обдува, по умолчанию правую
+    if (sequence.need() != BlowerRotated){
+        _lifted = false;
+        const bool right = !_left;
+        isTargetRight = right;
+        setSide(right);
     }
-    // вручную не опускаем: опускание и запуск выполняет автомат после удержания
+    setNeedState(BlowerRotated);
 }
