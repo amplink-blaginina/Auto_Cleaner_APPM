@@ -97,6 +97,7 @@ public:
     void updateWhenDownPressed();
     void updateWhenRotationPressed(bool isRight);
     void setDirection(bool);
+    bool targetRight() const { return isTargetRight; }// сторона, на которую идёт обдув
 public slots:
     // слот для получания данных из CAN
     void progressLoop();

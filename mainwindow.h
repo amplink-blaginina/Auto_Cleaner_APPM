@@ -485,6 +485,7 @@ private:
     void setBtnView(bool isPressed, QLabel *lbl, QPushButton *btn, QString onPath, QString offPath);
     QString getBlowerDefaultIcon();
     QString getBlowerVertIcon();
+    QString getBlowerSideIconName();
     QString getDumpDefaultIcon();
     QString getBroomDefaultIcon();
     void setVertButtonsView(bool state);
@@ -505,6 +506,7 @@ public :
     bool isBroomTransitioning();
     bool isDumpTransitioning();
     bool isMagnetTransitioning();
+    Blower::BlowerStates blowerTargetState();
     bool isBlowTransitioning();
     QString getMovementText(organsEnums::Direction direction);
     void setBroomFlowView(bool state);
