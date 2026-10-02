@@ -17,6 +17,8 @@
 #include "tojournalcalc.h"
 
 #include <QSettings>
+
+#include <unistd.h>
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QLineEdit>
@@ -124,7 +126,7 @@ void askPassword(MainWindow* mw, QObject* ctx, std::function<void()> onOk)
             int random = std::rand() % 9999 + 1;
             mw->settings->setValue("Global/secretPasswordDiag", random);
             mw->settings->sync();
-            system("sync");
+            ::sync();// сбросить файл настроек на диск
             mw->removeBadSettings();
             qDebug() << "TO JOURNAL: вход по секретному паролю, пароль сменён";
         }

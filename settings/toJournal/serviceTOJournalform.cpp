@@ -128,12 +128,12 @@ ServiceTOJournalForm::ServiceTOJournalForm(MainWindow* mainWindow, QWidget* pare
                                                  + machine.toHtmlEscaped().replace("  ", "&nbsp;&nbsp;&nbsp;"));
 
     mainProgressTimer = new QTimer(this);
-    connect(mainProgressTimer, SIGNAL(timeout()), this, SLOT(mainProgress()));
+    connect(mainProgressTimer, &QTimer::timeout, this, &ServiceTOJournalForm::mainProgress);
     mainProgressTimer->start(1000);
 
     confirmTimer = new QTimer(this);
     confirmTimer->setSingleShot(true);
-    connect(confirmTimer, SIGNAL(timeout()), this, SLOT(disarm()));
+    connect(confirmTimer, &QTimer::timeout, this, &ServiceTOJournalForm::disarm);
 
     reload();
     refreshHeader();
