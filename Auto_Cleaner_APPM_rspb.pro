@@ -19,6 +19,7 @@ INCLUDEPATH += $$PWD/organs
 INCLUDEPATH += $$PWD/service
 INCLUDEPATH += $$PWD/settings
 INCLUDEPATH += $$PWD/settings/gpio/gpioPu
+INCLUDEPATH += $$PWD/settings/gpio/dvr
 
 LIBS += -lgpiodcxx -lgpiod
 
@@ -30,6 +31,10 @@ LIBS += -lgpiodcxx -lgpiod
 }
 
 SOURCES += \
+    camera/cameraview.cpp \
+    camera/cameraplayer.cpp \
+    settings/gpio/dvr/serviceDVRform.cpp \
+    settings/gpio/dvr/dvrfileplayer.cpp \
     settings/gpio/gpioPu/serviceGPIOPUform.cpp \
     settings/gpio/gpioPu/cantracebuffer.cpp \
     settings/gpio/gpioPu/cantracelistener.cpp \
@@ -94,6 +99,10 @@ SOURCES += \
     settings/settingsstore.cpp
 
 HEADERS += \
+    camera/cameraview.h \
+    camera/cameraplayer.h \
+    settings/gpio/dvr/serviceDVRform.h \
+    settings/gpio/dvr/dvrfileplayer.h \
     settings/gpio/gpioPu/serviceGPIOPUform.h \
     settings/gpio/gpioPu/cantracebuffer.h \
     settings/gpio/gpioPu/cantracelistener.h \
@@ -169,6 +178,7 @@ HEADERS += \
     settings/settingsstore.h
 
 FORMS += \
+    settings/gpio/dvr/serviceDVRform.ui \
     settings/gpio/gpioPu/serviceGPIOPUform.ui \
     blockform.ui \
     fogotform.ui \

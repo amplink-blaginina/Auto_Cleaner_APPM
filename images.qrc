@@ -336,6 +336,9 @@
         <file>Images/password/password_button_save_on.png</file>
         <file>Images/settings/gpio/buttons/settings_gpio_button_update_off.png</file>
         <file>Images/settings/gpio/buttons/settings_gpio_button_update_on.png</file>
+            <file>Images/settings/gpio/buttons/settings_gpio_button_camera_off.png</file>
+            <file>Images/settings/gpio/buttons/settings_gpio_button_camera_on.png</file>
+            <file>Images/settings/gpio/buttons/settings_gpio_button_camera_dis.png</file>
     </qresource>
     <qresource prefix="/">
         <!-- Журнал работы (RPI-RES_260929_66) -->

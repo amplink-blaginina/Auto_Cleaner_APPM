@@ -1,6 +1,10 @@
+// cameraview — вывод кадра I420 через OpenGL ES (шейдер YUV->RGB)
+// изменения (RPI-RES_260928_27): glTexSubImage2D вместо перевыделения текстуры на каждый кадр
 #include "cameraview.h"
 #include <QDebug>
 #include <cstring>
+#include <QHash>
+#include <QSize>
 
 CameraView::CameraView(QWidget* parent)
     : QOpenGLWidget(parent)
@@ -56,8 +60,18 @@ void CameraView::initializeGL() {
 
 void CameraView::uploadPlane(GLuint tex, int w, int h, const QByteArray& data) {
     glBindTexture(GL_TEXTURE_2D, tex);
+    // текстура выделяется один раз на размер кадра, дальше только glTexSubImage2D (RPI-RES_260928_17)
+    static QHash<GLuint, QSize> allocated;
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    if (!data.isEmpty() && allocated.value(tex) == QSize(w, h)) {
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_LUMINANCE, GL_UNSIGNED_BYTE, data.constData());
+        return;
+    }
+    allocated[tex] = QSize(w, h);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0,
                  GL_LUMINANCE, GL_UNSIGNED_BYTE, data.isEmpty() ? nullptr : reinterpret_cast<const GLvoid*>(data.constData()));
 }

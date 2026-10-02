@@ -3,8 +3,23 @@
 
 #include "settings/gpio/superDiag/serviceBUConfigform.h"
 #include "settings/gpio/gpioPu/serviceGPIOPUform.h"
+#include "settings/gpio/dvr/serviceDVRform.h"
 
 #include "mainwindow.h"
+#include <QTimer>
+
+// «Регистратор» (GPIO, 4-я кнопка): нет ни одной камеры и нет записей - заходить некуда, кнопка заблокирована (RPI-RES_260929_55)
+// force - стиль задать всегда (после перерисовки меню), иначе только при смене состояния (таймер)
+static void updateDvrMenuButton(QPushButton *btn, const QString &png, bool force)
+{
+    const ServiceDVRForm::Availability a = ServiceDVRForm::availability();
+    const bool on = a.cameras || a.records;
+    if (!force && btn->property("dvrOn").isValid() && btn->property("dvrOn").toBool() == on)
+        return;
+    btn->setProperty("dvrOn", on);
+    btn->setEnabled(on);
+    btn->setStyleSheet("border-style:none;outline: none;background-image:url(" + png + (on ? "_off.png);" : "_dis.png);"));
+}
 
 SettingsMainRightForm::SettingsMainRightForm(MyCan* can, SettingsForm *settingsForm, MainWindow* mainWindow, QWidget *parent) :
     QWidget(parent),
@@ -30,7 +45,7 @@ SettingsMainRightForm::SettingsMainRightForm(MyCan* can, SettingsForm *settingsF
     addMenu("GPIO ПУ", 1, 0, 1, NULL, ":/Images/Images/settings/gpio/buttons/settings_gpio_button_gpioPy");
     addMenu("GPIO БУЦ", 1, 1, 1, NULL, ":/Images/Images/settings/gpio/buttons/settings_gpio_button_gpioBym");
     addMenu("WIFI", 1, 2, 1, _mainWindow->settingsWifiLeftForm, ":/Images/Images/settings/gpio/buttons/settings_gpio_button_update");
-    addMenu("", 1, 3, 0, NULL, "");
+    addMenu("Регистратор", 1, 3, 1, NULL, ":/Images/Images/settings/gpio/buttons/settings_gpio_button_camera");
 
     addMenu("Режимы", 0, 1, 2, NULL, ":/Images/Images/settings/buttons/settings_button_mode");
     addMenu("Легкий + листья", 2, 0, 2, _mainWindow->settingsForm, ":/Images/Images/settings/modes/buttons/settings_mode_button_easyAndLeafHarvesting");
@@ -57,6 +72,14 @@ SettingsMainRightForm::SettingsMainRightForm(MyCan* can, SettingsForm *settingsF
     addMenu("", 5, 2, 5, NULL, "");
     addMenu("", 5, 3, 0, NULL, "");
 
+    // камеры и флешка появляются/пропадают, пока меню открыто - перепроверяем раз в 3 с (RPI-RES_260929_55)
+    QTimer *dvrTimer = new QTimer(this);
+    connect(dvrTimer, &QTimer::timeout, this, [this]() {
+        if (isVisible() && currentLevel == 1)
+            updateDvrMenuButton(buttons[3], menu[1][3].png, false);
+    });
+    dvrTimer->start(3000);
+
     showService();
 }
 
@@ -78,6 +101,7 @@ void SettingsMainRightForm::showService()
     if(currentElement <0){}
     for (int i = 0; i < 4; i++)
     {
+        buttons[i]->setEnabled(true);// блокировка «Регистратора» - только на уровне GPIO (RPI-RES_260929_55)
         if (menu[currentLevel][i].png != "")
         {
             buttons[i]->show();
@@ -99,6 +123,9 @@ void SettingsMainRightForm::showService()
             buttons[i]->hide();
 
     }
+    if (currentLevel == 1)
+        updateDvrMenuButton(buttons[3], menu[1][3].png, true);
+
     if (currentLevel == 0)
     {// нарисуем выход ниже всех
         ui->pushButton_exit->setStyleSheet("border-style:none;outline: none;background-image:url(:/Images/Images/service/buttons/service_button_exit_off.png);");
@@ -125,6 +152,13 @@ void SettingsMainRightForm::showService()
     {//супердиаг
         currentElement = -1;
         ServiceBUConfigForm * f = new ServiceBUConfigForm(_can, _mainWindow, _parent);
+        f->show();
+        f->raise();
+    }
+    if (currentElement == 3 && currentLevel == 1)
+    {// регистратор: камеры и записи
+        currentElement = -1;
+        ServiceDVRForm * f = new ServiceDVRForm(_mainWindow, _parent);
         f->show();
         f->raise();
     }
@@ -261,8 +295,11 @@ void SettingsMainRightForm::on_pushButton_exit_clicked()
 //        //_mainWindow->Password_accepted_settings = false;
     }
     else
-    {
-        moveMenu(3);
+    {// назад в корень меню (раньше moveMenu(3) через скрытый пункт "", в GPIO там теперь «Регистратор»)
+        if (currentElement != -1 && menu[currentLevel][currentElement].form)
+            menu[currentLevel][currentElement].form->hide();
+        currentElement = -1;
+        currentLevel = 0;
         showService();
     }
 }
