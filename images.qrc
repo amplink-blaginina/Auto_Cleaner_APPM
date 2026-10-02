@@ -1,5 +1,23 @@
 <RCC>
     <qresource prefix="/Images">
+        <file>Images/settings/gpioPu/background.png</file>
+        <file>Images/settings/gpioPu/background_1.png</file>
+        <file>Images/settings/gpioPu/button_can_off.png</file>
+        <file>Images/settings/gpioPu/button_can_on.png</file>
+        <file>Images/settings/gpioPu/button_exit_off.png</file>
+        <file>Images/settings/gpioPu/button_exit_on.png</file>
+        <file>Images/settings/gpioPu/button_keyboard_off.png</file>
+        <file>Images/settings/gpioPu/button_keyboard_on.png</file>
+        <file>Images/settings/gpioPu/button_pause_off.png</file>
+        <file>Images/settings/gpioPu/button_pause_on.png</file>
+        <file>Images/settings/gpioPu/indication_black.png</file>
+        <file>Images/settings/gpioPu/indication_can_green.png</file>
+        <file>Images/settings/gpioPu/indication_can_red.png</file>
+        <file>Images/settings/gpioPu/indication_can_yellow.png</file>
+        <file>Images/settings/gpioPu/indication_gray.png</file>
+        <file>Images/settings/gpioPu/indication_green.png</file>
+        <file>Images/settings/gpioPu/indication_violet.png</file>
+        <file>Images/settings/gpioPu/slider.png</file>
         <file>Fonts/Montserrat.ttf</file>
         <file>Images/loading_background.png</file>
         <file>Images/main/backgrounds/background.png</file>

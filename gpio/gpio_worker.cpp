@@ -1,3 +1,6 @@
+// gpio_worker — опрос входов пульта и управление выходами (libgpiod 1.6.3)
+// версия: GPIO ПУ 2 (RPI-RES_260928_02), 2026-09-28
+// изменения: см. gpio_worker.hpp
 #include "gpio_worker.hpp"
 #include <QThread>
 #include <QObject>
@@ -107,19 +110,18 @@ void GPIOWorker::readGroup()
         GPIOInput key = it.key();
         int pin = it.value();
         bool newVal = readPhysicalInput(pin);
+        valuesInput[key] = newVal;
 
-        bool emitSignal = false;
+        // если вход подменен с экрана «GPIO ПУ» - отдаем подмену (в физических единицах)
+        bool effective = newVal;
+        if (overrideInput.contains(key))
+            effective = isInvertedInput(key) ? !overrideInput.value(key) : overrideInput.value(key);
+
+        if (emittedInput.value(key, false) != effective)
         {
-            bool oldVal = valuesInput.value(key, false);
-            if (oldVal != newVal) {
-                valuesInput[key] = newVal;
-                emitSignal = true;
-            } else {
-                valuesInput[key] = newVal;
-            }
+            emittedInput[key] = effective;
+            emit inputChanged(key, effective);
         }
-
-        if (emitSignal) emit inputChanged(key, newVal);
     }
 }
 
@@ -140,14 +142,28 @@ void GPIOWorker::readCycle()
     timerCycle->start();
 }
 
-bool GPIOWorker::getInput(GPIOInput input)
-{
-    if (input == GPIOInput::IN_FRM_PULT
+bool GPIOWorker::isInvertedInput(GPIOInput input)
+{// кнопки пульта подтянуты к питанию - нажата = 0
+    return input == GPIOInput::IN_FRM_PULT
             || input == GPIOInput::IN_CLOSE_BUNKER
             || input == GPIOInput::IN_LIFT_BUNKER
             || input == GPIOInput::IN_LOWER_BUNKER
             || input == GPIOInput::IN_OPEN_BUNKER
-            || input == GPIOInput::IN_IGNITION_OFF)
+            || input == GPIOInput::IN_IGNITION_OFF;
+}
+
+bool GPIOWorker::isInvertedOutput(GPIOOutput output)
+{// инвертироавнные выходы
+    return output == GPIOOutput::OUT_STARTER;
+}
+
+bool GPIOWorker::getInput(GPIOInput input)
+{
+    // подмена с экрана «GPIO ПУ» важнее реального входа
+    if (overrideInput.contains(input))
+        return overrideInput.value(input);
+
+    if (isInvertedInput(input))
         return !valuesInput.value(input, false);
     else
         return valuesInput.value(input, false);
@@ -158,11 +174,135 @@ bool GPIOWorker::getOutput(GPIOOutput output)
     return valuesOutput.value(output, false);
 }
 
+void GPIOWorker::applyOutput(GPIOOutput output, bool logicalValue)
+{
+    // выходы без линии (закомментированные в outputPins) пропускаем,
+    // иначе outputPins[output] добавит в карту пин 0
+    if (!outputPins.contains(output))
+        return;
+
+    bool value = isInvertedOutput(output) ? !logicalValue : logicalValue;
+    writePhysicalOutput(outputPins.value(output), value);
+    valuesOutput[output] = value;
+}
+
 void GPIOWorker::setOutput(GPIOOutput output, bool value)
 {
-    // инвертироавнные выходы
-    if (output == GPIOOutput::OUT_STARTER)
-        value = !value;
-    writePhysicalOutput(outputPins[output], value);
-    valuesOutput[output] = value;
+    // запоминаем желание логики, чтобы вернуть его после выхода из «GPIO ПУ»
+    logicOutput[output] = value;
+
+    if (testMode)
+        return;// выходами сейчас управляет экран «GPIO ПУ»
+
+    applyOutput(output, value);
+}
+
+// ---------------- экран «GPIO ПУ» ----------------
+
+QList<GPIOWorker::PinState> GPIOWorker::pinStates()
+{
+    QList<PinState> res;
+
+    // выходы
+    for (auto it = outputPins.begin(); it != outputPins.end(); ++it)
+    {
+        if (!lines.contains(it.value()))
+            continue;
+        PinState st;
+        st.pin = it.value();
+        st.isOutput = true;
+        st.physical = readPhysicalInput(st.pin);// для выхода get_value() отдает выставленный уровень
+        st.logical = isInvertedOutput(it.key()) ? !st.physical : st.physical;
+        st.overridden = false;
+        res.append(st);
+    }
+    // входы
+    for (auto it = group0.begin(); it != group0.end(); ++it)
+    {
+        if (!lines.contains(it.value()))
+            continue;
+        PinState st;
+        st.pin = it.value();
+        st.isOutput = false;
+        st.physical = valuesInput.value(it.key(), false);
+        st.logical = getInput(it.key());
+        st.overridden = overrideInput.contains(it.key());
+        res.append(st);
+    }
+    return res;
+}
+
+bool GPIOWorker::setInputOverride(int pin, bool logicalValue)
+{
+    for (auto it = group0.begin(); it != group0.end(); ++it)
+    {
+        if (it.value() == pin)
+        {
+            overrideInput[it.key()] = logicalValue;
+            qDebug() << "GPIO PU: подмена входа" << pin << "=" << logicalValue;
+            return true;
+        }
+    }
+    return false;
+}
+
+void GPIOWorker::clearInputOverride(int pin)
+{
+    for (auto it = group0.begin(); it != group0.end(); ++it)
+    {
+        if (it.value() == pin && overrideInput.remove(it.key()))
+            qDebug() << "GPIO PU: подмена входа" << pin << "снята";
+    }
+}
+
+void GPIOWorker::clearAllInputOverrides()
+{
+    if (!overrideInput.isEmpty())
+        qDebug() << "GPIO PU: все подмены входов сняты";
+    overrideInput.clear();
+}
+
+void GPIOWorker::setTestMode(bool on)
+{
+    if (testMode == on)
+        return;
+    testMode = on;
+    qDebug() << "GPIO PU: тестовый режим выходов" << on;
+
+    if (!on)
+    {// отдаем выходы логике: последнее, что она просила,
+     // а если ничего не просила - исходный физический 0
+        for (auto it = outputPins.begin(); it != outputPins.end(); ++it)
+        {
+            if (logicOutput.contains(it.key()))
+                applyOutput(it.key(), logicOutput.value(it.key()));
+            else
+            {
+                writePhysicalOutput(it.value(), false);
+                valuesOutput[it.key()] = false;
+            }
+        }
+    }
+}
+
+bool GPIOWorker::isTestMode()
+{
+    return testMode;
+}
+
+bool GPIOWorker::setOutputTest(int pin, bool logicalValue)
+{
+    if (!testMode)
+        return false;
+
+    for (auto it = outputPins.begin(); it != outputPins.end(); ++it)
+    {
+        if (it.value() == pin && lines.contains(pin))
+        {
+            applyOutput(it.key(), logicalValue);
+            qDebug() << "GPIO PU: выход" << pin << "=" << logicalValue;
+            return true;
+        }
+    }
+    return false;
 }

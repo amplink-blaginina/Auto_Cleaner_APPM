@@ -2,6 +2,7 @@
 #include "ui_settingsmainrightform.h"
 
 #include "settings/gpio/superDiag/serviceBUConfigform.h"
+#include "settings/gpio/gpioPu/serviceGPIOPUform.h"
 
 #include "mainwindow.h"
 
@@ -112,6 +113,13 @@ void SettingsMainRightForm::showService()
 
         _mainWindow->resetPassword();//serviceGeneralPasswordLeftForm->passwordVariable = "password";
         //_mainWindow->serviceGeneralPasswordLeftForm->goStep(0);
+    }
+    if (currentElement == 0 && currentLevel == 1)
+    {// GPIO ПУ
+        currentElement = -1;
+        ServiceGPIOPUForm * f = new ServiceGPIOPUForm(_can, _mainWindow, _parent);
+        f->show();
+        f->raise();
     }
     if (currentElement == 1 && currentLevel == 1)
     {//супердиаг

@@ -18,6 +18,7 @@ INCLUDEPATH += $$PWD/log
 INCLUDEPATH += $$PWD/organs
 INCLUDEPATH += $$PWD/service
 INCLUDEPATH += $$PWD/settings
+INCLUDEPATH += $$PWD/settings/gpio/gpioPu
 
 LIBS += -lgpiodcxx -lgpiod
 
@@ -29,6 +30,11 @@ LIBS += -lgpiodcxx -lgpiod
 }
 
 SOURCES += \
+    settings/gpio/gpioPu/serviceGPIOPUform.cpp \
+    settings/gpio/gpioPu/cantracebuffer.cpp \
+    settings/gpio/gpioPu/cantracelistener.cpp \
+    settings/gpio/gpioPu/cantraceview.cpp \
+    settings/gpio/gpioPu/trcwriter.cpp \
     Controllers/cancontroller.cpp \
     Controllers/gpiocontroller.cpp \
     Controllers/prerollcontroller.cpp \
@@ -88,6 +94,11 @@ SOURCES += \
     settings/settingsstore.cpp
 
 HEADERS += \
+    settings/gpio/gpioPu/serviceGPIOPUform.h \
+    settings/gpio/gpioPu/cantracebuffer.h \
+    settings/gpio/gpioPu/cantracelistener.h \
+    settings/gpio/gpioPu/cantraceview.h \
+    settings/gpio/gpioPu/trcwriter.h \
     BoolStateWatcher.h \
     Controllers/PhysicalButtonManager.h \
     Controllers/cancontroller.h \
@@ -158,6 +169,7 @@ HEADERS += \
     settings/settingsstore.h
 
 FORMS += \
+    settings/gpio/gpioPu/serviceGPIOPUform.ui \
     blockform.ui \
     fogotform.ui \
     mainwindow.ui \

@@ -1,8 +1,12 @@
+// gpio_matrix — опрос матричной клавиатуры 5x4 (libgpiod 1.6.3)
+// версия: GPIO ПУ 2 (RPI-RES_260928_02), 2026-09-28; база - версия с RPi (с tryGetLine)
+// изменения: добавлен блок для экрана «GPIO ПУ»
 #pragma once
 #include <QObject>
 //#include <QThread>
 #include <QMutex>
 #include <QMap>
+#include <QList>
 #include <QString>
 #include <QTimer>
 #include <gpiod.hpp>
@@ -17,6 +21,24 @@ public:
     ~GPIOMatrix();
 
     GPIOInput keyPressed;
+
+    // ---------- для экрана «GPIO ПУ» (вызывать только из главного треда) ----------
+    // раскладка клавиатуры
+    static int rows();
+    static int cols();
+    static GPIOInput keyAt(int row, int col);
+
+    // состояние линии клавиатуры
+    struct LineState
+    {
+        int pin;        // номер BCM
+        bool isOutput;  // столбцы на время сканирования строк становятся выходами
+        bool value;     // уровень на ноге
+    };
+    QList<LineState> lineStates();
+
+    // нажатие кнопки с экрана: логика видит key в keyPressed; IN_NONE - отпустить
+    void setKeyOverride(GPIOInput key);
 
 private:
     void configureHardware();
@@ -38,6 +60,9 @@ private:
 
     // линии
     QMap<int, gpiod::line> lines;
+
+    // кнопка, нажатая на экране «GPIO ПУ»
+    GPIOInput keyOverride = GPIOInput::IN_NONE;
 
     // интервал между переключениями/опросами (ms)
     int pollIntervalMs = 10;

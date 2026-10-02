@@ -1,0 +1,1077 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ServiceGPIOPUForm</class>
+ <widget class="QWidget" name="ServiceGPIOPUForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>GPIO TESTING ПУ</string>
+  </property>
+  <widget class="QFrame" name="frame_background">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>600</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_background
+{
+  background-image:url(:/Images/Images/settings/gpioPu/background_1.png);
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_temperature">
+   <property name="geometry">
+    <rect>
+     <x>279</x>
+     <y>28</y>
+     <width>130</width>
+     <height>34</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(255,255,255); font: 26px "Montserrat"; background: transparent;</string>
+   </property>
+   <property name="text">
+    <string>-- C°</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_status">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>32</y>
+     <width>500</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(150,156,162); font: 13px "Montserrat"; background: transparent;</string>
+   </property>
+   <property name="text">
+    <string></string>
+   </property>
+  </widget>
+  <widget class="QFrame" name="frame_pins">
+   <property name="geometry">
+    <rect>
+     <x>26</x>
+     <y>86</y>
+     <width>208</width>
+     <height>390</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_pins
+{
+  background: transparent;
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <widget class="QPushButton" name="pushButton_pin4">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>76</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>4</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin17">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>107</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>17</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin27">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>138</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>27</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin22">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>169</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>22</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin5">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>231</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>5</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin6">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>262</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>6</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin13">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>293</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>13</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin19">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>324</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>19</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin26">
+    <property name="geometry">
+     <rect>
+      <x>32</x>
+      <y>355</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>26</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin14">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>14</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>14</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin15">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>45</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>15</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin18">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>76</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>18</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin24">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>138</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>24</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin12">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>231</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>12</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin16">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>262</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>16</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin20">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>293</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>20</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_pin21">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>324</y>
+      <width>55</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-style:none;outline: none;border-image:url(:/Images/Images/settings/gpioPu/indication_gray.png);color: rgb(255,255,255);font: 15px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>21</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QFrame" name="frame_keyboard">
+   <property name="geometry">
+    <rect>
+     <x>26</x>
+     <y>86</y>
+     <width>208</width>
+     <height>390</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_keyboard
+{
+  background: transparent;
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <widget class="QPushButton" name="pushButton_key_0_0">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>START
+CLEAN</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_0_1">
+    <property name="geometry">
+     <rect>
+      <x>58</x>
+      <y>10</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>STAR-
+TER</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_0_2">
+    <property name="geometry">
+     <rect>
+      <x>106</x>
+      <y>10</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>DUMP
+↓</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_0_3">
+    <property name="geometry">
+     <rect>
+      <x>154</x>
+      <y>10</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>BROOM
+↓</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_1_0">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>85</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>RES
+1</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_1_1">
+    <property name="geometry">
+     <rect>
+      <x>58</x>
+      <y>85</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>PAUSE
+HOME</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_1_2">
+    <property name="geometry">
+     <rect>
+      <x>106</x>
+      <y>85</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>DUMP
+↑</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_1_3">
+    <property name="geometry">
+     <rect>
+      <x>154</x>
+      <y>85</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>BLOW
+↓</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_2_0">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>160</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>FRM</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_2_1">
+    <property name="geometry">
+     <rect>
+      <x>58</x>
+      <y>160</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>RES
+2</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_2_2">
+    <property name="geometry">
+     <rect>
+      <x>106</x>
+      <y>160</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>BROOM
+↑</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_2_3">
+    <property name="geometry">
+     <rect>
+      <x>154</x>
+      <y>160</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>BLOW
+↑</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_3_0">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>235</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>MODE
+←</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_3_1">
+    <property name="geometry">
+     <rect>
+      <x>58</x>
+      <y>235</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>DUMP
+←</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_3_2">
+    <property name="geometry">
+     <rect>
+      <x>106</x>
+      <y>235</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>BROOM
+←</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_3_3">
+    <property name="geometry">
+     <rect>
+      <x>154</x>
+      <y>235</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>BLOW
+←</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_4_0">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>310</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>MODE
+→</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_4_1">
+    <property name="geometry">
+     <rect>
+      <x>58</x>
+      <y>310</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>DUMP
+→</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_4_2">
+    <property name="geometry">
+     <rect>
+      <x>106</x>
+      <y>310</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>BROOM
+→</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_key_4_3">
+    <property name="geometry">
+     <rect>
+      <x>154</x>
+      <y>310</y>
+      <width>42</width>
+      <height>67</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border:none;border-radius:4px;background:rgb(22,28,34);color:rgb(230,232,234);font: bold 9px "Montserrat";</string>
+    </property>
+    <property name="text">
+     <string>BLOW
+→</string>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="label_keyTitle">
+   <property name="geometry">
+    <rect>
+     <x>55</x>
+     <y>510</y>
+     <width>170</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(230,232,234); font: 16px "Montserrat"; background: transparent;</string>
+   </property>
+   <property name="text">
+    <string>Кнопка</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_keyValue">
+   <property name="geometry">
+    <rect>
+     <x>55</x>
+     <y>538</y>
+     <width>175</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(230,232,234); font: 16px "Montserrat"; background: transparent;</string>
+   </property>
+   <property name="text">
+    <string>—</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_can1Title">
+   <property name="geometry">
+    <rect>
+     <x>279</x>
+     <y>100</y>
+     <width>88</width>
+     <height>36</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(255,255,255); font: 26px "Montserrat"; background: transparent;</string>
+   </property>
+   <property name="text">
+    <string>CAN 1</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_can1Indicator">
+   <property name="geometry">
+    <rect>
+     <x>368</x>
+     <y>112</y>
+     <width>15</width>
+     <height>15</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-image:url(:/Images/Images/settings/gpioPu/indication_can_red.png);</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_can1Info">
+   <property name="geometry">
+    <rect>
+     <x>392</x>
+     <y>108</y>
+     <width>140</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(150,156,162); font: 12px "Montserrat"; background: transparent;</string>
+   </property>
+   <property name="text">
+    <string></string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_can1Pause">
+   <property name="geometry">
+    <rect>
+     <x>538</x>
+     <y>104</y>
+     <width>30</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-style:none;outline: none;background-image:url(:/Images/Images/settings/gpioPu/button_pause_off.png);</string>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
+  </widget>
+  <widget class="QFrame" name="frame_can1List">
+   <property name="geometry">
+    <rect>
+     <x>278</x>
+     <y>145</y>
+     <width>290</width>
+     <height>425</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_can1List
+{
+  background: transparent;
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_can2Title">
+   <property name="geometry">
+    <rect>
+     <x>625</x>
+     <y>100</y>
+     <width>88</width>
+     <height>36</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(255,255,255); font: 26px "Montserrat"; background: transparent;</string>
+   </property>
+   <property name="text">
+    <string>CAN 2</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_can2Indicator">
+   <property name="geometry">
+    <rect>
+     <x>714</x>
+     <y>112</y>
+     <width>15</width>
+     <height>15</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-image:url(:/Images/Images/settings/gpioPu/indication_can_red.png);</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_can2Info">
+   <property name="geometry">
+    <rect>
+     <x>738</x>
+     <y>108</y>
+     <width>140</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(150,156,162); font: 12px "Montserrat"; background: transparent;</string>
+   </property>
+   <property name="text">
+    <string></string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_can2Pause">
+   <property name="geometry">
+    <rect>
+     <x>884</x>
+     <y>104</y>
+     <width>30</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-style:none;outline: none;background-image:url(:/Images/Images/settings/gpioPu/button_pause_off.png);</string>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
+  </widget>
+  <widget class="QFrame" name="frame_can2List">
+   <property name="geometry">
+    <rect>
+     <x>624</x>
+     <y>145</y>
+     <width>290</width>
+     <height>425</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame#frame_can2List
+{
+  background: transparent;
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_saveCan">
+   <property name="geometry">
+    <rect>
+     <x>936</x>
+     <y>352</y>
+     <width>78</width>
+     <height>78</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-style:none;outline: none;background-image:url(:/Images/Images/settings/gpioPu/button_can_off.png);</string>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_keyboard">
+   <property name="geometry">
+    <rect>
+     <x>936</x>
+     <y>432</y>
+     <width>78</width>
+     <height>78</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-style:none;outline: none;background-image:url(:/Images/Images/settings/gpioPu/button_keyboard_off.png);</string>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_exit">
+   <property name="geometry">
+    <rect>
+     <x>935</x>
+     <y>509</y>
+     <width>78</width>
+     <height>78</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton
+{
+  border-style:none;outline: none;background-image:url(:/Images/Images/settings/gpioPu/button_exit_off.png);
+}
+QPushButton:pressed
+{
+  border-style:none;outline: none;background-image:url(:/Images/Images/settings/gpioPu/button_exit_on.png);
+}</string>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

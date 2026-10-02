@@ -1,3 +1,7 @@
+// gpio_matrix — опрос матричной клавиатуры 5x4 (libgpiod 1.6.3)
+// версия: GPIO ПУ 2 (RPI-RES_260928_02), 2026-09-28; база - версия с RPi (с tryGetLine)
+// изменения: добавлен блок для экрана «GPIO ПУ» - состояние линий, нажатие кнопки с экрана;
+// опрос без подмены не изменился
 #include "gpio_matrix.hpp"
 #include <QThread>
 #include <QObject>
@@ -162,5 +166,59 @@ void GPIOMatrix::readCycle(){
         readCols();
     else if (step == 1)
         readRows();
+    // кнопка, нажатая на экране «GPIO ПУ», важнее физического сканирования
+    if (keyOverride != GPIOInput::IN_NONE)
+        keyPressed = keyOverride;
     timerCycle->start();
+}
+
+// ---------------- экран «GPIO ПУ» ----------------
+
+int GPIOMatrix::rows()
+{
+    return ROWS;
+}
+
+int GPIOMatrix::cols()
+{
+    return COLS;
+}
+
+GPIOInput GPIOMatrix::keyAt(int row, int col)
+{
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS)
+        return GPIOInput::IN_NONE;
+    return keys[row][col];
+}
+
+QList<GPIOMatrix::LineState> GPIOMatrix::lineStates()
+{
+    QList<LineState> res;
+    for (auto it = lines.begin(); it != lines.end(); ++it)
+    {
+        LineState st;
+        st.pin = it.key();
+        try
+        {
+            st.isOutput = it.value().direction() == gpiod::line::DIRECTION_OUTPUT;
+            st.value = it.value().get_value();
+        }
+        catch (const std::exception &e)
+        {
+            qWarning() << "GPIO PU: линия клавиатуры" << st.pin << e.what();
+            continue;
+        }
+        res.append(st);
+    }
+    return res;
+}
+
+void GPIOMatrix::setKeyOverride(GPIOInput key)
+{
+    if (keyOverride == key)
+        return;
+    keyOverride = key;
+    // сразу, не дожидаясь цикла опроса (реальная кнопка найдется за 30 мс)
+    keyPressed = key;
+    qDebug() << "GPIO PU: кнопка с экрана" << static_cast<int>(key);
 }
