@@ -48,7 +48,6 @@ SOURCES += \
     log/MessageList.cpp \
     log/screenlog.cpp \
     logger.cpp \
-    maintenancetracker.cpp \
     mainwindow.cpp \
     can/mycan.cpp \
     can/mycanj1939.cpp \
@@ -115,7 +114,6 @@ HEADERS += \
     log/MessageList.h \
     log/screenlog.h \
     logger.h \
-    maintenancetracker.h \
     mainwindow.h \
     can/mycan.h \
     can/mycanj1939.h \
@@ -204,5 +202,3 @@ HEADERS += settings/toJournal/tojournaldefaults.h
 HEADERS += settings/toJournal/tojournaltypes.h
 FORMS += settings/toJournal/serviceTOJournalform.ui
 # --- конец: Журнал ТО ---
-# Журнал ТО (RPI-RES_260929_01): клавиатура модуля добавлена; из списков выше убран старый экран ТО
-# (service/other/intervals/servicegpioserviceintervalleftform.*, servicetoelement.* — файлы остались на диске)

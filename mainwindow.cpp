@@ -256,14 +256,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     _settingsReader->setDefaults();//дефолтные настройки
     settingsStore = new SettingsStore(settings);
 
-    maintenanceTracker = new MaintenanceTracker(
-        _settingsReader,
-        settingsStore
-        );
-
-    maintenanceTracker->createRules();
-    maintenanceTracker->load();
-
     QString can_device = _settingsReader->readSettingsValue("Global/canDeivce").toString();
     QString j1939_device = _settingsReader->readSettingsValue("Global/j1939Deivce").toString();
 
@@ -339,9 +331,6 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     if (need_to_reconf)
         QFile::remove(QCoreApplication::applicationDirPath() + "/settingsAutoCleaner.ini");
 
-//    maintenanceTracker = new MaintenanceTracker(_settingsReader, settingsStore);
-//    maintenanceTracker->createRules();
-//    maintenanceTracker->load();
     //insertValues();
     readValues();
 
@@ -517,8 +506,6 @@ MainWindow::~MainWindow(){
 }
 
 void MainWindow::createFormsAndHide(){
-    // Журнал ТО (RPI-RES_260929_01): старый экран ТО не создаётся
-
     serviceOtherEngineLeftForm = new ServiceOtherEngineLeftForm(this);
     preroll->setEngineForm(serviceOtherEngineLeftForm);
     starter->setEngineForm(serviceOtherEngineLeftForm);
@@ -900,7 +887,6 @@ void MainWindow::readValues(){// у каждого модуля есть сво�
     showCheckEngine = _settingsReader->readSettingsValue("Global/showCheckEngine").toBool();// сознаваться ли про чек энжын?
     buttonsLightLevelEdge = _settingsReader->readSettingsValue("Global/buttonsLightLevelEdge").toInt();
    // buttonsLightLevelEdge = 10; // TODO ????
-    maintenanceTracker->load();
 
     engineTempWarnEdge = _settingsReader->readSettingsValue("Global/engineTempWarnTime").toInt();
     engineTempGoodValue = _settingsReader->readSettingsValue("Global/engineTempGood").toInt();
@@ -1177,24 +1163,7 @@ void MainWindow::oneSecond(){// универсальный таймер для �
         });
     }
 
-    // знак ТО — по журналу ТО (Журнал ТО (RPI-RES_260929_01)); старый расчёт по [TO]/[TOCur] выключен вместе со старым экраном
-#if 0
-    bool to_test = false;
-    foreach (QString key, TONameValues.keys()){
-        quint32 compare = TOCurValues["Engine"];// системный счетчик по двигателю
-        if (TOSourceValues[key] == 1)
-            compare = TOCurValues["System"];
-        if (compare - TOCurValues[key] > TOValues[key]){
-            to_test = true;
-            if (TOAlarmValues[key] != 1){
-                TOAlarmValues[key] = 1;
-                view->addLogWarning(TONameValues[key] + " требует ТО");
-            }
-        }
-        else
-            TOAlarmValues[key] = 0;
-    }
-#endif
+    // знак ТО — по журналу ТО (settings/toJournal)
     int toMilestone = -1;
     const bool to_test = ToJ::Hooks::tick(this, &toMilestone);
     static bool toJournalAlarmPrev = false;
