@@ -6,6 +6,7 @@
 
 #include "mainwindow.h"
 #include "settings/toJournal/serviceTOJournalform.h"   // Журнал ТО (RPI-RES_260929_01)
+#include "settings/workJournal/serviceWorkJournalform.h"   // Журнал работы (RPI-RES_260929_66)
 
 ServiceMainRightForm::ServiceMainRightForm(MainWindow* mainWindow, QWidget *parent_) :
     QWidget(parent_),
@@ -43,7 +44,7 @@ ServiceMainRightForm::ServiceMainRightForm(MainWindow* mainWindow, QWidget *pare
     addMenu("ДВС", 3, 0, 3, _mainWindow->serviceOtherEngineLeftForm, ":/Images/Images/service/other/buttons/service_engine_button_engine");
     addMenu("ТО", 3, 1, 3, NULL,   /* Журнал ТО (RPI-RES_260929_01): экран открывается после пароля в passwordDiagOk() */ ":/Images/Images/service/other/buttons/service_engine_button_TO");
     addMenu("Освещение", 3, 2, 3, _mainWindow->serviceOtherLightLeftForm, ":/Images/Images/service/other/buttons/service_engine_button_light");
-    addMenu("", 3, 3, 0, NULL, "");
+    addMenu("Журнал работы", 3, 3, 0, NULL, /* Журнал работы (RPI-RES_260929_66): goLevel 0 — позиция 3 служит и выходом */ ":/Images/settings/workJournal/service_button_workjournal");
 
     addMenu("", 0, 3, 0, NULL, ":/Images/Images/settings/buttons/settings_reserve");
     addMenu("", 4, 0, 4, NULL, ":/Images/Images/settings/buttons/settings_reserve");
@@ -244,6 +245,13 @@ void ServiceMainRightForm::on_pushButton_3_clicked(){
 }
 
 void ServiceMainRightForm::on_pushButton_4_clicked(){
+    if (currentLevel == 3){   // Журнал работы (RPI-RES_260929_66): «Прочее» → Журнал работы (openWorkJournal)
+        ServiceWorkJournalForm* wj = new ServiceWorkJournalForm(_mainWindow, parent);
+        wj->setGeometry(0, 0, 1024, 600);
+        wj->show();
+        wj->raise();
+        return;
+    }
     moveMenu(3);
     showService();
 }

@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "settings/toJournal/tojournalhooks.h"   // Журнал ТО (RPI-RES_260929_01)
+#include "settings/workJournal/wjhooks.h"   // Журнал работы (RPI-RES_260929_66)
 
 #include "BoolStateWatcher.h"
 #include "password_form.h"
@@ -1163,6 +1164,8 @@ void MainWindow::oneSecond(){// универсальный таймер для �
         });
     }
 
+    WJ::Hooks::tick(this);   // Журнал работы (RPI-RES_260929_66): сборщик данных, раз в секунду
+
     // знак ТО — по журналу ТО (settings/toJournal)
     int toMilestone = -1;
     const bool to_test = ToJ::Hooks::tick(this, &toMilestone);
@@ -1622,6 +1625,7 @@ void MainWindow::settingsAskPassword(){
 }
 
 void MainWindow::diagAskPassword(){
+    Password_accepted = true;   // Сервисное меню без пароля (Журнал работы (RPI-RES_260929_66)): пароль диагностики — только в Журнале ТО и в настройках Журнала работы
     if (DEVELOPER_MODE)
         Password_accepted = true;
     if (!Password_accepted){

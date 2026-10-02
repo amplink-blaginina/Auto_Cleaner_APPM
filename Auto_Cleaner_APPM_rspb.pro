@@ -202,3 +202,26 @@ HEADERS += settings/toJournal/tojournaldefaults.h
 HEADERS += settings/toJournal/tojournaltypes.h
 FORMS += settings/toJournal/serviceTOJournalform.ui
 # --- конец: Журнал ТО ---
+
+# --- Журнал работы (RPI-RES_260929_66) ---
+SOURCES += settings/workJournal/wjcalc.cpp
+SOURCES += settings/workJournal/wjstore.cpp
+SOURCES += settings/workJournal/wjreport.cpp
+SOURCES += settings/workJournal/wjcollector.cpp
+SOURCES += settings/workJournal/wjhooks.cpp
+SOURCES += settings/workJournal/wjwidgets.cpp
+SOURCES += settings/workJournal/wjpages.cpp
+SOURCES += settings/workJournal/wjpdf.cpp
+SOURCES += settings/workJournal/wjlogo.cpp
+SOURCES += settings/workJournal/serviceWorkJournalform.cpp
+HEADERS += settings/workJournal/wjtypes.h
+HEADERS += settings/workJournal/wjcalc.h
+HEADERS += settings/workJournal/wjstore.h
+HEADERS += settings/workJournal/wjreport.h
+HEADERS += settings/workJournal/wjcollector.h
+HEADERS += settings/workJournal/wjhooks.h
+HEADERS += settings/workJournal/wjwidgets.h
+HEADERS += settings/workJournal/wjpages.h
+HEADERS += settings/workJournal/wjpdf.h
+HEADERS += settings/workJournal/wjdefaults.h
+HEADERS += settings/workJournal/serviceWorkJournalform.h

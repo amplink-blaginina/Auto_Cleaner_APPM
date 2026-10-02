@@ -320,6 +320,9 @@
         <file>Images/settings/gpio/buttons/settings_gpio_button_update_on.png</file>
     </qresource>
     <qresource prefix="/">
+        <!-- Журнал работы (RPI-RES_260929_66) -->
+        <file>Images/settings/workJournal/service_button_workjournal_on.png</file>
+        <file>Images/settings/workJournal/service_button_workjournal_off.png</file>
         <!-- Журнал ТО (RPI-RES_260929_01) -->
         <file>Images/settings/toJournal/btn_add.png</file>
         <file>Images/settings/toJournal/btn_add_pressed.png</file>

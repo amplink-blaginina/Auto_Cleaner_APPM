@@ -356,6 +356,10 @@ public:
     MyCanJ1939 *canj1939;
     MyCanJ1939 *canj1939Main;
 
+    // для служебных модулей (журнал работы): сигналы машины только на чтение
+    IoBus *ioBus() const { return io; }
+    bool isSimulation() const { return simIo != nullptr; }
+
 private:
     MyCan *can0;
     IoBus *io;// сигналы машины: CAN или симуляция (--sim)
