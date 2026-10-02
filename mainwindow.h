@@ -57,7 +57,7 @@
 #include <service/devices/dkp/servicedevicesdkpleftform.h>
 #include <service/other/engine/serviceotherengineleftform.h>
 #include <service/other/light/serviceotherlightleftform.h>
-#include <service/other/intervals/servicegpioserviceintervalleftform.h>
+//#include <service/other/intervals/servicegpioserviceintervalleftform.h>   // Журнал ТО (RPI-RES_260929_01): старый экран ТО
 #include <Controllers/PhysicalButtonManager.h>
 #include <Controllers/cancontroller.h>
 #include <Controllers/prerollcontroller.h>
@@ -337,7 +337,7 @@ public:
     ServiceDevicesDKPLeftForm* serviceDevicesDKPLeftForm;
     ServiceOtherEngineLeftForm* serviceOtherEngineLeftForm;
     ServiceOtherLightLeftForm* serviceOtherLightLeftForm;
-    ServiceGPIOServiceIntervalLeftForm* serviceGPIOServiceIntervalLeftForm;
+    //ServiceGPIOServiceIntervalLeftForm* serviceGPIOServiceIntervalLeftForm;   // Журнал ТО (RPI-RES_260929_01)
 
     SettingsMainRightForm* settingsMainRightForm;
     SettingsWifiLeftForm* settingsWifiLeftForm;

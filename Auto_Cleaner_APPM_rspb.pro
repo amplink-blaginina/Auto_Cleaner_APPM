@@ -72,8 +72,6 @@ SOURCES += \
     service/devices/hydraulics/servicedeviceshydraulicsleftform.cpp \
     service/global/password/servicegeneralpasswordleftform.cpp \
     service/global/timeConfigure/serviceglobaldatetimeleftform.cpp \
-    service/other/intervals/servicegpioserviceintervalleftform.cpp \
-    service/other/intervals/servicetoelement.cpp \
     service/other/engine/serviceotherengineleftform.cpp \
     service/other/light/serviceotherlightleftform.cpp \
     service/safetyinterlock.cpp \
@@ -145,8 +143,6 @@ HEADERS += \
     service/devices/hydraulics/servicedeviceshydraulicsleftform.h \
     service/global/password/servicegeneralpasswordleftform.h \
     service/global/timeConfigure/serviceglobaldatetimeleftform.h \
-    service/other/intervals/servicegpioserviceintervalleftform.h \
-    service/other/intervals/servicetoelement.h \
     service/other/engine/serviceotherengineleftform.h \
     service/other/light/serviceotherlightleftform.h \
     service/safetyinterlock.h \
@@ -172,8 +168,6 @@ FORMS += \
     service/devices/hydraulics/servicedeviceshydraulicsleftform.ui \
     service/global/password/servicegeneralpasswordleftform.ui \
     service/global/timeConfigure/serviceglobaldatetimeleftform.ui \
-    service/other/intervals/servicegpioserviceintervalleftform.ui \
-    service/other/intervals/servicetoelement.ui \
     service/other/engine/serviceotherengineleftform.ui \
     service/other/light/serviceotherlightleftform.ui \
     service/servicemainrightform.ui \
@@ -191,3 +185,24 @@ RESOURCES += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+# --- Журнал ТО (settings/toJournal) ---
+QT += sql
+SOURCES += settings/toJournal/serviceTOJournalform.cpp
+SOURCES += settings/toJournal/tojournalcalc.cpp
+SOURCES += settings/toJournal/tojournalstore.cpp
+SOURCES += settings/toJournal/tojournalwidgets.cpp
+SOURCES += settings/toJournal/tojournalhooks.cpp
+SOURCES += settings/toJournal/tojournalkeyboard.cpp
+HEADERS += settings/toJournal/serviceTOJournalform.h
+HEADERS += settings/toJournal/tojournalcalc.h
+HEADERS += settings/toJournal/tojournalstore.h
+HEADERS += settings/toJournal/tojournalwidgets.h
+HEADERS += settings/toJournal/tojournalhooks.h
+HEADERS += settings/toJournal/tojournalkeyboard.h
+HEADERS += settings/toJournal/tojournaldefaults.h
+HEADERS += settings/toJournal/tojournaltypes.h
+FORMS += settings/toJournal/serviceTOJournalform.ui
+# --- конец: Журнал ТО ---
+# Журнал ТО (RPI-RES_260929_01): клавиатура модуля добавлена; из списков выше убран старый экран ТО
+# (service/other/intervals/servicegpioserviceintervalleftform.*, servicetoelement.* — файлы остались на диске)

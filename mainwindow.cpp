@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "settings/toJournal/tojournalhooks.h"   // Журнал ТО (RPI-RES_260929_01)
 
 #include "BoolStateWatcher.h"
 #include "password_form.h"
@@ -516,8 +517,7 @@ MainWindow::~MainWindow(){
 }
 
 void MainWindow::createFormsAndHide(){
-    serviceGPIOServiceIntervalLeftForm = new ServiceGPIOServiceIntervalLeftForm(this, this);
-    serviceGPIOServiceIntervalLeftForm->hide();
+    // Журнал ТО (RPI-RES_260929_01): старый экран ТО не создаётся
 
     serviceOtherEngineLeftForm = new ServiceOtherEngineLeftForm(this);
     preroll->setEngineForm(serviceOtherEngineLeftForm);
@@ -1177,6 +1177,8 @@ void MainWindow::oneSecond(){// универсальный таймер для �
         });
     }
 
+    // знак ТО — по журналу ТО (Журнал ТО (RPI-RES_260929_01)); старый расчёт по [TO]/[TOCur] выключен вместе со старым экраном
+#if 0
     bool to_test = false;
     foreach (QString key, TONameValues.keys()){
         quint32 compare = TOCurValues["Engine"];// системный счетчик по двигателю
@@ -1192,6 +1194,13 @@ void MainWindow::oneSecond(){// универсальный таймер для �
         else
             TOAlarmValues[key] = 0;
     }
+#endif
+    int toMilestone = -1;
+    const bool to_test = ToJ::Hooks::tick(this, &toMilestone);
+    static bool toJournalAlarmPrev = false;
+    if (to_test && !toJournalAlarmPrev)
+        view->addLogWarning(QString("Требуется ТО: срок %1 м/ч").arg(toMilestone));
+    toJournalAlarmPrev = to_test;
     // отображаем знак ТО
     if (to_test && !ui->label_TO->isVisible()){
         ui->label_TO->show();

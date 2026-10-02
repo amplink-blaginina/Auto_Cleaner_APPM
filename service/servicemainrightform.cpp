@@ -5,6 +5,7 @@
 #include "password_form.h"
 
 #include "mainwindow.h"
+#include "settings/toJournal/serviceTOJournalform.h"   // Журнал ТО (RPI-RES_260929_01)
 
 ServiceMainRightForm::ServiceMainRightForm(MainWindow* mainWindow, QWidget *parent_) :
     QWidget(parent_),
@@ -40,7 +41,7 @@ ServiceMainRightForm::ServiceMainRightForm(MainWindow* mainWindow, QWidget *pare
 
     addMenu("Прочее", 0, 2, 3, NULL, ":/Images/Images/service/buttons/service_button_valve");
     addMenu("ДВС", 3, 0, 3, _mainWindow->serviceOtherEngineLeftForm, ":/Images/Images/service/other/buttons/service_engine_button_engine");
-    addMenu("ТО", 3, 1, 3, _mainWindow->serviceGPIOServiceIntervalLeftForm, ":/Images/Images/service/other/buttons/service_engine_button_TO");
+    addMenu("ТО", 3, 1, 3, NULL,   /* Журнал ТО (RPI-RES_260929_01): экран открывается после пароля в passwordDiagOk() */ ":/Images/Images/service/other/buttons/service_engine_button_TO");
     addMenu("Освещение", 3, 2, 3, _mainWindow->serviceOtherLightLeftForm, ":/Images/Images/service/other/buttons/service_engine_button_light");
     addMenu("", 3, 3, 0, NULL, "");
 
@@ -108,22 +109,12 @@ void ServiceMainRightForm::showService()
 //        ui->label_name->setText("");
 
     if (currentElement == 1 && currentLevel == 3 && oldCurrentElement != currentElement && oldCurrentLevel != currentLevel){// техосмотр
-        Password_Form *Password_window = new Password_Form (parent, true);
-        Password_window->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
-        Password_window->setAttribute(Qt::WA_DeleteOnClose,true);
-
-        connect(this,SIGNAL(Pass_close()),Password_window,SLOT(close()));
-        connect(this,SIGNAL(Send_Pass_2_pass_form(int)),Password_window,SLOT(Recieve_pass_name(int)));
-        connect(this,SIGNAL(Send_SecretPass_2_pass_form(int)),Password_window,SLOT(Recieve_secret_pass_name(int)));
-        connect(Password_window,SIGNAL(Send_correct(int)),this,SLOT(passwordDiagOk(int)));
-
-        _settings->beginGroup("Global");
-        emit Send_Pass_2_pass_form(_settings->value("passwordDiag").toInt());
-        emit Send_SecretPass_2_pass_form(_settings->value("secretPasswordDiag").toInt());
-        _settings->endGroup();
-        Password_window->show();        
-        menu[currentLevel][currentElement].form->hide();
-        _mainWindow->serviceGPIOServiceIntervalLeftForm->fillElements();
+        // Журнал ТО без пароля (RPI-RES_260929_09): пароль спрашивает журнал на страницах «Процедуры ТО» и «Проведение ТО»
+        ServiceTOJournalForm* journal = new ServiceTOJournalForm(_mainWindow, parent);
+        journal->setGeometry(0, 0, 1024, 600);
+        journal->show();
+        journal->raise();
+        currentElement = -1;
     }
     if (currentElement == 0 && currentLevel == 2){// гидравлика инициализация
         _mainWindow->serviceDevicesHydraulicsLeftForm->refreshSliders();
@@ -159,7 +150,7 @@ void ServiceMainRightForm::passwordDiagOk(int pass)
         // надо удалить все файлы настроек вида settingsAutoCleaner.ini.Zht231
         _mainWindow->removeBadSettings();
     }
-    menu[currentLevel][currentElement].form->show();
+    // Журнал ТО без пароля (RPI-RES_260929_09): журнал открывается без пароля, этот слот больше не вызывается
 }
 
 void ServiceMainRightForm::moveMenu(qint8 level){// организуем переход по меню
@@ -168,11 +159,7 @@ void ServiceMainRightForm::moveMenu(qint8 level){// организуем пер�
         currentElement = oldCurrentElement;
         menu[currentLevel][currentElement].form->hide();
         level = oldLevel;
-        if (currentElement == 1 && currentLevel == 3){// ТО
-            _mainWindow->serviceGPIOServiceIntervalLeftForm->saveIntervals();
-            _mainWindow->readValues();
-            menu[currentLevel][currentElement].form->hide();
-        }
+        // Журнал ТО (RPI-RES_260929_01): сохранение старого экрана ТО больше не нужно
         if (currentElement == 0 && currentLevel == 1){// дату редактировали
             _mainWindow->serviceGlobalDateTimeLeftForm->changed = false;
             QString dataa = "date -s @\"" + QString::number(_mainWindow->serviceGlobalDateTimeLeftForm->curDT.toTime_t()) + "\"";
@@ -198,7 +185,7 @@ void ServiceMainRightForm::moveMenu(qint8 level){// организуем пер�
     if (level == 1 && currentLevel == 5){// НЕТ
         currentLevel = oldCurrentLevel;
         currentElement = oldCurrentElement;
-        if (currentElement == 1 && currentLevel == 3)
+        if (currentElement == 1 && currentLevel == 3 && menu[currentLevel][currentElement].form)
             menu[currentLevel][currentElement].form->hide();
         if (currentElement == 0 && currentLevel == 1)
             _mainWindow->serviceGlobalDateTimeLeftForm->changed = false;// дату редактировали
@@ -222,7 +209,7 @@ void ServiceMainRightForm::moveMenu(qint8 level){// организуем пер�
         currentElement = -1;
         return;
     }
-    if (currentElement == 1 && currentLevel == 3 && menu[currentLevel][currentElement].form->isVisible()){// вышли из ТО
+    if (currentElement == 1 && currentLevel == 3 && menu[currentLevel][currentElement].form && menu[currentLevel][currentElement].form->isVisible()){// вышли из ТО
         oldCurrentLevel = currentLevel;
         oldCurrentElement = currentElement;
         oldLevel = level;

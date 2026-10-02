@@ -319,4 +319,31 @@
         <file>Images/settings/gpio/buttons/settings_gpio_button_update_off.png</file>
         <file>Images/settings/gpio/buttons/settings_gpio_button_update_on.png</file>
     </qresource>
+    <qresource prefix="/">
+        <!-- Журнал ТО (RPI-RES_260929_01) -->
+        <file>Images/settings/toJournal/btn_add.png</file>
+        <file>Images/settings/toJournal/btn_add_pressed.png</file>
+        <file>Images/settings/toJournal/btn_del.png</file>
+        <file>Images/settings/toJournal/btn_del_pressed.png</file>
+        <file>Images/settings/toJournal/btn_exit.png</file>
+        <file>Images/settings/toJournal/btn_exit_pressed.png</file>
+        <file>Images/settings/toJournal/btn_journal.png</file>
+        <file>Images/settings/toJournal/btn_journal_on.png</file>
+        <file>Images/settings/toJournal/btn_journal_pressed.png</file>
+        <file>Images/settings/toJournal/btn_left.png</file>
+        <file>Images/settings/toJournal/btn_left_pressed.png</file>
+        <file>Images/settings/toJournal/btn_right.png</file>
+        <file>Images/settings/toJournal/btn_right_pressed.png</file>
+        <file>Images/settings/toJournal/btn_settings.png</file>
+        <file>Images/settings/toJournal/btn_settings_on.png</file>
+        <file>Images/settings/toJournal/btn_settings_pressed.png</file>
+        <file>Images/settings/toJournal/btn_to.png</file>
+        <file>Images/settings/toJournal/btn_to_on.png</file>
+        <file>Images/settings/toJournal/btn_to_pressed.png</file>
+        <file>Images/settings/toJournal/checkbox.png</file>
+        <file>Images/settings/toJournal/checkbox_on.png</file>
+        <file>Images/settings/toJournal/combo_arrow.png</file>
+        <file>Fonts/toJournal/Manrope-Bold.ttf</file>
+        <file>Fonts/toJournal/Manrope-Regular.ttf</file>
+    </qresource>
 </RCC>
