@@ -67,12 +67,15 @@ void GPIOWorker::configureHardware()
     for (auto it = outputPins.begin(); it != outputPins.end(); ++it) {
         if (!lines.contains(it.value()))
         {
+            // начальный уровень = «выключено» для логики: у инверсного выхода (стартер) это физическая 1.
+            // Раньше линия запрашивалась с 0, и стартер включался при запуске программы,
+            // пока логика не выключит его явно (а она выключает только после нажатия)
+            const int offLevel = isInvertedOutput(it.key()) ? 1 : 0;
             gpiod::line line = chip.get_line(it.value());
-            line.request({"gpio-worker", gpiod::line_request::DIRECTION_OUTPUT, 0});
+            line.request({"gpio-worker", gpiod::line_request::DIRECTION_OUTPUT, 0}, offLevel);
             lines[it.value()] = line;
-            //line.set_value(0);
+            valuesOutput[it.key()] = offLevel;
         }
-        valuesOutput[it.key()] = false;
     }
     // ------- Запрос входов группы 0 -------
     for (auto it = group0.begin(); it != group0.end(); ++it) {
@@ -270,18 +273,10 @@ void GPIOWorker::setTestMode(bool on)
     qDebug() << "GPIO PU: тестовый режим выходов" << on;
 
     if (!on)
-    {// отдаем выходы логике: последнее, что она просила,
-     // а если ничего не просила - исходный физический 0
+    {// отдаем выходы логике: последнее, что она просила, а если ничего не просила - «выключено»
+     // (для инверсного стартера это физическая 1, не 0)
         for (auto it = outputPins.begin(); it != outputPins.end(); ++it)
-        {
-            if (logicOutput.contains(it.key()))
-                applyOutput(it.key(), logicOutput.value(it.key()));
-            else
-            {
-                writePhysicalOutput(it.value(), false);
-                valuesOutput[it.key()] = false;
-            }
-        }
+            applyOutput(it.key(), logicOutput.value(it.key(), false));
     }
 }
 
