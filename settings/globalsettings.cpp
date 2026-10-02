@@ -4,7 +4,11 @@
 #include <qdatetime.h>
 
 GlobalSettings::GlobalSettings(SettingsReader *reader){
-    _reader = reader;}
+    _reader = reader;
+    // адрес двигателя нужен сразу: MainWindow передает его в MyCanEngine::setEngineAddr() до readValues().
+    // Раньше поле было не инициализировано, и TSC1 уходил со случайным SA (например 0x18000069 вместо 0x0C000003)
+    enigneAddr = _reader->readSettingsValue("Engine/addr").toInt();
+}
 
 void GlobalSettings::setDefaults(){
     starterMaxWorkSec = 15;
