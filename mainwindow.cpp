@@ -275,7 +275,10 @@ MainWindow::MainWindow(int argc, char *argv[], QWidget *parent)
     logger = new Logger(nullptr);// инит логгера (черный ящик)
 
     //Инит CAN и GPIO
-    can0 = new MyCan(can_device, logger, true, nullptr);//can0
+    // перезапуск интерфейса из программы (ifconfig down/up) выключен: под нагрузкой он вешает драйвер mcp251x
+    // (CVE-2026-23357, дедлок в mcp251x_open), пульт перестаёт отвечать до перезагрузки.
+    // После bus-off интерфейс поднимает ядро (restart-ms в can_init.sh)
+    can0 = new MyCan(can_device, logger, false, nullptr);//can0
     canForEngine = new MyCanEngine(j1939_device, logger, false, nullptr);
     canForEngine->setEngineAddr(globals->enigneAddr);
     // сигналы машины: платы БУЦ по CAN или симуляция для отладки без техники
