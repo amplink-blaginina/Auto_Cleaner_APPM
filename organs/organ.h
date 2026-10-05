@@ -35,6 +35,8 @@ public:
     bool isSideSelected() const { return _left || _right; }
     void toggleSide(bool right);// кнопка стороны до начала уборки: выбрать сторону или снять выбор
     void setSide(bool right);
+    // оператор повернул орган кнопкой влево/вправо: только после этого выбор стороны может перейти за органом
+    void noteManualSideMove() { _manualSideMove = true; }
 
 signals:
     void selectionChanged();// выбор оператора изменился - перерисовать экран, пересчитать цели органов
@@ -55,6 +57,8 @@ protected:
     MachineContext *_context;
     OrganSequence sequence;
 
+    bool _manualSideMove = false;// с выхода из дома орган поворачивали вручную
+    int _lastOnLeft = -1;        // оценка стороны на прошлом такте: 1 - слева, 0 - справа, -1 - ещё не было
     bool _left = false;
     bool _right = false;
 

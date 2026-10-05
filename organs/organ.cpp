@@ -31,9 +31,16 @@ void Organ::setSide(bool right){
 }
 
 void Organ::followActualSide(bool onLeft){
-    // только ручное управление разложенным органом во время уборки: пока орган дома или его движет автомат
-    // (опускание, уборка домой через середину), выбор не трогаем
-    if (!_context->isCleaning() || isHome() || isTransitioning() || !isSideSelected() || onLeft == _left)
+    // выбор переходит, только когда при ручном повороте разложенного органа во время уборки оценка положения
+    // пересекла середину. Пока орган дома или его движет автомат (опускание, уборка домой через середину),
+    // выбор не трогаем. Расхождение оценки с выбором без пересечения (датчик перепутан или не работает,
+    // оценка «застряла» у одного упора) выбор тоже не меняет
+    const bool crossed = _lastOnLeft >= 0 && onLeft != (_lastOnLeft == 1);
+    _lastOnLeft = onLeft ? 1 : 0;
+    if (isHome())
+        _manualSideMove = false;
+    if (!crossed || !_manualSideMove || !_context->isCleaning() || isHome() || isTransitioning()
+        || !isSideSelected() || onLeft == _left)
         return;
     setSide(!onLeft);
     logger->addLog(_name + (onLeft ? ": сторона сменилась на левую" : ": сторона сменилась на правую"));
