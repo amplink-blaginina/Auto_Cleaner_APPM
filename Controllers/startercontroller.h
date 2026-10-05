@@ -9,6 +9,7 @@
 #include <engine.h>
 #include <globalsettings.h>
 #include <qdatetime.h>
+#include <QElapsedTimer>
 #include <screenlog.h>
 #include <other/engine/serviceotherengineleftform.h>
 
@@ -63,7 +64,12 @@ public:
     //bool isStarterClicked();
     QString getFatalStatusMessage();
 
-    void updateButtons(bool state);
+    // screenPressed - кнопка «Стартер» на экране ДВС, physicalPressed - кнопка стартера на пульте
+    void updateButtons(bool screenPressed, bool physicalPressed);
+    // кнопка пульта оказалась нажатой сразу после запуска программы - считаем её неисправной (замыкание)
+    // и до перезапуска программы её сигнал не принимаем; экранная кнопка работает
+    bool isPhysicalStarterFaulty() const { return physicalStarterFaulty; }
+    void warnIfPhysicalStarterFaulty();// предупреждение при входе в окно ДВС (прокрутка)
     void setEngineForm(ServiceOtherEngineLeftForm *otherEngineForm);
     void updateStarterStatusText(QString text, bool isError = false);
 private:
@@ -77,6 +83,11 @@ private:
     bool intentionalShutdown;
     BoolStateWatcher m_starter;
 
+    // проверка кнопки стартера пульта на залипание при запуске
+    static constexpr qint64 STARTER_STUCK_WINDOW_MS = 3000;// нажата в первые 3 с опроса кнопок - неисправна
+    QElapsedTimer buttonsSinceStart;
+    bool physicalStarterFaulty = false;
+
     bool checkAttemptsLimitReached();
     void handleStarterTimeout();
     bool checkAbleToStart();
@@ -89,7 +100,7 @@ private:
     void updateStarterState();
     bool getEngineRunning();
     MainWindow *_mainWindow;
-    QLabel *_statusLbl;
+    QLabel *_statusLbl = nullptr;
     bool trySetStarterState(bool state);
 };
 

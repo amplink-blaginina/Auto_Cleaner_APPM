@@ -1,7 +1,10 @@
 # Общая часть скриптов деплоя на Raspberry Pi (подключается через source).
-# Адрес Pi: первый аргумент скрипта, переменная PI или knight@192.168.68.128
+# Адрес Pi: первый аргумент скрипта, переменная PI или knight@192.168.68.128.
+# Можно IP (192.168.68.140), сетевое имя Pi (appm-012.local) или имя из ~/.ssh/config (appm-012).
 
 PI=${1:-${PI:-knight@192.168.68.128}}
+# адрес, имя из ~/.ssh/config или appm-012.local без пользователя - входим как knight
+[[ $PI == *@* ]] || PI=knight@$PI
 APP=Auto_Cleaner_APPM_rspb
 APP_COMM=Auto_Cleaner_AP          # /proc/<pid>/comm хранит только 15 символов
 SERVICE=my-app                    # systemd-сервис автозапуска на Pi (Restart=always)

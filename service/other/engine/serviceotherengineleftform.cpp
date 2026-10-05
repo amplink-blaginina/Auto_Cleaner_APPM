@@ -20,6 +20,11 @@ ServiceOtherEngineLeftForm::~ServiceOtherEngineLeftForm(){
 bool ServiceOtherEngineLeftForm::starterBtnStatus(){
     return ui->pushButton_starter->isDown();
 }
+
+void ServiceOtherEngineLeftForm::showEvent(QShowEvent *event){
+    QWidget::showEvent(event);
+    _mainWindow->starter->warnIfPhysicalStarterFaulty();
+}
 void ServiceOtherEngineLeftForm::updateVisual(){
     auto view = _mainWindow->getView();
     QString path = "border-style:none;outline: none;background-image: url(:/Images/Images/service/buttons/service_indication_";
