@@ -1480,7 +1480,7 @@ void MainWindow::updateButtonsUniversal(){
     for (OrganButtons *buttons : organButtons)
         buttons->update();
 
-    starter->updateButtons(serviceOtherEngineLeftForm->starterBtnStatus()||gpioMatirx->keyPressed == GPIOInput::IN_STARTER);
+    starter->updateButtons(serviceOtherEngineLeftForm->starterBtnStatus(), gpioMatirx->keyPressed == GPIOInput::IN_STARTER);
     //qDebug()<<"* starter"<<(gpioMatirx->keyPressed == GPIOInput::IN_STARTER);
     //starter->updateButtons(m_buttonManager.isPressed(GPIOInput::IN_STARTER));
 }

@@ -118,9 +118,32 @@ void StarterController::updateStarterStatusText(QString text, bool isError){
 //         _statusLbl->setText(statusText);
 // }
 
- void StarterController::updateButtons(bool state){
-     m_starter.update(state);
- }
+void StarterController::updateButtons(bool screenPressed, bool physicalPressed){
+    if (!buttonsSinceStart.isValid())
+        buttonsSinceStart.start();// окно проверки отсчитываем от первого опроса кнопок
+
+    // кнопка пульта нажата сразу после запуска: человек так быстро не нажмёт, значит замыкание или залипание.
+    // Сигнал с неё больше не принимаем, иначе стартер включится сам
+    if (physicalPressed && !physicalStarterFaulty && buttonsSinceStart.elapsed() < STARTER_STUCK_WINDOW_MS){
+        physicalStarterFaulty = true;
+        qWarning() << "STARTER: кнопка стартера на пульте нажата при запуске программы - неисправна, сигнал с неё игнорируется";
+    }
+    if (physicalStarterFaulty)
+        physicalPressed = false;
+
+    m_starter.update(screenPressed || physicalPressed);
+}
+
+void StarterController::warnIfPhysicalStarterFaulty(){
+    if (!physicalStarterFaulty)
+        return;
+    const QString text = "Кнопка стартера на пульте неисправна (нажата при включении). Сигнал с неё игнорируется";
+    _screenLog->printWarning(text);
+    if (_statusLbl){
+        _mainWindow->getView()->setStyle(_statusLbl, "color: yellow;");
+        _statusLbl->setText(text);
+    }
+}
 
 bool StarterController::inStarterPause() const{
     if (!starterPauseActive)

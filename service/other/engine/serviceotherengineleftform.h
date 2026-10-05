@@ -28,6 +28,8 @@ public:
     
     MainWindow *_mainWindow;
     bool starterBtnStatus();
+protected:
+    void showEvent(QShowEvent *event) override;// при входе в окно - предупреждение о неисправной кнопке стартера
 private slots:
 
     void on_pushButton_preroll_clicked();
