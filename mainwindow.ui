@@ -352,7 +352,7 @@ font: 75 16pt bold &quot;Vemana2000&quot;;</string>
       <x>398</x>
       <y>100</y>
       <width>85</width>
-      <height>27</height>
+      <height>0</height>
      </rect>
     </property>
     <property name="font">
@@ -373,7 +373,7 @@ font: 75 16pt bold &quot;Vemana2000&quot;;</string>
       <x>474</x>
       <y>88</y>
       <width>67</width>
-      <height>37</height>
+      <height>0</height>
      </rect>
     </property>
     <property name="font">
@@ -397,7 +397,7 @@ font: 75 16pt bold &quot;Vemana2000&quot;;</string>
       <x>544</x>
       <y>100</y>
       <width>70</width>
-      <height>27</height>
+      <height>0</height>
      </rect>
     </property>
     <property name="font">
@@ -1565,6 +1565,9 @@ outline: none;
      <string>гидравлика</string>
     </property>
    </widget>
+   <zorder>label_speedCaption</zorder>
+   <zorder>label_speed</zorder>
+   <zorder>label_speedUnit</zorder>
    <zorder>label_date</zorder>
    <zorder>label_time</zorder>
    <zorder>verticalLayoutWidget</zorder>
