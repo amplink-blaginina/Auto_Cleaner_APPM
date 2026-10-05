@@ -130,8 +130,8 @@ bool OrganSequence::phaseFinished(){
     if (_clock.elapsed() <= timeout * 1000)
         return false;
     if (phase.sensor){// датчик не сработал: останавливаем орган, идём дальше
-        _logger->addLogWarning(_name + ": " + phase.name + " - датчик не сработал за "
-                               + QString::number(timeout) + " с");
+        // _logger->addLogWarning(_name + ": " + phase.name + " - датчик не сработал за "
+        //                        + QString::number(timeout) + " с");
         if (_halt)
             _halt();
         _alarmed = true;
