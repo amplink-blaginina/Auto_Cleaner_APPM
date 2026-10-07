@@ -32,7 +32,7 @@
 QLocale EngLocale (QLocale::Russian);
 
 static int ptsInc = 0;
-const QString programmVersionString = QStringLiteral("AutoCleaner APPM v3.022");
+const QString programmVersionString = QStringLiteral("AutoCleaner APPM v3.023");
 
 //Changes
 // 3.001 - форкнулся от APPM2 imx6, удалил лишнее и накатил на нее все от разбери с 200 и 318D4
