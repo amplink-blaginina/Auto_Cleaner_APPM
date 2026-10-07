@@ -95,7 +95,7 @@ void PrerollController::processPrerollInService(bool isEngineFormVisible){//supe
     const bool prerollStarterPressed = serviceEngineVisible && _starterPrerollBtn->isDown();
     const bool prerollStarterPressedEdge = prerollStarterPressed && !_state->prerollStarterButtonPrev;
 
-    const bool rollInputPressed = _can->getRollIn();
+    const bool rollInputPressed = readRollInput(serviceEngineVisible);
     const bool rollInputPressedEdge = rollInputPressed && !_state->rollInputPrev;
 
     if (prerollPressedEdge){
@@ -204,6 +204,41 @@ void PrerollController::processPrerollInService(bool isEngineFormVisible){//supe
     _state->prerollButtonPrev = prerollPressed;
     _state->prerollStarterButtonPrev = prerollStarterPressed;
     _state->rollInputPrev = rollInputPressed;
+}
+
+bool PrerollController::readRollInput(bool serviceEngineVisible){
+    const bool raw = _can->getRollIn();
+    // окно проверки на залипание - от появления связи с блоком: раньше вход ещё не читается
+    if (!rollInputSinceOnline.isValid() && _can->isBoard0IN())
+        rollInputSinceOnline.start();
+    if (raw && !rollInputFaulty && rollInputSinceOnline.isValid()
+        && rollInputSinceOnline.elapsed() < ROLL_STUCK_WINDOW_MS){
+        rollInputFaulty = true;
+        qWarning() << "PREROLL: кнопка прокрутки на пульте нажата при запуске программы - неисправна, сигнал с неё игнорируется";
+    }
+    if (rollInputFaulty)
+        return false;
+
+    if (!serviceEngineVisible)
+        rollInputArmed = false;// вне окна ДВС кнопка не работает
+    else if (!raw)
+        rollInputArmed = true;// отпущена в окне - следующее нажатие засчитаем
+    return serviceEngineVisible && rollInputArmed && raw;
+}
+
+void PrerollController::warnIfRollInputBlocked(){
+    QString text;
+    if (rollInputFaulty)
+        text = "Кнопка прокрутки на пульте неисправна (нажата при включении). Сигнал с неё игнорируется";
+    else if (_can->getRollIn())
+        text = "Кнопка прокрутки на пульте нажата. Отпустите её - прокрутка запускается новым нажатием";
+    else
+        return;
+    _screenLog->printWarning(text);
+    if (_statusLbl){
+        _view->setStyle(_statusLbl, "color: yellow;");
+        _statusLbl->setText(text);
+    }
 }
 
 void PrerollController::updateRollStatusText(){

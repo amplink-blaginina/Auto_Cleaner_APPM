@@ -9,6 +9,7 @@
 #include <engine.h>
 #include <globalsettings.h>
 #include <qdatetime.h>
+#include <QElapsedTimer>
 #include <screenlog.h>
 #include <ui_mainwindow.h>
 //#include <ui_serviceotherengineleftform.h>
@@ -49,7 +50,17 @@ public:
     void setEngineForm(ServiceOtherEngineLeftForm *otherEngineForm);
     void setPrerollPressed(bool state);
     void resetPreroll();
+    // предупреждение при входе в окно ДВС: кнопка прокрутки на пульте неисправна или ещё нажата
+    void warnIfRollInputBlocked();
 private:
+    // кнопка прокрутки на пульте: работает только в окне ДВС и только если её отпускали, пока окно открыто
+    // (замкнутая до входа в меню не срабатывает); замкнутая сразу после появления связи с блоком -
+    // неисправна (замыкание, залипание), до перезапуска программы её сигнал не принимаем
+    bool readRollInput(bool serviceEngineVisible);
+    static constexpr qint64 ROLL_STUCK_WINDOW_MS = 3000;
+    QElapsedTimer rollInputSinceOnline;
+    bool rollInputFaulty = false;
+    bool rollInputArmed = false;
     GlobalSettings *_globals;
     Engine *_engine;
     ScreenLog *_screenLog;

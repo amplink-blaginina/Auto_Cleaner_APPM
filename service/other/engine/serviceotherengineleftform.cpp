@@ -24,6 +24,7 @@ bool ServiceOtherEngineLeftForm::starterBtnStatus(){
 void ServiceOtherEngineLeftForm::showEvent(QShowEvent *event){
     QWidget::showEvent(event);
     _mainWindow->starter->warnIfPhysicalStarterFaulty();
+    _mainWindow->preroll->warnIfRollInputBlocked();
 }
 void ServiceOtherEngineLeftForm::updateVisual(){
     auto view = _mainWindow->getView();
