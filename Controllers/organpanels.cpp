@@ -37,7 +37,11 @@ DumpButtons::DumpButtons(const OrganWidgets &w, FrontRail *dump, PhysicalButtonM
 {
     const QString vert = buttonsPath + "dozerBlade_lift_";
     const QString side = buttonsPath + "dozerBlade_turn_";
-    auto move = [dump](organsEnums::Direction dir){ return [dump, dir]{ dump->setDirection(dir); }; };
+    auto move = [dump](organsEnums::Direction dir){ return [dump, dir]{
+        if (dir == organsEnums::Left || dir == organsEnums::Right)
+            dump->noteManualSideMove();
+        dump->setDirection(dir);
+    }; };
     auto stop = move(organsEnums::None);
 
     Button up;
@@ -121,7 +125,11 @@ BroomButtons::BroomButtons(const OrganWidgets &w, CentralBroom *broom, PhysicalB
 {
     const QString vert = buttonsPath + "rotatingBroomsFront_lift_";
     const QString side = buttonsPath + "rotatingBroomsBelow_";
-    auto move = [broom](organsEnums::Direction dir){ return [broom, dir]{ broom->setDirection(dir); }; };
+    auto move = [broom](organsEnums::Direction dir){ return [broom, dir]{
+        if (dir == organsEnums::Left || dir == organsEnums::Right)
+            broom->noteManualSideMove();
+        broom->setDirection(dir);
+    }; };
     auto stop = move(organsEnums::None);
 
     Button up;
