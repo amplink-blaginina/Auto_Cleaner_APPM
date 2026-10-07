@@ -31,10 +31,7 @@ void ServiceDevicesHydraulicsLeftForm::updateVisual(){
     if (_can->getState(StateValveC3) != ui->pushButton_dumpFlow->isChecked())
         ui->pushButton_dumpFlow->setChecked(_can->getState(StateValveC3));
 
-    if (_can->getState(StateValveF2) != ui->pushButton_broomPressUp->isChecked())
-        ui->pushButton_broomPressUp->setChecked(_can->getState(StateValveF2));
-    if (_can->getState(StateValveF8) != ui->pushButton_broomPressDown->isChecked())
-        ui->pushButton_broomPressDown->setChecked(_can->getState(StateValveF8));
+    updateBroomPress();
 
     if (ui->pushButton_dumpLeft->isDown())
         mainWindow->frontRail->setDirection(organsEnums::Left);
@@ -120,10 +117,30 @@ void ServiceDevicesHydraulicsLeftForm::on_pushButton_broomFlow_clicked(){
     _can->invertState(StateValveC2);
 }
 
-void ServiceDevicesHydraulicsLeftForm::on_pushButton_broomPressUp_clicked(){
-    _can->invertState(StateValveF2);
+void ServiceDevicesHydraulicsLeftForm::updateBroomPress(){
+    // отжим (F2) и прижим (F8) щётки внутри портала - пока держат кнопку, через орган: он открывает A1.
+    // Обе сразу не включаем: сначала выключаем другую (её выключение освобождает A1), потом включаем нужную
+    auto broom = ((MainWindow*)_parent)->broomCentral;
+    if (ui->pushButton_broomPressUp->isDown()){
+        broom->goPressDown(false);
+        broom->goPressUp(true);
+        _broomPressHeld = true;
+    }
+    else if (ui->pushButton_broomPressDown->isDown()){
+        broom->goPressUp(false);
+        broom->goPressDown(true);
+        _broomPressHeld = true;
+    }
+    else if (_broomPressHeld){// отпустили - выключаем один раз, чтобы не мешать рукоятке КВ
+        broom->stopPress();
+        _broomPressHeld = false;
+    }
 }
 
-void ServiceDevicesHydraulicsLeftForm::on_pushButton_broomPressDown_clicked(){
-    _can->invertState(StateValveF8);
+void ServiceDevicesHydraulicsLeftForm::hideEvent(QHideEvent *event){
+    QWidget::hideEvent(event);
+    if (_broomPressHeld){
+        ((MainWindow*)_parent)->broomCentral->stopPress();
+        _broomPressHeld = false;
+    }
 }

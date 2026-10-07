@@ -1003,7 +1003,7 @@ background-image: url(:/Images/Images/service/buttons/service_indication_off.png
 	color: white;
 }
 
-QPushButton::checked
+QPushButton::pressed
 {
 	border-style:none;
 	outline: none;
@@ -1015,7 +1015,7 @@ QPushButton::checked
      <string>ЩЕТКА ОТЖИМ</string>
     </property>
     <property name="checkable">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
     <property name="checked">
      <bool>false</bool>
@@ -1044,7 +1044,7 @@ QPushButton::checked
 	color: white;
 }
 
-QPushButton::checked
+QPushButton::pressed
 {
 	border-style:none;
 	outline: none;
@@ -1056,7 +1056,7 @@ QPushButton::checked
      <string>ЩЕТКА ПРИЖИМ</string>
     </property>
     <property name="checkable">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
     <property name="checked">
      <bool>false</bool>

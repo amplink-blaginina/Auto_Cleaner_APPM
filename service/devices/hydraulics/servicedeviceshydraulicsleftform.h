@@ -39,11 +39,12 @@ private slots:
 
     void on_pushButton_broomFlow_clicked();
 
-    void on_pushButton_broomPressUp_clicked();
-
-    void on_pushButton_broomPressDown_clicked();
+protected:
+    void hideEvent(QHideEvent *event) override;// ушли с экрана - поджим/отжим щётки выключаем
 
 private:
+    void updateBroomPress();
+    bool _broomPressHeld = false;// поджим или отжим включён кнопкой этого экрана
     Ui::ServiceDevicesHydraulicsLeftForm *ui;
     QWidget* _parent;
     CanController* _can;
